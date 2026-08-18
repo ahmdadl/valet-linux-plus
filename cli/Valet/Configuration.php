@@ -138,7 +138,7 @@ class Configuration
             json_encode(
                 $config,
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-            ).PHP_EOL
+            ) . PHP_EOL
         );
     }
 
@@ -147,7 +147,11 @@ class Configuration
      */
     private function read(): array
     {
-        return json_decode($this->files->get($this->path()), true);
+        $data = json_decode($this->files->get($this->path()), true);
+        if ($data === null) {
+            return [];
+        }
+        return $data;
     }
 
     /**
@@ -163,15 +167,15 @@ class Configuration
      */
     private function createDriversDirectory(): void
     {
-        if ($this->files->isDir($driversDirectory = VALET_HOME_PATH.'/Drivers')) {
+        if ($this->files->isDir($driversDirectory = VALET_HOME_PATH . '/Drivers')) {
             return;
         }
 
         $this->files->mkdirAsUser($driversDirectory);
 
         $this->files->putAsUser(
-            $driversDirectory.'/SampleValetDriver.php',
-            $this->files->get(VALET_ROOT_PATH.'/cli/stubs/SampleValetDriver.php')
+            $driversDirectory . '/SampleValetDriver.php',
+            $this->files->get(VALET_ROOT_PATH . '/cli/stubs/SampleValetDriver.php')
         );
     }
 
@@ -180,7 +184,7 @@ class Configuration
      */
     private function createSitesDirectory(): void
     {
-        $this->files->ensureDirExists(VALET_HOME_PATH.'/Sites', user());
+        $this->files->ensureDirExists(VALET_HOME_PATH . '/Sites', user());
     }
 
     /**
@@ -188,7 +192,7 @@ class Configuration
      */
     private function createExtensionsDirectory(): void
     {
-        $this->files->ensureDirExists(VALET_HOME_PATH.'/Extensions', user());
+        $this->files->ensureDirExists(VALET_HOME_PATH . '/Extensions', user());
     }
 
     /**
@@ -196,9 +200,9 @@ class Configuration
      */
     private function createLogDirectory(): void
     {
-        $this->files->ensureDirExists(VALET_HOME_PATH.'/Log', user());
+        $this->files->ensureDirExists(VALET_HOME_PATH . '/Log', user());
 
-        $this->files->touch(VALET_HOME_PATH.'/Log/nginx-error.log');
+        $this->files->touch(VALET_HOME_PATH . '/Log/nginx-error.log');
     }
 
     /**
@@ -206,7 +210,7 @@ class Configuration
      */
     private function createCertificatesDirectory(): void
     {
-        $this->files->ensureDirExists(VALET_HOME_PATH.'/Certificates', user());
+        $this->files->ensureDirExists(VALET_HOME_PATH . '/Certificates', user());
     }
 
     /**
@@ -228,6 +232,6 @@ class Configuration
      */
     private function path(): string
     {
-        return VALET_HOME_PATH.'/config.json';
+        return VALET_HOME_PATH . '/config.json';
     }
 }

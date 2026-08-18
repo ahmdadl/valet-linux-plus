@@ -18,15 +18,35 @@ class PhpFpm
     protected Nginx $nginx;
 
     public const SUPPORTED_PHP_VERSIONS = [
-        '8.2', '8.3', '8.4', '8.5',
+        '8.2',
+        '8.3',
+        '8.4',
+        '8.5',
+        '8.6'
     ];
 
     public const ISOLATION_SUPPORTED_PHP_VERSIONS = [
-        '7.0', '7.1', '7.2', '7.3', '7.4', '8.0', '8.1', ...self::SUPPORTED_PHP_VERSIONS
+        '7.0',
+        '7.1',
+        '7.2',
+        '7.3',
+        '7.4',
+        '8.0',
+        '8.1',
+        ...self::SUPPORTED_PHP_VERSIONS
     ];
 
     public const COMMON_EXTENSIONS = [
-        'cli', 'mysql', 'gd', 'zip', 'xml', 'curl', 'mbstring', 'pgsql', 'intl', 'posix',
+        'cli',
+        'mysql',
+        'gd',
+        'zip',
+        'xml',
+        'curl',
+        'mbstring',
+        'pgsql',
+        'intl',
+        'posix',
     ];
 
     public const FPM_CONFIG_FILE_NAME = 'valet.conf';
