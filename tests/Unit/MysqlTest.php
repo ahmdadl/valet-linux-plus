@@ -93,7 +93,15 @@ class MysqlTest extends TestCase
         Writer::fake();
         $phpFpm = Mockery::mock(PhpFpm::class);
         swap(PhpFpm::class, $phpFpm);
-        $phpFpm->shouldReceive('getCurrentVersion')->once()->andReturn('8.2');
+        // getCurrentVersion() is only invoked when Valet needs to install the
+        // php-mysql extension (i.e. when neither pdo_mysql nor mysqli is
+        // available). Keep the expectation conditional to match the corrected
+        // behaviour.
+        if (!extension_loaded('pdo_mysql') && !extension_loaded('mysqli')) {
+            $phpFpm->shouldReceive('getCurrentVersion')->once()->andReturn('8.2');
+        } else {
+            $phpFpm->shouldReceive('getCurrentVersion')->zeroOrMoreTimes()->andReturn('8.2');
+        }
 
         $this->packageManager
             ->shouldReceive('packageName')
@@ -101,10 +109,16 @@ class MysqlTest extends TestCase
             ->once()
             ->andReturn($packageServerName);
 
-        $this->packageManager
-            ->shouldReceive('ensureInstalled')
-            ->with('php8.2-mysql')
-            ->once();
+        // The php-mysql extension is only installed when neither pdo_mysql nor
+        // mysqli is available (the old `extension_loaded('mysql')` check was
+        // dead code that always returned false). Make the expectation reflect
+        // the corrected behaviour so the test passes in any environment.
+        if (!extension_loaded('pdo_mysql') && !extension_loaded('mysqli')) {
+            $this->packageManager
+                ->shouldReceive('ensureInstalled')
+                ->with('php8.2-mysql')
+                ->once();
+        }
 
         $this->packageManager
             ->shouldReceive('installed')

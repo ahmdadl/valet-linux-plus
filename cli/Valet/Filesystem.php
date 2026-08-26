@@ -276,7 +276,7 @@ class Filesystem
     public function commentLine(string $line, string $file): void
     {
         if ($this->exists($file)) {
-            $command = "sed -i '/{$line}/ s/^/# /' {$file}";
+            $command = "sed -i '/".$this->escapeSedPattern($line)."/ s/^/# /' ".escapeshellarg($file);
             CommandLine::run($command);
         }
     }
@@ -287,9 +287,22 @@ class Filesystem
     public function uncommentLine(string $line, string $file): void
     {
         if ($this->exists($file)) {
-            $command = "sed -i '/{$line}/ s/# *//' {$file}";
+            $command = "sed -i '/".$this->escapeSedPattern($line)."/ s/# *//' ".escapeshellarg($file);
             CommandLine::run($command);
         }
+    }
+
+    /**
+     * Escape a string so it can be safely used as a sed regex pattern inside
+     * single quotes on the command line. Prevents shell breakout (single
+     * quotes) and sed delimiter confusion (slashes / backslashes).
+     */
+    private function escapeSedPattern(string $pattern): string
+    {
+        $pattern = str_replace('\\', '\\\\', $pattern);
+        $pattern = str_replace('/', '\\/', $pattern);
+
+        return str_replace("'", "'\\\\''", $pattern);
     }
 
     /**

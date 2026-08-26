@@ -60,16 +60,30 @@ class MailpitTest extends TestCase
     {
         $this->commandLine
             ->shouldReceive('run')
-            ->once()
             ->andReturnUsing(function ($command) {
-                $this->assertSame('which mailpit', $command);
-                return false;
+                if ($command === 'which mailpit') {
+                    return false;
+                }
+                // The install script is now downloaded to a temp file instead
+                // of being piped straight into `bash` (curl|bash).
+                $this->assertStringStartsWith(
+                    'curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh -o ',
+                    $command
+                );
+                // Simulate a successful download so the subsequent `bash` call
+                // has a file to execute.
+                $tmpFile = trim(substr($command, strpos($command, '-o ') + 3), "'");
+                file_put_contents($tmpFile, '#!/bin/bash');
+                return '';
             });
 
         $this->commandLine
             ->shouldReceive('runAsUser')
             ->once()
-            ->with('curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash');
+            ->andReturnUsing(function ($command) {
+                $this->assertStringStartsWith('bash ', $command);
+                return '';
+            });
 
         $this->serviceManager
             ->shouldReceive('isSystemd')

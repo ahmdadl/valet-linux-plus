@@ -69,4 +69,14 @@ class RequirementsTest extends TestCase
         $this->requirements->setIgnoreSELinux();
         $this->requirements->check();
     }
+
+    /**
+     * @test
+     */
+    public function itWillCollectPhpExtensionStatusWithoutThrowing(): void
+    {
+        $this->requirements->checkPhpExtensions();
+
+        $this->assertIsArray($this->requirements->missingExtensions);
+    }
 }

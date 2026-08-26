@@ -36,6 +36,8 @@ class SiteSecure
      */
     public function secure(string $url, string $stub = null): void
     {
+        $url = $this->validateSiteUrl($url);
+
         if ($stub === null) {
             $stub = $this->prepareConf($url, true);
         }
@@ -63,6 +65,8 @@ class SiteSecure
      */
     public function unsecure(string $url, bool $preserveUnsecureConfig = false): void
     {
+        $url = $this->validateSiteUrl($url);
+
         $stub = null;
         if ($this->files->exists($this->certificatesPath($url . '.crt'))) {
             if ($preserveUnsecureConfig) {
@@ -226,6 +230,8 @@ class SiteSecure
      */
     private function createCertificate(string $url, int $certificateExpireInDays = 368): void
     {
+        $url = $this->validateSiteUrl($url);
+
         $caPemPath = $this->caPath($this->caCertificatePem);
         $caKeyPath = $this->caPath($this->caCertificateKey);
         $caSrlPath = $this->caPath($this->caCertificateSrl);
@@ -273,6 +279,8 @@ class SiteSecure
      */
     public function buildSecureNginxServer(string $url, ?string $stub = null): string
     {
+        $url = $this->validateSiteUrl($url);
+
         $stub = ($stub ?: $this->files->get(VALET_ROOT_PATH . '/cli/stubs/secure.valet.conf'));
         $path = $this->certificatesPath();
 
@@ -298,6 +306,8 @@ class SiteSecure
      */
     public function buildUnsecureNginxServer(string $url, string $stub): string
     {
+        $url = $this->validateSiteUrl($url);
+
         $this->files->ensureDirExists($this->nginxPath(), user());
 
         return strArrayReplace(
@@ -318,6 +328,8 @@ class SiteSecure
      */
     private function prepareConf(string $url, bool $secure = false): ?string
     {
+        $url = $this->validateSiteUrl($url);
+
         if (!$this->files->exists($this->nginxPath($url))) {
             return null;
         }
@@ -408,5 +420,23 @@ class SiteSecure
         }
 
         return '';
+    }
+
+    /**
+     * Validate and normalize a site URL used to build certificate / config
+     * paths. Prevents path traversal (e.g. "../") and injection of unexpected
+     * characters into filesystem paths.
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validateSiteUrl(string $url): string
+    {
+        $url = basename($url);
+
+        if ($url === '' || !preg_match('/^[a-z0-9.-]+$/i', $url)) {
+            throw new \InvalidArgumentException("Invalid site URL: {$url}");
+        }
+
+        return $url;
     }
 }

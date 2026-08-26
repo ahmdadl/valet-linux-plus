@@ -277,10 +277,11 @@ if (is_dir(VALET_HOME_PATH)) {
             Writer::warn('There is a new release of Valet Linux+');
             Writer::warn('Updating now...');
             $latestVersion = Valet::getLatestVersion();
-            if ($latestVersion) {
-                passthru($script . " update $latestVersion");
+            if ($latestVersion && preg_match('/^v?\d+\.\d+\.\d+.*$/', $latestVersion)) {
+                passthru($script . " update " . escapeshellarg($latestVersion));
             } else {
-                passthru($script . ' update');
+                warning("Invalid version tag received");
+                return;
             }
         }
     })->descriptions('Update Valet Linux+ and clean up cruft');

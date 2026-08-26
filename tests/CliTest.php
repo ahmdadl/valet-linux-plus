@@ -784,13 +784,13 @@ class CliTest extends TestCase
 
         $content = $output->fetch();
         $this->assertStringContainsString(
-            'Invalid version [7.2] used. Supported versions are: 8.2, 8.3',
+            'Invalid version [7.2] used. Supported versions are: 8.2, 8.3, 8.4, 8.5, 8.6',
             $content
         );
         $this->assertStringContainsString(
             \sprintf(
                 'You can still use any version from [%s] list using `valet isolate` command',
-                '7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5',
+                '7.0, 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6',
             ),
             $content
         );

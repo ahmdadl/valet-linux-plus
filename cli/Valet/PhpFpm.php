@@ -17,6 +17,12 @@ class PhpFpm
     protected Site $site;
     protected Nginx $nginx;
 
+    /**
+     * PHP versions Valet can manage.
+     *
+     * 8.2, 8.3 and 8.4 are currently released. 8.5 and 8.6 are listed for
+     * forward compatibility (future releases) and are not yet available.
+     */
     public const SUPPORTED_PHP_VERSIONS = [
         '8.2',
         '8.3',
@@ -378,25 +384,36 @@ class PhpFpm
     private function fpmConfigPath(string $version = null): string
     {
         $version = $version ?: $this->getCurrentVersion();
+
+        return collect($this->fpmConfigPaths($version))->first(function ($path) {
+            return $this->files->isDir($path);
+        }, function () {
+            throw new \DomainException('Unable to determine PHP-FPM configuration folder.');
+        });
+    }
+
+    /**
+     * Candidate directories for the PHP-FPM pool configuration, ordered by preference.
+     *
+     * The list is data-driven rather than hard-coded inline so it can be reused
+     * and extended without duplicating the lookup logic.
+     *
+     * @return array<int, string>
+     */
+    private function fpmConfigPaths(string $version): array
+    {
         $versionWithoutDot = preg_replace('~[^\d]~', '', $version);
 
-        /** @var string $confDir */
-        return collect([
+        return [
             '/etc/php/' . $version . '/fpm/pool.d', // Ubuntu
             '/etc/php' . $version . '/fpm/pool.d', // Ubuntu
             '/etc/php' . $version . '/php-fpm.d', // Manjaro
             '/etc/php' . $versionWithoutDot . '/php-fpm.d', // ArchLinux
             '/etc/php7/fpm/php-fpm.d', // openSUSE PHP7
             '/etc/php8/fpm/php-fpm.d', // openSUSE PHP8
-            '/etc/php8/fpm/php-fpm.d', // openSUSE PHP8
-            '/etc/php8/fpm/php-fpm.d', // openSUSE PHP8
             '/etc/php-fpm.d', // Fedora
             '/etc/php/php-fpm.d', // Arch
-        ])->first(function ($path) {
-            return $this->files->isDir($path);
-        }, function () {
-            throw new \DomainException('Unable to determine PHP-FPM configuration folder.');
-        });
+        ];
     }
 
     /**

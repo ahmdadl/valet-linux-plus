@@ -2,6 +2,7 @@
 
 namespace Valet;
 
+use ConsoleComponents\Writer;
 use RuntimeException;
 
 class Requirements
@@ -14,6 +15,13 @@ class Requirements
      * @var bool
      */
     public $ignoreSELinux = false;
+
+    /**
+     * Missing recommended PHP extensions discovered during pre-flight.
+     *
+     * @var array<int,string>
+     */
+    public array $missingExtensions = [];
 
     /**
      * Create a new Warning instance.
@@ -40,6 +48,38 @@ class Requirements
     {
         $this->homePathIsInsideRoot();
         $this->seLinuxIsEnabled();
+        $this->checkPhpExtensions();
+    }
+
+    /**
+     * Verify required PHP extensions are available.
+     *
+     * A missing extension is surfaced as a friendly warning rather than a hard
+     * failure, since some (e.g. pdo_mysql/mysqli) are only needed for optional
+     * database features.
+     */
+    public function checkPhpExtensions(): void
+    {
+        $required = ['posix', 'mbstring'];
+        $databaseExtensions = ['pdo_mysql', 'mysqli'];
+
+        $missing = [];
+        foreach ($required as $extension) {
+            if (!extension_loaded($extension)) {
+                $missing[] = $extension;
+            }
+        }
+
+        // pdo_mysql and mysqli are interchangeable: only warn when both are absent.
+        if (!extension_loaded('pdo_mysql') && !extension_loaded('mysqli')) {
+            $missing = array_merge($missing, $databaseExtensions);
+        }
+
+        $this->missingExtensions = $missing;
+
+        if (count($this->missingExtensions) > 0) {
+            Writer::warn('Missing recommended PHP extensions: ' . implode(', ', $this->missingExtensions));
+        }
     }
 
     /**

@@ -33,23 +33,23 @@ class CommandLine
     /**
      * Run the given command as the non-root user.
      */
-    public function run(string $command, callable $onError = null): string
+    public function run(string $command, callable $onError = null, ?int $timeout = 300): string
     {
-        return $this->runCommand($command, $onError);
+        return $this->runCommand($command, $onError, $timeout);
     }
 
     /**
      * Run the given command.
      */
-    public function runAsUser(string $command, callable $onError = null): string
+    public function runAsUser(string $command, callable $onError = null, ?int $timeout = 300): string
     {
-        return $this->runCommand('sudo -u '.user().' '.$command, $onError);
+        return $this->runCommand('sudo -u '.user().' '.$command, $onError, $timeout);
     }
 
     /**
      * Run the given command.
      */
-    private function runCommand(string $command, callable $onError = null): string
+    private function runCommand(string $command, callable $onError = null, ?int $timeout = 300): string
     {
         $onError = $onError ?: function () {
         };
@@ -57,7 +57,8 @@ class CommandLine
         $process = Process::fromShellCommandline($command);
 
         $processOutput = '';
-        $process->setTimeout(null)->run(function ($type, $line) use (&$processOutput) {
+        // Capture both STDOUT and STDERR so error output is available to $onError.
+        $process->setTimeout($timeout)->run(function ($type, $line) use (&$processOutput) {
             $processOutput .= $line;
         });
 

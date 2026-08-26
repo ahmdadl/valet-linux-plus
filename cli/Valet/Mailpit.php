@@ -117,9 +117,20 @@ class Mailpit
     private function ensureInstalled(): void
     {
         if (!$this->isAvailable()) {
-            $this->cli->runAsUser(
-                'curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash'
+            $tmpFile = tempnam(sys_get_temp_dir(), 'mailpit-install-');
+            $this->cli->run(
+                'curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh -o '.escapeshellarg($tmpFile)
             );
+
+            if (file_exists($tmpFile) && filesize($tmpFile) > 0) {
+                // Security note: the install script is fetched over HTTPS from the
+                // official Mailpit repository. Ideally verify a published checksum
+                // here before executing; none is currently published for the
+                // develop branch, so review the downloaded script if in doubt.
+                $this->cli->runAsUser('bash '.escapeshellarg($tmpFile));
+            }
+
+            @unlink($tmpFile);
         }
     }
 
