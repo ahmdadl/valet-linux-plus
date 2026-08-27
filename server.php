@@ -1,5 +1,90 @@
 <?php
 
+/**
+ * Bootstrap Valet for dashboard: autoloader + helpers + container.
+ *
+ * server.php is executed directly by php-fpm (via nginx fastcgi) without
+ * going through cli/app.php, so the Illuminate container is not set up yet.
+ * Without it the dashboard route falls through to the raw HTML fallback and
+ * the frontend shows zeros. We bootstrap here best-effort so the dashboard
+ * can render real data; failures are swallowed so normal site serving never
+ * breaks.
+ */
+// Define user paths first so helpers.php (loaded via composer) respects them.
+if (!defined('VALET_HOME_PATH')) {
+    $homeDir = null;
+    if (function_exists('posix_getpwuid')) {
+        $owner = @fileowner(__FILE__);
+        if (is_int($owner)) {
+            $info = @posix_getpwuid($owner);
+            if (is_array($info) && isset($info['dir']) && is_string($info['dir'])) {
+                $homeDir = $info['dir'];
+            }
+        }
+    }
+    if (!$homeDir) {
+        $homeDir = getenv('HOME') ?: ($_SERVER['HOME'] ?? '/root');
+    }
+    define('VALET_HOME_PATH', rtrim($homeDir, '/') . '/.config/valet');
+}
+if (!defined('VALET_STATIC_PREFIX')) {
+    define('VALET_STATIC_PREFIX', '41c270e4-5535-4daa-b23e-c269744c2f45');
+}
+if (!defined('VALET_ROOT_PATH')) {
+    define('VALET_ROOT_PATH', realpath(__DIR__));
+}
+if (!defined('VALET_SERVER_PATH')) {
+    define('VALET_SERVER_PATH', realpath(__DIR__ . '/server.php'));
+}
+
+if (!class_exists(\Illuminate\Container\Container::class, false)) {
+    $autoloadCandidates = [
+        __DIR__ . '/vendor/autoload.php',
+        __DIR__ . '/../vendor/autoload.php',
+        __DIR__ . '/../../vendor/autoload.php',
+        __DIR__ . '/../../../autoload.php',
+    ];
+    $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? null);
+    if ($home) {
+        $autoloadCandidates[] = rtrim($home, '/') . '/.composer/vendor/autoload.php';
+        $autoloadCandidates[] = rtrim($home, '/') . '/.config/composer/vendor/autoload.php';
+    }
+    foreach ($autoloadCandidates as $candidate) {
+        if ($candidate && file_exists($candidate)) {
+            require_once $candidate;
+            break;
+        }
+    }
+}
+
+// Ensure helper functions (resolve, etc.) are available even when autoload
+// failed to load via composer files (e.g. isolated PHP).
+if (!function_exists('Valet\resolve')) {
+    $helpersPath = __DIR__ . '/cli/includes/helpers.php';
+    if (file_exists($helpersPath)) {
+        require_once $helpersPath;
+    }
+}
+
+// Set up the container for Dashboard resolution when served via php-fpm.
+// Container::getInstance() auto-creates an instance via ??=, so we must check
+// for the actual bindings rather than instance existence.
+if (class_exists(\Illuminate\Container\Container::class)) {
+    try {
+        $container = \Illuminate\Container\Container::getInstance();
+        if (!$container->bound(\Valet\Contracts\PackageManager::class) || !$container->bound(\Valet\Contracts\ServiceManager::class)) {
+            try {
+                $valetInstance = $container->make(\Valet\Valet::class);
+                $valetInstance->environmentSetup();
+            } catch (\Throwable $e) {
+                // environmentSetup may fail (e.g. no package manager) — ignore.
+            }
+        }
+    } catch (\Throwable $e) {
+        // Container setup failed — dashboard will degrade to fallback.
+    }
+}
+
 require_once __DIR__ . '/cli/includes/require-drivers.php';
 require_once __DIR__ . '/cli/Valet/Server.php';
 
@@ -7,15 +92,12 @@ use Valet\Drivers\ValetDriver;
 use Valet\Server;
 
 /**
- * Define the user's "~/.config/valet" path.
- */
-define('VALET_HOME_PATH', posix_getpwuid(fileowner(__FILE__))['dir'].'/.config/valet');
-define('VALET_STATIC_PREFIX', '41c270e4-5535-4daa-b23e-c269744c2f45');
-
-/**
  * Load the Valet configuration.
  */
-$valetConfig = json_decode(file_get_contents(VALET_HOME_PATH.'/config.json'), true);
+$valetConfig = json_decode(@file_get_contents(VALET_HOME_PATH.'/config.json'), true);
+if (!is_array($valetConfig)) {
+    $valetConfig = [];
+}
 
 
 /**

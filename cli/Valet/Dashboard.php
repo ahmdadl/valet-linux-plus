@@ -364,9 +364,13 @@ class Dashboard
         ];
 
         // Append user-defined custom services (best-effort, never fatal).
-        $custom = \Valet\Facades\ServiceRegistry::customServices();
-        foreach (array_keys($custom) as $name) {
-            $services[] = (string) $name;
+        try {
+            $custom = \Valet\Facades\ServiceRegistry::customServices();
+            foreach (array_keys($custom) as $name) {
+                $services[] = (string) $name;
+            }
+        } catch (\Throwable $e) {
+            // Ignore custom service enumeration failures.
         }
 
         return $services;
