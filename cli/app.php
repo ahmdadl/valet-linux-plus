@@ -4,6 +4,7 @@ use ConsoleComponents\Writer;
 use Illuminate\Container\Container;
 use Silly\Application;
 use Valet\Drivers\ValetDriver;
+use Valet\Facades\Backup;
 use Valet\Facades\Configuration;
 use Valet\Facades\Dashboard;
 use Valet\Facades\DevTools;
@@ -149,6 +150,151 @@ if (is_dir(VALET_HOME_PATH)) {
             [[$domain, $port, $phpVersion, $pathsCount]]
         );
     })->descriptions('View Valet service status');
+
+    /**
+     * Create a backup archive of the Valet home directory.
+     */
+    $app->command('backup [--output=] [--with-db]', function ($output, $withDb) {
+        $output = $output ?: null;
+
+        Backup::backup($output, (bool) $withDb);
+    })->descriptions('Create a backup archive of the Valet home directory', [
+        '--output'  => 'Path to write the backup archive to',
+        '--with-db' => 'Include database dumps in the backup',
+    ]);
+
+    /**
+     * Restore a previously created backup archive.
+     */
+    $app->command('restore [file] [--force]', function ($file, $force) {
+        if ($file === null) {
+            Writer::error('Please provide a backup archive path');
+
+            return;
+        }
+
+        if (!Filesystem::exists($file)) {
+            Writer::error(sprintf('Backup archive not found: %s', $file));
+
+            return;
+        }
+
+        Backup::restore($file, (bool) $force);
+    })->descriptions('Restore a Valet backup archive', [
+        '--force' => 'Skip the confirmation prompt',
+    ]);
+
+    /**
+     * List all known services (built-in, custom and templates).
+     */
+    $app->command('services', function () {
+        $rows = [];
+
+        foreach (ServiceRegistry::allServices() as $name) {
+            $type = ServiceRegistry::isCustomService($name) ? 'custom' : 'builtin';
+            $definition = ServiceRegistry::getServiceDefinition($name) ?? [];
+            $rows[] = [
+                $name,
+                $type,
+                $definition['port'] ?? '',
+                $definition['proxyHost'] ?? '',
+            ];
+        }
+
+        foreach (ServiceRegistry::templates() as $name => $definition) {
+            $rows[] = [
+                $name,
+                'template',
+                $definition['port'] ?? '',
+                $definition['proxyHost'] ?? '',
+            ];
+        }
+
+        Writer::table(['Service', 'Type', 'Port', 'ProxyHost'], $rows);
+    })->descriptions('List all Valet services (built-in, custom and templates)');
+
+    /**
+     * Add a custom service definition.
+     */
+    $app->command('service:add [name] [--template=] [--package=] [--service=] [--port=] [--proxyHost=] [--healthCheck=]', function (
+        $name,
+        $template,
+        $package,
+        $service,
+        $port,
+        $proxyHost,
+        $healthCheck
+    ) {
+        if ($name === null || $name === '') {
+            Writer::error('Please provide a service name');
+
+            return;
+        }
+
+        $definition = [];
+
+        if ($template) {
+            $templates = ServiceRegistry::templates();
+            if (isset($templates[$template])) {
+                $definition = $templates[$template];
+            } else {
+                Writer::warn(sprintf('Unknown template [%s]; using provided options only.', $template));
+            }
+        }
+
+        if ($package) {
+            $definition['package'] = $package;
+        }
+        if ($service) {
+            $definition['service'] = $service;
+        }
+        if ($port !== null && $port !== '') {
+            $definition['port'] = (int) $port;
+        }
+        if ($proxyHost) {
+            $definition['proxyHost'] = $proxyHost;
+        }
+        if ($healthCheck) {
+            $definition['healthCheck'] = $healthCheck;
+        }
+
+        ServiceRegistry::addService($name, $definition);
+
+        Writer::info(sprintf('Service [%s] added.', $name));
+
+        if ($proxyHost) {
+            $domain = Configuration::get('domain', 'test');
+            try {
+                SiteProxy::proxyCreate($name . '.' . $domain, $proxyHost);
+            } catch (\Throwable $e) {
+                Writer::warn('Could not create proxy for the service: ' . $e->getMessage());
+            }
+        }
+    })->descriptions('Add a custom service definition', [
+        '--template'    => 'Use a built-in template (e.g. minio)',
+        '--package'     => 'System package name',
+        '--service'     => 'Service unit name',
+        '--port'        => 'Service port',
+        '--proxyHost'   => 'Upstream host to proxy (e.g. http://127.0.0.1:9000)',
+        '--healthCheck' => 'Health check URL',
+    ]);
+
+    /**
+     * Remove a custom service definition.
+     */
+    $app->command('service:remove [name]', function ($name) {
+        if ($name === null || $name === '') {
+            Writer::error('Please provide a service name');
+
+            return;
+        }
+
+        if (ServiceRegistry::removeService($name)) {
+            Writer::info(sprintf('Service [%s] removed.', $name));
+        } else {
+            Writer::warn(sprintf('Service [%s] is not a removable custom service.', $name));
+        }
+    })->descriptions('Remove a custom service definition');
 
     /**
      * Determine if this is the latest release of Valet.

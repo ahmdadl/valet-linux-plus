@@ -354,7 +354,7 @@ class Dashboard
         $phpVersion = $this->safePhpVersion();
         $phpService = 'php' . str_replace('.', '', $phpVersion) . '-fpm';
 
-        return [
+        $services = [
             'nginx',
             $phpService,
             'mailpit',
@@ -362,6 +362,18 @@ class Dashboard
             'redis',
             'postgres',
         ];
+
+        // Append user-defined custom services (best-effort, never fatal).
+        try {
+            $custom = \Valet\Facades\ServiceRegistry::customServices();
+            foreach (array_keys($custom) as $name) {
+                $services[] = (string) $name;
+            }
+        } catch (\Throwable $e) {
+            // Ignore — custom service enumeration must not break the dashboard.
+        }
+
+        return $services;
     }
 
     /**

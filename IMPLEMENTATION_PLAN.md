@@ -36,7 +36,13 @@ Make Valet Linux+ the most complete zero-config local dev stack for PHP/Laravel 
 | F-05 | **Logs + Mail + Enhanced Status** | `cli/Valet/Valet.php` or `cli/Valet/Log.php` (new), `cli/app.php`, `cli/Valet/Nginx.php` (log path) | `valet log [nginx\|php\|mysql\|mailpit\|redis] [--tail=50]`, `valet mail`, `valet status` (enhanced) | `log` tails `VALET_HOME_PATH/Log/nginx-error.log` + `journalctl`; `mail` does `xdg-open https://mails.<domain>`; `status` unified table |
 | F-06 | **Atom Removal + Minor Cleanup** | `cli/Valet/DevTools.php`, `cli/app.php` | remove `valet atom` | Atom discontinued |
 
-**Out of scope for this cycle (next cycle):** Valet dashboard (`valet.test` landing), Minio, Meilisearch, Node/NVM, Cloudflare Tunnel, backup/restore, scaffold.
+**Tier 2 — Next Cycle (scoped per user request):** 
+- `valet backup` / `valet restore` — config + Nginx + certs + DB dumps (Mysqldump + pg_dump)
+- **Configurable Services** — extensible `ServiceRegistry` via `config.json` (`services` key) + built-in templates (Minio as first class). Generic definition: `{name, package, service, port, proxyHost, healthCheck}` auto-wired to `start/restart/stop/status` and `valet proxy`/`valet status`/`Dashboard`.
+
+**Dashboard update:** Valet dashboard (`valet.test` landing) completed as `feat(dashboard)` 13992e1 — serves `valet.<domain>` / `dashboard.<domain>` via `server.php` + `Dashboard.php`.
+
+**Removed from Tier 2:** scaffold, Meilisearch, Node/NVM, Cloudflare Tunnel (Minio restored as configurable-services template).
 
 ## 4. Dependency Graph
 
