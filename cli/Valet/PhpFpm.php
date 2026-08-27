@@ -236,6 +236,153 @@ class PhpFpm
         return DevToolsFacade::getBin('php' . $version, ['/usr/local/bin/php']);
     }
 
+    /**
+     * Determine whether Xdebug is enabled for the given PHP version.
+     */
+    public function isXdebugEnabled(?string $version = null): bool
+    {
+        try {
+            $version = $version ? $this->normalizePhpVersion($version) : $this->getCurrentVersion();
+            if ($version === '') {
+                return false;
+            }
+
+            // 1. Check loaded modules via the CLI.
+            $modules = $this->cli->run("php{$version} -m | grep -i xdebug");
+            if (trim($modules) !== '') {
+                return true;
+            }
+
+            // 2. Check the mods-available ini file exists and is not disabled.
+            $modsAvailable = "/etc/php/{$version}/mods-available/xdebug.ini";
+            if ($this->files->exists($modsAvailable)) {
+                $contents = $this->files->get($modsAvailable);
+                if (stripos($contents, 'zend_extension') !== false
+                    && stripos($contents, ';zend_extension') === false
+                ) {
+                    return true;
+                }
+            }
+
+            // 3. Check the fpm/cli conf.d symlinks exist (enabled state).
+            $fpmConf = $this->cli->run("ls /etc/php/{$version}/fpm/conf.d/ 2>/dev/null | grep -i xdebug");
+            $cliConf = $this->cli->run("ls /etc/php/{$version}/cli/conf.d/ 2>/dev/null | grep -i xdebug");
+            if (trim($fpmConf) !== '' || trim($cliConf) !== '') {
+                return true;
+            }
+
+            // 4. Fallback: ask PHP directly whether the extension is loaded.
+            $loaded = $this->cli->run(
+                "php{$version} -r 'echo extension_loaded(\"xdebug\") ? \"1\" : \"0\";'"
+            );
+            if (trim($loaded) === '1') {
+                return true;
+            }
+        } catch (\Throwable $throwable) {
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Enable Xdebug for the given PHP version.
+     */
+    public function enableXdebug(?string $version = null): bool
+    {
+        $version = $version ? $this->normalizePhpVersion($version) : $this->getCurrentVersion();
+        if ($version === '') {
+            return false;
+        }
+
+        if ($this->isXdebugEnabled($version)) {
+            Writer::info("Xdebug already enabled for PHP {$version}");
+
+            return true;
+        }
+
+        $modsAvailable = "/etc/php/{$version}/mods-available/xdebug.ini";
+
+        // If the module ini is missing, attempt to install the package first.
+        if (!$this->files->exists($modsAvailable)) {
+            Writer::warn("Xdebug not installed for PHP {$version}, installing...");
+            $this->pm->ensureInstalled("php{$version}-xdebug");
+        }
+
+        $phpenmod = $this->cli->run('which phpenmod');
+        if (trim($phpenmod) !== '') {
+            $this->cli->run("phpenmod -v {$version} xdebug", function () {
+            });
+        } else {
+            // Fallback: create the conf.d symlinks manually.
+            $this->cli->run(
+                "sudo ln -sf {$modsAvailable} /etc/php/{$version}/fpm/conf.d/20-xdebug.ini"
+            );
+            $this->cli->run(
+                "sudo ln -sf {$modsAvailable} /etc/php/{$version}/cli/conf.d/20-xdebug.ini"
+            );
+        }
+
+        $this->restart($version);
+
+        Writer::info("Xdebug enabled for PHP {$version}");
+
+        return true;
+    }
+
+    /**
+     * Disable Xdebug for the given PHP version.
+     */
+    public function disableXdebug(?string $version = null): bool
+    {
+        $version = $version ? $this->normalizePhpVersion($version) : $this->getCurrentVersion();
+        if ($version === '') {
+            return false;
+        }
+
+        if (!$this->isXdebugEnabled($version)) {
+            Writer::info("Xdebug already disabled for PHP {$version}");
+
+            return true;
+        }
+
+        $phpenmod = $this->cli->run('which phpenmod');
+        if (trim($phpenmod) !== '') {
+            $this->cli->run("phpdismod -v {$version} xdebug", function () {
+            });
+        } else {
+            // Fallback: remove the conf.d symlinks manually.
+            $this->cli->run("sudo rm -f /etc/php/{$version}/fpm/conf.d/*xdebug*");
+            $this->cli->run("sudo rm -f /etc/php/{$version}/cli/conf.d/*xdebug*");
+        }
+
+        $this->restart($version);
+
+        Writer::info("Xdebug disabled for PHP {$version}");
+
+        return true;
+    }
+
+    /**
+     * Print the Xdebug status for the given PHP version.
+     */
+    public function xdebugStatus(?string $version = null): void
+    {
+        $version = $version ? $this->normalizePhpVersion($version) : $this->getCurrentVersion();
+        if ($version === '') {
+            Writer::warn('Unable to determine PHP version.');
+
+            return;
+        }
+
+        $enabled = $this->isXdebugEnabled($version);
+
+        Writer::table(
+            ['PHP Version', 'Xdebug'],
+            [[$version, $enabled ? 'enabled' : 'disabled']]
+        );
+    }
+
     public function fpmSocketFile(string $version): string
     {
         return VALET_HOME_PATH . '/' . $this->socketFileName($version);

@@ -6,14 +6,18 @@ use Silly\Application;
 use Valet\Drivers\ValetDriver;
 use Valet\Facades\Configuration;
 use Valet\Facades\DevTools;
+use Valet\Facades\Diagnose;
 use Valet\Facades\DnsMasq;
 use Valet\Facades\Filesystem;
+use Valet\Facades\Log;
 use Valet\Facades\Mailpit;
 use Valet\Facades\Mysql;
 use Valet\Facades\Nginx;
 use Valet\Facades\Ngrok;
 use Valet\Facades\PhpFpm;
+use Valet\Facades\Postgres;
 use Valet\Facades\Requirements;
+use Valet\Facades\ServiceRegistry;
 use Valet\Facades\Site;
 use Valet\Facades\SiteIsolate;
 use Valet\Facades\SiteLink;
@@ -50,7 +54,7 @@ Valet::migrateConfig();
 /**
  * Install valet required services
  */
-$app->command('install [--ignore-selinux] [--mariadb]', function ($ignoreSELinux, $mariadb) {
+$app->command('install [--ignore-selinux] [--mariadb] [--with-pgsql]', function ($ignoreSELinux, $mariadb, $withPgsql) {
     Writer::info('Installing valet services');
 
     passthru(dirname(__FILE__) . '/scripts/update.sh'); // Clean up cruft
@@ -63,6 +67,9 @@ $app->command('install [--ignore-selinux] [--mariadb]', function ($ignoreSELinux
     ValetRedis::install();
     Nginx::restart();
     Mysql::install($mariadb);
+    if ($withPgsql) {
+        Postgres::install();
+    }
     Ngrok::install();
     Valet::symlinkToUsersBin();
 
@@ -94,141 +101,21 @@ if (is_dir(VALET_HOME_PATH)) {
      * Start the daemon services.
      */
     $app->command('start [services]*', function ($services) {
-        if (empty($services)) {
-            DnsMasq::restart();
-            PhpFpm::restart();
-            Nginx::restart();
-            Mailpit::restart();
-            Mysql::restart();
-            ValetRedis::restart();
-            Writer::info('Valet services have been started.');
-
-            return;
-        }
-        foreach ($services as $service) {
-            switch ($service) {
-                case 'nginx':
-                    Nginx::restart();
-                    break;
-
-                case 'php':
-                    PhpFpm::restart();
-                    break;
-
-                case 'mailpit':
-                    Mailpit::restart();
-                    break;
-
-                case 'dnsmasq':
-                    DnsMasq::restart();
-                    break;
-
-                case 'mysql':
-                    Mysql::restart();
-                    break;
-
-                case 'redis':
-                    ValetRedis::restart();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        Writer::info('Specified Valet services have been started.');
+        ServiceRegistry::start($services);
     })->descriptions('Start the Valet services');
 
     /**
      * Restart the daemon services.
      */
     $app->command('restart [services]*', function ($services) {
-        if (empty($services)) {
-            DnsMasq::restart();
-            PhpFpm::restart();
-            Nginx::restart();
-            Mailpit::restart();
-            Mysql::restart();
-            ValetRedis::restart();
-            Writer::info('Valet services have been restarted.');
-
-            return;
-        }
-
-        foreach ($services as $service) {
-            switch ($service) {
-                case 'nginx':
-                    Nginx::restart();
-                    break;
-
-                case 'php':
-                    PhpFpm::restart();
-                    break;
-
-                case 'mailpit':
-                    Mailpit::restart();
-                    break;
-
-                case 'dnsmasq':
-                    DnsMasq::restart();
-                    break;
-
-                case 'mysql':
-                    Mysql::restart();
-                    break;
-
-                case 'redis':
-                    ValetRedis::restart();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        Writer::info('Specified Valet services have been restarted.');
+        ServiceRegistry::restart($services);
     })->descriptions('Restart the Valet services');
 
     /**
      * Stop the daemon services.
      */
     $app->command('stop [services]*', function ($services) {
-        if (empty($services)) {
-            PhpFpm::stop();
-            Nginx::stop();
-            Mailpit::stop();
-            Mysql::stop();
-            ValetRedis::stop();
-            Writer::info('Valet services have been stopped.');
-
-            return;
-        }
-
-        foreach ($services as $service) {
-            switch ($service) {
-                case 'nginx':
-                    Nginx::stop();
-                    break;
-
-                case 'php':
-                    PhpFpm::stop();
-                    break;
-
-                case 'mailpit':
-                    Mailpit::stop();
-                    break;
-
-                case 'mysql':
-                    Mysql::stop();
-                    break;
-
-                case 'redis':
-                    ValetRedis::stop();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        Writer::info('Specified Valet services have been stopped.');
+        ServiceRegistry::stop($services);
     })->descriptions('Stop the Valet services');
 
     /**
@@ -249,8 +136,17 @@ if (is_dir(VALET_HOME_PATH)) {
      * Remove the current working directory to paths configuration.
      */
     $app->command('status', function () {
-        PhpFpm::status();
-        Nginx::status();
+        ServiceRegistry::status();
+
+        $domain = Configuration::get('domain');
+        $port = Configuration::get('port', 80);
+        $phpVersion = PhpFpm::getCurrentVersion();
+        $pathsCount = count(Configuration::get('paths', []));
+
+        Writer::table(
+            ['Domain', 'Port', 'PHP Version', 'Paths'],
+            [[$domain, $port, $phpVersion, $pathsCount]]
+        );
     })->descriptions('View Valet service status');
 
     /**
@@ -695,14 +591,6 @@ if (is_dir(VALET_HOME_PATH)) {
     })->descriptions('Open project in PHPStorm');
 
     /**
-     * Atom IDE Helper Command.
-     */
-    $app->command('atom [folder]', function ($folder) {
-        $folder = $folder ?: getcwd();
-        DevTools::run($folder, \Valet\DevTools::ATOM);
-    })->descriptions('Open project in Atom');
-
-    /**
      * Sublime IDE Helper Command.
      */
     $app->command('subl [folder]', function ($folder) {
@@ -846,6 +734,172 @@ if (is_dir(VALET_HOME_PATH)) {
 
         Writer::info('Ngrok authentication token set.');
     })->descriptions('Set authentication token for ngrok');
+
+    /**
+     * Diagnose the Valet setup and output system health.
+     */
+    $app->command('diagnose [--json]', function ($json) {
+        Diagnose::run((bool)$json);
+    })->descriptions('Diagnose Valet setup and output system health', [
+        '--json' => 'Output as JSON',
+    ]);
+
+    /**
+     * List PostgreSQL databases.
+     */
+    $app->command('pg:list', function () {
+        $databases = Postgres::getDatabases();
+
+        Writer::table(['Database'], $databases);
+    })->descriptions('List all available databases in PostgreSQL');
+
+    /**
+     * Create a new database in PostgreSQL.
+     */
+    $app->command('pg:create [databaseName]', function ($databaseName) {
+        $databaseName = $databaseName ?: basename((string)getcwd());
+
+        $isCreated = Postgres::createDatabase($databaseName);
+        if ($isCreated) {
+            Writer::info(sprintf('Database [%s] created successfully', $databaseName));
+        }
+    })->descriptions('Create new database in PostgreSQL');
+
+    /**
+     * Drop a database in PostgreSQL.
+     */
+    $app->command('pg:drop [databaseName] [-y|--yes]', function ($databaseName, $yes) {
+        $databaseName = $databaseName ?: basename((string)getcwd());
+
+        if (!$yes) {
+            $confirm = Writer::confirm(sprintf('Are you sure you want to delete [%s] database?', $databaseName));
+            if (!$confirm) {
+                Writer::warn('Aborted');
+
+                return;
+            }
+        }
+        $isDropped = Postgres::dropDatabase($databaseName);
+        if ($isDropped) {
+            Writer::info(sprintf('Database [%s] dropped successfully', $databaseName));
+        }
+    })->descriptions('Drop given database from PostgreSQL');
+
+    /**
+     * Reset a database in PostgreSQL.
+     */
+    $app->command('pg:reset [databaseName] [-y|--yes]', function ($databaseName, $yes) {
+        $databaseName = $databaseName ?: basename((string)getcwd());
+
+        if (!$yes) {
+            $confirm = Writer::confirm(sprintf('Are you sure you want to reset [%s] database?', $databaseName));
+            if (!$confirm) {
+                Writer::warn('Aborted');
+
+                return;
+            }
+        }
+        $dropDB = Postgres::dropDatabase($databaseName);
+        if (!$dropDB) {
+            Writer::warn('Error resetting database');
+
+            return;
+        }
+
+        $isCreated = Postgres::createDatabase($databaseName);
+
+        if (!$isCreated) {
+            Writer::warn('Error resetting database');
+
+            return;
+        }
+
+        Writer::info(sprintf('Database [%s] reset successfully', $databaseName));
+    })->descriptions('Clear all tables for given database in PostgreSQL');
+
+    /**
+     * Import a database in PostgreSQL.
+     */
+    $app->command('pg:import [databaseName] [dumpFile]', function ($databaseName, $dumpFile) {
+        if (!$databaseName) {
+            Writer::error('Please provide database name');
+            return;
+        }
+        if (!$dumpFile) {
+            Writer::error('Please provide a dump file path');
+            return;
+        }
+
+        if (!Filesystem::exists($dumpFile)) {
+            Writer::error(sprintf('Unable to locate [%s]', $dumpFile));
+            return;
+        }
+        Writer::info('Importing database...');
+
+        Postgres::importDatabase($dumpFile, $databaseName);
+
+        Writer::info(sprintf('Database [%s] imported successfully', $databaseName));
+    })->descriptions('Import dump file for selected database in PostgreSQL');
+
+    /**
+     * Export a database in PostgreSQL.
+     */
+    $app->command('pg:export [databaseName] [--sql]', function ($databaseName, $sql) {
+        Writer::info('Exporting database...');
+        $databaseName = $databaseName ?: basename((string)getcwd());
+
+        $data = Postgres::exportDatabase($databaseName, $sql);
+
+        Writer::info(sprintf("Database [%s] exported into file %s", $data['database'], $data['filename']));
+    })->descriptions('Export selected PostgreSQL database');
+
+    /**
+     * Configure the Valet database user for PostgreSQL.
+     */
+    $app->command('pg:configure [--force]', function ($force) {
+        Postgres::configure($force);
+    })->descriptions('Configure valet database user for PostgreSQL');
+
+    /**
+     * Toggle Xdebug for PHP.
+     */
+    $app->command('xdebug [mode] [--version=]', function ($mode, $version) {
+        if ($version) {
+            $version = PhpFpm::normalizePhpVersion($version);
+        }
+
+        $mode = $mode ?: 'status';
+
+        switch ($mode) {
+            case 'on':
+                PhpFpm::enableXdebug($version);
+                break;
+            case 'off':
+                PhpFpm::disableXdebug($version);
+                break;
+            default:
+                PhpFpm::xdebugStatus($version);
+                break;
+        }
+    })->descriptions('Toggle Xdebug for PHP', [
+        '--version' => 'PHP version (e.g. 8.3)',
+    ]);
+
+    /**
+     * Tail the logs for a given service.
+     */
+    $app->command('log [service] [--tail=]', function ($service, $tail) {
+        Log::tail($service ?: 'nginx', (int)($tail ?? 50));
+    })->descriptions('Tail the logs for a given service', [
+        '--tail' => 'Number of lines to show',
+    ]);
+
+    /**
+     * Open the Mailpit web UI.
+     */
+    $app->command('mail', function () {
+        Log::openMail();
+    })->descriptions('Open the Mailpit web UI');
 }
 
 /**

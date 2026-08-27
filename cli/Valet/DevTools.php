@@ -24,11 +24,6 @@ class DevTools
      */
     public const PHP_STORM = 'phpstorm.sh';
 
-    /**
-     * Atom binary selector.
-     */
-    public const ATOM = 'atom';
-
     public PackageManager $pm;
     public ServiceManager $sm;
     public CommandLine $cli;
