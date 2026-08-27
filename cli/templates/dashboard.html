@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Valet Linux+ — Dashboard</title>
+<style>
+  :root{
+    --bg:#fcfcf8;
+    --bg-card:#ffffff;
+    --bg-muted:#f3f3ef;
+    --bg-input:#ffffff;
+    --border:#ecece8;
+    --border-strong:#e3e3de;
+    --text:#11110f;
+    --text-muted:#6b6b66;
+    --text-faint:#9a9a95;
+    --accent:#ff4e1a;
+    --accent-2:#ff7a1a;
+    --accent-soft:rgba(255,78,26,0.08);
+    --accent-border:rgba(255,78,26,0.2);
+    --radius-xl:16px;
+    --radius-lg:12px;
+    --radius-md:10px;
+    --radius-pill:999px;
+    --shadow:0 1px 2px rgba(16,15,13,0.04), 0 8px 24px rgba(16,15,13,0.06);
+    --shadow-hover:0 2px 8px rgba(16,15,13,0.06), 0 12px 32px rgba(16,15,13,0.09);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c0c0b;
+      --bg-card:#171715;
+      --bg-muted:#1e1e1c;
+      --bg-input:#1a1a18;
+      --border:#262624;
+      --border-strong:#2e2e2b;
+      --text:#f5f5f0;
+      --text-muted:#a8a8a3;
+      --text-faint:#7a7a75;
+      --accent:#ff5a2e;
+      --accent-2:#ff7e2a;
+      --accent-soft:rgba(255,90,46,0.12);
+      --accent-border:rgba(255,90,46,0.22);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+      --shadow-hover:0 2px 8px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.45);
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:-apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  /* subtle grain */
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none;
+    background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size:12px 12px;
+    opacity:0.5;
+    mask-image:linear-gradient(to bottom, black 0%, transparent 45%);
+  }
+  @media (prefers-color-scheme: dark){
+    body::before{opacity:0.08; background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);}
+  }
+  a{color:inherit}
+  button{font:inherit}
+  .wrap{max-width:1120px; margin:0 auto; padding:28px 24px 48px; position:relative}
+  @media (max-width:640px){ .wrap{padding:20px 16px 32px} }
+
+  /* header */
+  .header{
+    display:flex; align-items:center; justify-content:space-between; gap:24px;
+    padding:18px 22px;
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:var(--radius-xl);
+    box-shadow:var(--shadow);
+    flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px; min-width:0}
+  .mark{
+    width:38px; height:38px; border-radius:11px;
+    background:var(--text); color:var(--bg);
+    display:grid; place-items:center;
+    font-weight:800; font-size:15px; letter-spacing:-0.04em;
+    flex-shrink:0;
+    position:relative; overflow:hidden;
+  }
+  .mark::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    opacity:0.92; mix-blend-mode:screen;
+  }
+  .mark span{position:relative; z-index:1; color:#fff}
+  @media (prefers-color-scheme: dark){ .mark{background:#fff; color:#111} .mark span{color:#111} }
+  .brand-text{line-height:1.1}
+  .brand-title{
+    font-weight:800; font-size:17px; letter-spacing:-0.03em;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .brand-title small{font-weight:600; color:var(--text-muted); font-size:12px; letter-spacing:-0.01em}
+  .brand-sub{font-size:12.5px; color:var(--text-muted); margin-top:2px; font-weight:500}
+  .header-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .badge{
+    display:inline-flex; align-items:center; gap:7px;
+    padding:6px 12px; border-radius:var(--radius-pill);
+    border:1px solid var(--border);
+    background:var(--bg-muted);
+    font-size:12.5px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap;
+  }
+  .badge--accent{background:var(--accent-soft); border-color:var(--accent-border); color:var(--text)}
+  .badge-dot{width:7px; height:7px; border-radius:50%; background:var(--accent); flex-shrink:0; box-shadow:0 0 0 4px var(--accent-soft)}
+  .badge kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; background:var(--bg-card); border:1px solid var(--border-strong); padding:1px 5px; border-radius:4px; font-weight:700}
+
+  /* stats */
+  .stats{margin-top:18px; display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  @media (max-width:900px){ .stats{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:480px){ .stats{grid-template-columns:1fr} }
+  .stat{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl);
+    padding:18px 18px 16px; box-shadow:var(--shadow);
+    transition:transform .15s ease, box-shadow .15s ease;
+    position:relative; overflow:hidden;
+  }
+  .stat:hover{transform:translateY(-1px); box-shadow:var(--shadow-hover)}
+  .stat::before{content:""; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg, transparent, var(--border-strong), transparent); opacity:0.9}
+  .stat-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px}
+  .stat-label{font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-faint)}
+  .stat-icon{width:28px; height:28px; border-radius:8px; display:grid; place-items:center; font-size:13px; background:var(--bg-muted); border:1px solid var(--border)}
+  .stat-value{font-size:30px; font-weight:800; letter-spacing:-0.05em; line-height:1; margin:0}
+  .stat-meta{font-size:12.5px; color:var(--text-muted); margin-top:6px; font-weight:500; min-height:18px}
+  .stat--highlight{border-color:var(--accent-border)}
+  .stat--highlight .stat-icon{background:var(--accent-soft); border-color:var(--accent-border)}
+
+  /* services */
+  .section-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin:28px 0 12px; flex-wrap:wrap}
+  .section-head h2{margin:0; font-size:14px; font-weight:800; letter-spacing:-0.02em}
+  .section-head p{margin:0; font-size:12.5px; color:var(--text-muted); font-weight:500}
+  .services-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:12px}
+  @media (max-width:1100px){ .services-grid{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:560px){ .services-grid{grid-template-columns:repeat(2,1fr)}}
+  .svc{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg);
+    padding:14px 14px 12px; display:flex; flex-direction:column; gap:9px;
+    transition:border-color .15s, box-shadow .15s, transform .15s;
+    min-width:0;
+  }
+  .svc:hover{border-color:var(--border-strong); box-shadow:var(--shadow); transform:translateY(-1px)}
+  .svc-top{display:flex; align-items:center; gap:8px}
+  .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0; position:relative}
+  .dot::after{content:""; position:absolute; inset:-4px; border-radius:50%; opacity:0.35}
+  .dot--running{background:#18a957} .dot--running::after{background:#18a957}
+  .dot--stopped{background:#9a9a95} .dot--stopped::after{background:#9a9a95; opacity:0.18}
+  .dot--unknown{background:#e6a700} .dot--unknown::after{background:#e6a700}
+  .svc-name{font-size:13px; font-weight:700; letter-spacing:-0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .svc-sub{font-size:11.5px; line-height:1.35; color:var(--text-muted); font-weight:500; display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+  .pill-installed{font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:2px 6px; border-radius:999px; border:1px solid var(--border); background:var(--bg-muted); color:var(--text-faint)}
+  .pill-installed.is-yes{background:#eaf6ed; border-color:#cce8d1; color:#116329}
+  @media (prefers-color-scheme: dark){ .pill-installed.is-yes{background:#14331d; border-color:#214d2b; color:#7fd095} }
+  .svc-status{font-size:11.5px; font-weight:600; text-transform:capitalize}
+
+  /* sites panel */
+  .panel{
+    margin-top:12px; background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius-xl); box-shadow:var(--shadow); overflow:hidden;
+  }
+  .panel-toolbar{
+    padding:16px 18px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    border-bottom:1px solid var(--border); background:linear-gradient(to bottom, var(--bg-card), var(--bg-muted));
+  }
+  .search-wrap{flex:1; min-width:220px; position:relative; max-width:560px}
+  .search-wrap input{
+    width:100%; padding:10px 12px 10px 36px;
+    border-radius:var(--radius-pill); border:1px solid var(--border-strong);
+    background:var(--bg-input); color:var(--text); font-size:14px; font-weight:500;
+    outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  .search-wrap input::placeholder{color:var(--text-faint)}
+  .search-wrap input:focus{border-color:var(--accent-border); box-shadow:0 0 0 4px var(--accent-soft)}
+  .search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-faint); pointer-events:none}
+  .filters{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .filter-btn{
+    padding:7px 12px; border-radius:var(--radius-pill); border:1px solid var(--border);
+    background:var(--bg-card); font-size:12.5px; font-weight:600; cursor:pointer;
+    color:var(--text-muted); transition:all .15s;
+  }
+  .filter-btn:hover{border-color:var(--border-strong); color:var(--text)}
+  .filter-btn.is-active{background:var(--text); color:var(--bg); border-color:var(--text)}
+  @media (prefers-color-scheme: dark){ .filter-btn.is-active{background:#fff; color:#111; border-color:#fff} }
+  .count-badge{font-size:12px; color:var(--text-muted); font-weight:600; white-space:nowrap}
+  .table-wrap{overflow:auto}
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  thead th{
+    text-align:left; font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase;
+    color:var(--text-faint); padding:12px 16px; border-bottom:1px solid var(--border);
+    background:var(--bg-muted); white-space:nowrap; position:sticky; top:0;
+  }
+  tbody tr{transition:background .12s}
+  tbody tr:hover{background:var(--bg-muted)}
+  tbody td{padding:13px 16px; border-bottom:1px solid var(--border); vertical-align:middle; font-weight:500}
+  tbody tr:last-child td{border-bottom:none}
+  .site-name{font-weight:750; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px}
+  .site-name .avatar{
+    width:26px; height:26px; border-radius:8px; display:grid; place-items:center;
+    background:var(--bg-muted); border:1px solid var(--border); font-size:12px; font-weight:800; flex-shrink:0;
+    color:var(--text-muted); text-transform:uppercase;
+  }
+  .pill{
+    display:inline-flex; align-items:center; padding:3px 9px; border-radius:999px;
+    font-size:11.5px; font-weight:700; letter-spacing:-0.01em; border:1px solid var(--border);
+    text-transform:lowercase; white-space:nowrap;
+  }
+  .pill--parked{background:#eef2ff; border-color:#dfe6ff; color:#384aff}
+  .pill--linked{background:#eaf6ed; border-color:#d6ebd8; color:#116329}
+  .pill--proxy{background:#fff4e6; border-color:#ffe0b8; color:#8a4b00}
+  @media (prefers-color-scheme: dark){
+    .pill--parked{background:#1d223f; border-color:#2a3160; color:#9aa3ff}
+    .pill--linked{background:#14331d; border-color:#214d2b; color:#7fd095}
+    .pill--proxy{background:#33210f; border-color:#4d340f; color:#ffb84d}
+  }
+  .url-link{
+    display:inline-flex; align-items:center; gap:6px; color:var(--text); text-decoration:none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12.5px;
+    font-weight:600; padding:4px 8px; border-radius:8px; border:1px solid transparent;
+    max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .url-link:hover{background:var(--bg-muted); border-color:var(--border); text-decoration:underline; text-underline-offset:3px}
+  .url-link svg{width:12px; height:12px; opacity:0.6; flex-shrink:0}
+  .icon-lock{font-size:13px}
+  .muted{color:var(--text-muted)}
+  .path-cell{display:flex; align-items:center; gap:8px; max-width:360px}
+  .path-text{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0}
+  .copy-btn{
+    width:28px; height:28px; border-radius:8px; border:1px solid var(--border);
+    background:var(--bg-card); display:grid; place-items:center; cursor:pointer;
+    color:var(--text-faint); transition:all .15s; flex-shrink:0;
+  }
+  .copy-btn:hover{border-color:var(--border-strong); color:var(--text); background:var(--bg-muted); transform:translateY(-1px)}
+  .copy-btn:active{transform:translateY(0)}
+  .copy-btn svg{width:14px; height:14px}
+
+  /* mobile cards fallback */
+  .sites-cards{display:none; padding:12px; gap:12px}
+  .site-card{
+    border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; background:var(--bg-card);
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .site-card-head{display:flex; justify-content:space-between; align-items:center; gap:10px}
+  .site-card-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+  @media (max-width:760px){
+    .table-wrap{display:none}
+    .sites-cards{display:grid}
+  }
+
+  /* empty */
+  .empty{
+    padding:44px 24px; text-align:center; border-top:1px dashed var(--border);
+  }
+  .empty-ill{
+    width:64px; height:64px; margin:0 auto 16px; border-radius:18px;
+    background:var(--bg-muted); border:1px solid var(--border); display:grid; place-items:center; font-size:22px;
+  }
+  .empty h3{margin:0 0 6px; font-size:16px; font-weight:800; letter-spacing:-0.02em}
+  .empty p{margin:0; color:var(--text-muted); font-size:13.5px; font-weight:500; max-width:520px; margin-inline:auto}
+  .code-row{
+    margin-top:18px; display:inline-flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  }
+  .code-row code{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:12px; font-weight:600; padding:8px 11px; border-radius:999px;
+    background:var(--bg-card); border:1px solid var(--border); color:var(--text-muted);
+  }
+  .code-row code b{color:var(--text)}
+
+  /* footer cheat sheet */
+  .cheats{margin-top:18px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); box-shadow:var(--shadow); overflow:hidden}
+  .cheats-head{padding:14px 18px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .cheats-head h2{margin:0; font-size:13px; font-weight:800; letter-spacing:-0.02em; display:flex; align-items:center; gap:8px}
+  .cheats-head span{font-size:12px; color:var(--text-muted); font-weight:500}
+  .cheats-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:0}
+  @media (max-width:760px){ .cheats-grid{grid-template-columns:1fr}}
+  .cheat{
+    padding:14px 16px; display:flex; flex-direction:column; gap:6px;
+    border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+    cursor:pointer; transition:background .15s;
+    position:relative;
+  }
+  .cheat:nth-child(3n){border-right:none}
+  .cheat:nth-last-child(-n+3){border-bottom:none}
+  @media (max-width:760px){ .cheat{border-right:none} .cheat:nth-last-child(-n+3){border-bottom:1px solid var(--border)} .cheat:last-child{border-bottom:none}}
+  .cheat:hover{background:var(--bg-muted)}
+  .cheat code{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12.5px; font-weight:750; letter-spacing:-0.01em}
+  .cheat p{margin:0; font-size:12px; color:var(--text-muted); font-weight:500; line-height:1.4}
+  .cheat .hint{position:absolute; top:10px; right:10px; font-size:11px; font-weight:700; color:var(--text-faint); opacity:0; transition:opacity .15s}
+  .cheat:hover .hint{opacity:1}
+
+  /* toast */
+  .toast{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(12px);
+    background:var(--text); color:var(--bg); padding:10px 14px; border-radius:999px;
+    font-size:13px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.18);
+    opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:99;
+    display:flex; align-items:center; gap:8px; white-space:nowrap;
+  }
+  @media (prefers-color-scheme: dark){ .toast{background:#fff; color:#111} }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+
+  footer.foot{margin-top:26px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--text-faint); font-weight:500; padding:0 2px}
+  footer.foot a{color:var(--text-muted); text-decoration:none; border-bottom:1px dashed var(--border-strong)}
+  footer.foot a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Header -->
+  <header class="header" role="banner">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><span>V</span></div>
+      <div class="brand-text">
+        <div class="brand-title">
+          Valet Linux+
+          <span style="font-weight:700; color:var(--accent)">●</span>
+          <small id="hdr-version">v—</small>
+        </div>
+        <div class="brand-sub">Local development, zero friction. Your sites live here.</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="badge badge--accent" id="hdr-domain" title="Configured TLD"><span class="badge-dot"></span> .test</span>
+      <span class="badge" id="hdr-php"><span aria-hidden="true">◆</span> PHP <kbd id="hdr-php-ver">—</kbd></span>
+      <span class="badge" id="hdr-port" title="Nginx ports">:80 / :443</span>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <section aria-label="Overview stats">
+    <div class="stats" id="stats">
+      <div class="stat">
+        <div class="stat-top"><span class="stat-label">Total Sites</span><span class="stat-icon">◧</span></div>
+        <p class="stat-value" id="stat-total">—</p>
+        <div class="stat-meta" id="stat-total-meta">Parked · Linked · Proxied</div>
+      </div>
+      <div class="stat stat--highlight">
+        <div class="stat-top"><span class="stat-label">Secured</span><span class="stat-icon">🔒</span></div>
+        <p class="stat-value" id="stat-secured">—</p>
+        <div class="stat-meta" id="stat-secured-meta">HTTPS enabled</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span class="stat-label">Proxied</span><span class="stat-icon">⇄</span></div>
+        <p class="stat-value" id="stat-proxied">—</p>
+        <div class="stat-meta">External upstreams</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><span class="stat-label">Paths</span><span class="stat-icon">⧉</span></div>
+        <p class="stat-value" id="stat-paths">—</p>
+        <div class="stat-meta" id="stat-paths-meta">Watched directories</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section aria-label="Services">
+    <div class="section-head">
+      <h2>Services</h2>
+      <p>Real-time status — never managed automatically, just observed.</p>
+    </div>
+    <div class="services-grid" id="services-grid" role="list">
+      <!-- injected -->
+    </div>
+  </section>
+
+  <!-- Sites -->
+  <section aria-label="Sites" style="margin-top:22px">
+    <div class="panel">
+      <div class="panel-toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <input id="site-search" type="search" placeholder="Filter sites by name..." autocomplete="off" spellcheck="false" aria-label="Filter sites">
+        </div>
+        <div class="filters" role="group" aria-label="Filter by type">
+          <button class="filter-btn is-active" data-filter="all" type="button">All</button>
+          <button class="filter-btn" data-filter="parked" type="button">Parked</button>
+          <button class="filter-btn" data-filter="linked" type="button">Linked</button>
+          <button class="filter-btn" data-filter="proxy" type="button">Proxy</button>
+          <button class="filter-btn" data-filter="secured" type="button">🔒 Secured</button>
+        </div>
+        <span class="count-badge" id="site-count">— sites</span>
+      </div>
+
+      <div class="table-wrap">
+        <table aria-label="Sites table">
+          <thead>
+            <tr>
+              <th>Site</th>
+              <th>Type</th>
+              <th>URL</th>
+              <th>Secure</th>
+              <th>Isolated PHP</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody id="sites-tbody">
+            <!-- JS fills rows; noscript fallback below -->
+          </tbody>
+        </table>
+      </div>
+      <div class="sites-cards" id="sites-cards"></div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty" hidden>
+        <div class="empty-ill">◇</div>
+        <h3>No sites yet</h3>
+        <p>Park a directory or link a project and it will appear here instantly. Valet watches your configured paths.</p>
+        <div class="code-row">
+          <code><b>valet park</b> &nbsp;·&nbsp; serve whole folder</code>
+          <code><b>valet link</b> &nbsp;my-app</code>
+          <code><b>valet proxy</b> &nbsp;my-app https://127.0.0.1:3000</code>
+        </div>
+      </div>
+
+      <noscript>
+        <div style="padding:16px">
+          <p style="font-size:13px; color:var(--text-muted); font-weight:600; margin:0 0 12px">JavaScript is disabled — showing server-rendered list.</p>
+          <table style="width:100%; border-collapse:collapse; font-size:13px">
+            <thead><tr><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd">Site</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd">URL</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd">Type</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd">Secure</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd">Isolated</th><th style="text-align:left; padding:8px; border-bottom:1px solid #ddd">Proxy</th></tr></thead>
+            <tbody>{{VALET_SITES_ROWS}}</tbody>
+          </table>
+        </div>
+      </noscript>
+    </div>
+  </section>
+
+  <!-- Cheat sheet -->
+  <section class="cheats" aria-label="Quick commands">
+    <div class="cheats-head">
+      <h2>◫ Quick commands <span style="font-weight:600; color:var(--text-faint); margin-left:4px">click to copy</span></h2>
+      <span>Run in your project directory</span>
+    </div>
+    <div class="cheats-grid" id="cheats-grid">
+      <div class="cheat" data-copy="valet park"><span class="hint">copy</span><code>valet park</code><p>Serve every sub-folder in the current directory as <span class="mono">*.test</span></p></div>
+      <div class="cheat" data-copy="valet link my-site"><span class="hint">copy</span><code>valet link my-site</code><p>Point <b>my-site.test</b> to this project</p></div>
+      <div class="cheat" data-copy="valet proxy my-site https://127.0.0.1:3000"><span class="hint">copy</span><code>valet proxy my-site https://127.0.0.1:3000</code><p>Proxy a site to another port</p></div>
+      <div class="cheat" data-copy="valet secure my-site"><span class="hint">copy</span><code>valet secure my-site</code><p>Generate a local certificate and force HTTPS</p></div>
+      <div class="cheat" data-copy="valet diagnose"><span class="hint">copy</span><code>valet diagnose</code><p>Print diagnostics for bug reports</p></div>
+      <div class="cheat" data-copy="valet status"><span class="hint">copy</span><code>valet status</code><p>Show services, paths and linked sites</p></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Valet Linux+ — fast, offline, yours. Served from nginx.</span>
+    <span id="foot-meta">—</span>
+  </footer>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite">Copied to clipboard</div>
+
+<!-- Data injection points for Dashboard.php
+     1) VALET_DATA_JSON inside JSON holder
+     2) VALET_DATA placeholder (single occurrence) replaced with assignment
+     Intended injection: window [__VALET_DATA__] = VALET_DATA_JSON
+-->
+<script type="application/json" id="valet-data-fallback">{{VALET_DATA_JSON}}</script>
+<script>window.__VALET_DATA__;</script>
+
+<script>
+(function(){
+  const $ = (s, r=document)=> r.querySelector(s);
+  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
+
+  function getData(){
+    const W = window;
+    const KEY = '__VALET_DATA__';
+    // primary: window injected via placeholder
+    if(W[KEY] && typeof W[KEY] === 'object' && !Array.isArray(W[KEY])){
+      if(W[KEY].domain) return W[KEY];
+      if(typeof W[KEY] === 'string'){
+        try{ return JSON.parse(W[KEY]); }catch(e){}
+      }
+    }
+    // fallback: JSON script tag content
+    try{
+      const el = document.getElementById('valet-data-fallback');
+      if(el){
+        const txt = (el.textContent||'').trim();
+        if(txt && txt[0]==='{' && txt.length>4){
+          return JSON.parse(txt);
+        }
+      }
+    }catch(e){}
+    // last fallback: no data -> demo/empty graceful
+    return null;
+  }
+
+  let data = getData();
+  // If opened directly as file:// without PHP injection, provide graceful empty demo
+  if(!data){
+    data = {
+      domain:'test',
+      port:80,
+      https_port:443,
+      php_version:'',
+      php_versions:[],
+      paths:[],
+      sites:[],
+      counts:{parked:0, linked:0, proxied:0, secured:0, isolated:0, total:0},
+      services:[
+        {name:'nginx', installed:false, status:'unknown'},
+        {name:'php-fpm', installed:false, status:'unknown'},
+        {name:'mailpit', installed:false, status:'unknown'},
+        {name:'mysql', installed:false, status:'unknown'},
+        {name:'redis', installed:false, status:'unknown'},
+        {name:'postgres', installed:false, status:'unknown'}
+      ],
+      valet_version:'unknown',
+      nginx_sites:0
+    };
+    // show hint that data missing is OK
+    const foot = document.getElementById('foot-meta');
+    if(foot) foot.textContent = 'Preview mode — live data appears when served via Valet';
+  }
+
+  // header
+  const domain = data.domain || 'test';
+  $('#hdr-domain').innerHTML = '<span class="badge-dot"></span> .'+ escapeHtml(domain);
+  const ver = data.valet_version && data.valet_version !== 'unknown' ? 'v'+data.valet_version : 'v dev';
+  $('#hdr-version').textContent = ver;
+  const phpVer = data.php_version || '—';
+  $('#hdr-php-ver').textContent = phpVer;
+  const port = data.port || 80;
+  const httpsPort = data.https_port || 443;
+  const portLabel = (port===80 && httpsPort===443) ? ':80 / :443' : ':'+port+' / :'+httpsPort;
+  $('#hdr-port').textContent = portLabel;
+  const footMeta = $('#foot-meta');
+  if(footMeta && data.valet_version){
+    const n = data.nginx_sites ?? '—';
+    footMeta.textContent = 'nginx sites: '+n+' · PHP '+phpVer+' · '+domain;
+  }
+
+  // stats
+  const c = data.counts || {};
+  $('#stat-total').textContent = (c.total ?? (data.sites||[]).length ?? 0);
+  $('#stat-secured').textContent = (c.secured ?? 0);
+  $('#stat-proxied').textContent = (c.proxied ?? 0);
+  $('#stat-paths').textContent = (data.paths||[]).length;
+  const totalMeta = $('#stat-total-meta');
+  if(totalMeta) totalMeta.textContent = (c.parked||0)+' parked · '+(c.linked||0)+' linked · '+(c.proxied||0)+' proxied';
+  const pathsMeta = $('#stat-paths-meta');
+  if(pathsMeta){
+    const p = data.paths||[];
+    pathsMeta.textContent = p.length ? p[0].split('/').slice(-2).join('/') + (p.length>1 ? ' +'+(p.length-1)+' more' : '') : 'No paths configured';
+    pathsMeta.title = p.join('\n');
+  }
+  const securedMeta = $('#stat-secured-meta');
+  if(securedMeta && c.total){
+    const pct = c.total ? Math.round((c.secured/c.total)*100) : 0;
+    securedMeta.textContent = pct ? pct+'% of sites · HTTPS' : 'No secured sites yet';
+  }
+
+  // services
+  const grid = $('#services-grid');
+  const services = Array.isArray(data.services) ? data.services : [];
+  grid.innerHTML = services.map(s=>{
+    const name = s.name||'';
+    const status = (s.status||'unknown').toLowerCase();
+    const dotClass = status==='running' ? 'dot--running' : status==='stopped' ? 'dot--stopped' : 'dot--unknown';
+    const installed = !!s.installed;
+    const statusLabel = status==='running' ? 'running' : status==='stopped' ? 'stopped' : 'unknown';
+    return `<div class="svc" role="listitem">
+      <div class="svc-top"><span class="dot ${dotClass}" aria-hidden="true"></span><span class="svc-name">${escapeHtml(name)}</span></div>
+      <div class="svc-sub"><span class="svc-status">${escapeHtml(statusLabel)}</span> <span class="pill-installed ${installed?'is-yes':''}">${installed?'installed':'not installed'}</span></div>
+    </div>`;
+  }).join('') || `<div style="grid-column:1/-1; padding:16px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:12px; text-align:center">No service data</div>`;
+
+  // sites
+  const sites = Array.isArray(data.sites) ? data.sites.slice() : [];
+  const tbody = $('#sites-tbody');
+  const cards = $('#sites-cards');
+  const empty = $('#empty-state');
+  const siteCount = $('#site-count');
+  let activeFilter = 'all';
+  let query = '';
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function pillClass(type){
+    if(type==='proxy') return 'pill--proxy';
+    if(type==='linked') return 'pill--linked';
+    return 'pill--parked';
+  }
+  function render(){
+    const filtered = sites.filter(s=>{
+      const name = (s.name||'').toLowerCase();
+      const matchesQuery = !query || name.includes(query);
+      if(!matchesQuery) return false;
+      if(activeFilter==='all') return true;
+      if(activeFilter==='secured') return !!s.secured;
+      return (s.type||'')===activeFilter;
+    });
+    siteCount.textContent = filtered.length + (filtered.length===1 ? ' site' : ' sites') + (query||activeFilter!=='all' ? ' · filtered' : '');
+
+    if(sites.length===0){
+      tbody.innerHTML = '';
+      cards.innerHTML = '';
+      empty.hidden = false;
+      return;
+    }
+    if(filtered.length===0){
+      tbody.innerHTML = `<tr><td colspan="6" style="padding:28px 16px; text-align:center; color:var(--text-muted); font-weight:600">No sites match “${escapeHtml(query)}”</td></tr>`;
+      cards.innerHTML = `<div style="padding:18px; text-align:center; color:var(--text-muted); font-size:13px; font-weight:600">No matches</div>`;
+      empty.hidden = true;
+      return;
+    }
+    empty.hidden = true;
+
+    // table rows
+    tbody.innerHTML = filtered.map(s=>{
+      const type = s.type||'parked';
+      const secured = !!s.secured;
+      const isolated = s.isolated ? String(s.isolated) : '—';
+      const url = s.url || `http://${s.name}.${domain}`;
+      const path = s.path || '—';
+      const initial = (s.name||'?')[0];
+      return `<tr>
+        <td><span class="site-name"><span class="avatar">${escapeHtml(initial)}</span> ${escapeHtml(s.name)}</span></td>
+        <td><span class="pill ${pillClass(type)}">${escapeHtml(type)}</span></td>
+        <td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)} <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8L8 4"/><path d="M5 4h3v3"/></svg></a></td>
+        <td>${secured ? '<span class="icon-lock" title="Secured">🔒</span>' : '<span class="muted">—</span>'}</td>
+        <td>${isolated==='—' ? '<span class="muted">—</span>' : '<code style="font-family:ui-monospace,monospace; font-size:12px; background:var(--bg-muted); border:1px solid var(--border); padding:2px 6px; border-radius:6px">'+escapeHtml(isolated)+'</code>'}</td>
+        <td><div class="path-cell"><span class="path-text" title="${escapeHtml(path)}">${escapeHtml(path)}</span><button class="copy-btn" type="button" data-copy-path="${escapeHtml(path)}" aria-label="Copy path for ${escapeHtml(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="10" height="10" rx="2"></rect><path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path></svg></button></div></td>
+      </tr>`;
+    }).join('');
+
+    // mobile cards
+    cards.innerHTML = filtered.map(s=>{
+      const type = s.type||'parked';
+      const secured = !!s.secured;
+      const url = s.url || `http://${s.name}.${domain}`;
+      const path = s.path || '—';
+      return `<div class="site-card">
+        <div class="site-card-head"><span class="site-name" style="font-size:14px">${escapeHtml(s.name)}</span><span class="pill ${pillClass(type)}">${escapeHtml(type)}</span></div>
+        <a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="max-width:100%">${escapeHtml(url)}</a>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--text-muted); font-weight:600"><span>${secured?'🔒 secured':'○ not secured'}</span> ${s.isolated?'<span>PHP '+escapeHtml(s.isolated)+'</span>':''}</div>
+        <div class="site-card-foot"><span class="path-text" style="font-size:11.5px">${escapeHtml(path)}</span><button class="copy-btn" type="button" data-copy-path="${escapeHtml(path)}" aria-label="Copy path"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="10" height="10" rx="2"></rect><path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path></svg></button></div>
+      </div>`;
+    }).join('');
+  }
+
+  render();
+
+  // search
+  const searchInput = $('#site-search');
+  searchInput.addEventListener('input', (e)=>{
+    query = (e.target.value||'').toLowerCase().trim();
+    render();
+  });
+
+  // filters
+  $$('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $$('.filter-btn').forEach(b=>b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      activeFilter = btn.dataset.filter || 'all';
+      render();
+    });
+  });
+
+  // copy path delegation
+  document.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('[data-copy-path]');
+    if(btn){
+      const val = btn.getAttribute('data-copy-path')||'';
+      try{
+        await navigator.clipboard.writeText(val);
+        showToast('Path copied');
+      }catch{
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = val; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); showToast('Path copied'); }catch{ showToast('Copy failed');}
+        ta.remove();
+      }
+      // feedback
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓';
+      setTimeout(()=> btn.innerHTML = orig, 1100);
+    }
+  });
+
+  // cheat copy
+  $$('.cheat').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const v = el.getAttribute('data-copy')||'';
+      try{
+        await navigator.clipboard.writeText(v);
+        showToast('Copied: '+v);
+      }catch{
+        const ta=document.createElement('textarea'); ta.value=v; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); showToast('Copied: '+v);}catch{ showToast('Copy failed');}
+        ta.remove();
+      }
+    });
+  });
+
+  let toastTimer;
+  function showToast(msg){
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
+  }
+
+  // keyboard: / to focus search
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='/' && !/input|textarea/i.test(document.activeElement.tagName)){
+      e.preventDefault(); searchInput.focus();
+    }
+  });
+
+  // expose for debugging
+  window['__VALET_RENDERED__'] = true;
+})();
+</script>
+</body>
+</html>

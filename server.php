@@ -23,6 +23,39 @@ $valetConfig = json_decode(file_get_contents(VALET_HOME_PATH.'/config.json'), tr
  * valid hostname, extract and use it as the effective HTTP_HOST in place
  * of the IP. It enables the use of Valet in a local network.
  */
+/**
+ * Valet dashboard — served at valet.<domain> and dashboard.<domain>.
+ * This is the only reserved subdomain pair (alongside mails.<domain>).
+ * Must run before site resolution so it never falls through to show404().
+ */
+$__valetDashboardHost = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
+$__valetDashboardHost = preg_replace('/^www\./', '', $__valetDashboardHost);
+$__valetDashboardDomain = $valetConfig['domain'] ?? 'test';
+$__valetDashboardHosts = ['valet.' . $__valetDashboardDomain, 'dashboard.' . $__valetDashboardDomain];
+if (in_array($__valetDashboardHost, $__valetDashboardHosts, true)) {
+    try {
+        if (class_exists(\Illuminate\Container\Container::class) && \Illuminate\Container\Container::getInstance()) {
+            $dashboard = \Illuminate\Container\Container::getInstance()->make(\Valet\Dashboard::class);
+            echo $dashboard->render();
+            exit;
+        }
+    } catch (Throwable $e) {
+    }
+    try {
+        if (class_exists(\Valet\Facades\Dashboard::class)) {
+            echo \Valet\Facades\Dashboard::render();
+            exit;
+        }
+    } catch (Throwable $e) {
+    }
+    $fallback = @file_get_contents(__DIR__ . '/cli/templates/dashboard.html');
+    if ($fallback !== false) {
+        echo $fallback;
+        exit;
+    }
+}
+unset($__valetDashboardHost, $__valetDashboardDomain, $__valetDashboardHosts, $fallback);
+
 if (Server::hostIsIpAddress($_SERVER['HTTP_HOST'])) {
     $uriForIpAddressExtraction = ltrim($_SERVER['REQUEST_URI'], '/');
 

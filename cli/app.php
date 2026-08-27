@@ -5,6 +5,7 @@ use Illuminate\Container\Container;
 use Silly\Application;
 use Valet\Drivers\ValetDriver;
 use Valet\Facades\Configuration;
+use Valet\Facades\Dashboard;
 use Valet\Facades\DevTools;
 use Valet\Facades\Diagnose;
 use Valet\Facades\DnsMasq;
@@ -900,6 +901,24 @@ if (is_dir(VALET_HOME_PATH)) {
     $app->command('mail', function () {
         Log::openMail();
     })->descriptions('Open the Mailpit web UI');
+
+    /**
+     * Valet dashboard — served at valet.<domain> and dashboard.<domain>.
+     */
+    $app->command('dashboard [--open]', function ($open) {
+        $domain = Configuration::get('domain', 'test');
+        $url = 'http://valet.' . $domain;
+        $altUrl = 'http://dashboard.' . $domain;
+        if ($open) {
+            passthru('xdg-open ' . escapeshellarg($url));
+            Writer::info('Opening dashboard at ' . $url);
+            return;
+        }
+        Writer::info('Dashboard available at ' . $url . ' (also ' . $altUrl . ')');
+        Writer::info('Run with --open to launch in your browser.');
+    })->descriptions('Open the Valet dashboard', [
+        '--open' => 'Open the dashboard in your browser',
+    ]);
 }
 
 /**
