@@ -4,7 +4,8 @@ namespace Valet\Tests\Unit;
 
 use ConsoleComponents\Writer;
 use Mockery;
-use PHPUnit\Framework\MockObject\MockObject;
+use Mockery\MockInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Valet\Backup;
 use Valet\CommandLine;
 use Valet\Configuration;
@@ -15,11 +16,11 @@ use Valet\Tests\TestCase;
 
 class BackupTest extends TestCase
 {
-    private CommandLine|MockObject $commandLine;
-    private Filesystem|MockObject $filesystem;
-    private Configuration|MockObject $config;
-    private Mysql|MockObject $mysql;
-    private Postgres|MockObject $postgres;
+    private MockInterface $commandLine;
+    private MockInterface $filesystem;
+    private MockInterface $config;
+    private MockInterface $mysql;
+    private MockInterface $postgres;
     private Backup $backup;
 
     public function setUp(): void
@@ -34,12 +35,23 @@ class BackupTest extends TestCase
 
         $this->config->shouldReceive('get')->with('domain')->zeroOrMoreTimes()->andReturn('test');
 
+        /** @var CommandLine $commandLine */
+        $commandLine = $this->commandLine;
+        /** @var Filesystem $filesystem */
+        $filesystem = $this->filesystem;
+        /** @var Configuration $config */
+        $config = $this->config;
+        /** @var Mysql $mysql */
+        $mysql = $this->mysql;
+        /** @var Postgres $postgres */
+        $postgres = $this->postgres;
+
         $this->backup = new Backup(
-            $this->commandLine,
-            $this->filesystem,
-            $this->config,
-            $this->mysql,
-            $this->postgres
+            $commandLine,
+            $filesystem,
+            $config,
+            $mysql,
+            $postgres
         );
     }
 
@@ -68,8 +80,9 @@ class BackupTest extends TestCase
         $this->assertStringStartsWith(Backup::BACKUP_DIR, $result);
         $this->assertStringEndsWith('.tar.gz', $result);
 
-        $output = Writer::output()->fetch();
-        $this->assertStringContainsString('Backup created at', $output);
+        /** @var BufferedOutput $output */
+        $output = Writer::output();
+        $this->assertStringContainsString('Backup created at', $output->fetch());
     }
 
     /**
@@ -117,6 +130,7 @@ class BackupTest extends TestCase
 
         $this->assertStringEndsWith('.tar.gz', $result);
 
+        /** @var array{includes_db: bool, databases: array{mysql: array<int, string>}} $manifest */
         $manifest = json_decode($manifestContents, true);
         $this->assertTrue($manifest['includes_db']);
         $this->assertContains('db1', $manifest['databases']['mysql']);
@@ -200,8 +214,9 @@ class BackupTest extends TestCase
 
         $this->backup->restore($archive, true);
 
-        $output = Writer::output()->fetch();
-        $this->assertStringContainsString('Restore complete', $output);
+        /** @var BufferedOutput $output */
+        $output = Writer::output();
+        $this->assertStringContainsString('Restore complete', $output->fetch());
     }
 
     /**
@@ -219,7 +234,8 @@ class BackupTest extends TestCase
 
         $this->backup->restore($archive, true);
 
-        $output = Writer::output()->fetch();
-        $this->assertStringContainsString('not found', $output);
+        /** @var BufferedOutput $output */
+        $output = Writer::output();
+        $this->assertStringContainsString('not found', $output->fetch());
     }
 }

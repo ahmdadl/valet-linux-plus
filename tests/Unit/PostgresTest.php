@@ -4,8 +4,8 @@ namespace Valet\Tests\Unit;
 
 use ConsoleComponents\Writer;
 use Mockery;
+use Mockery\MockInterface;
 use PDO;
-use PHPUnit\Framework\MockObject\MockObject;
 use Valet\CommandLine;
 use Valet\Configuration;
 use Valet\Contracts\PackageManager;
@@ -19,11 +19,11 @@ use function Valet\swap;
 
 class PostgresTest extends TestCase
 {
-    private PackageManager|MockObject $packageManager;
-    private ServiceManager|MockObject $serviceManager;
-    private CommandLine|MockObject $commandLine;
-    private Filesystem|MockObject $filesystem;
-    private Configuration|MockObject $config;
+    private MockInterface $packageManager;
+    private MockInterface $serviceManager;
+    private MockInterface $commandLine;
+    private MockInterface $filesystem;
+    private MockInterface $config;
     private Postgres $postgres;
 
     public function setUp(): void
@@ -54,12 +54,23 @@ class PostgresTest extends TestCase
             ->zeroOrMoreTimes()
             ->andReturnFalse();
 
+        /** @var PackageManager $packageManager */
+        $packageManager = $this->packageManager;
+        /** @var ServiceManager $serviceManager */
+        $serviceManager = $this->serviceManager;
+        /** @var CommandLine $commandLine */
+        $commandLine = $this->commandLine;
+        /** @var Filesystem $filesystem */
+        $filesystem = $this->filesystem;
+        /** @var Configuration $config */
+        $config = $this->config;
+
         $this->postgres = new Postgres(
-            $this->packageManager,
-            $this->serviceManager,
-            $this->commandLine,
-            $this->filesystem,
-            $this->config
+            $packageManager,
+            $serviceManager,
+            $commandLine,
+            $filesystem,
+            $config
         );
     }
 

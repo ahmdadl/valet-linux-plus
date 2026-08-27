@@ -4,7 +4,7 @@ namespace Valet\Tests\Unit;
 
 use ConsoleComponents\Writer;
 use Mockery;
-use PHPUnit\Framework\MockObject\MockObject;
+use Mockery\MockInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Valet\CommandLine;
 use Valet\Configuration;
@@ -14,9 +14,9 @@ use Valet\Tests\TestCase;
 
 class LogTest extends TestCase
 {
-    private CommandLine|MockObject $commandLine;
-    private Filesystem|MockObject $filesystem;
-    private Configuration|MockObject $config;
+    private MockInterface $commandLine;
+    private MockInterface $filesystem;
+    private MockInterface $config;
     private Log $log;
 
     public function setUp(): void
@@ -27,10 +27,17 @@ class LogTest extends TestCase
         $this->filesystem = Mockery::mock(Filesystem::class);
         $this->config = Mockery::mock(Configuration::class);
 
+        /** @var CommandLine $commandLine */
+        $commandLine = $this->commandLine;
+        /** @var Filesystem $filesystem */
+        $filesystem = $this->filesystem;
+        /** @var Configuration $config */
+        $config = $this->config;
+
         $this->log = new Log(
-            $this->commandLine,
-            $this->filesystem,
-            $this->config
+            $commandLine,
+            $filesystem,
+            $config
         );
     }
 
@@ -57,6 +64,7 @@ class LogTest extends TestCase
 
         ob_start();
         $this->log->tail('nginx', 50);
+        /** @var string $output */
         $output = ob_get_clean();
 
         $this->assertStringContainsString('line one', $output);
@@ -107,6 +115,7 @@ class LogTest extends TestCase
 
         ob_start();
         $this->log->tail('php', 50);
+        /** @var string $output */
         $output = ob_get_clean();
 
         $this->assertStringContainsString('worker started', $output);

@@ -4,6 +4,7 @@ namespace Valet\Tests\Unit;
 
 use ConsoleComponents\Writer;
 use Mockery;
+use Mockery\MockInterface;
 use Valet\CommandLine;
 use Valet\Configuration;
 use Valet\Contracts\PackageManager;
@@ -16,13 +17,13 @@ use Valet\Tests\TestCase;
 
 class PhpFpmXdebugTest extends TestCase
 {
-    private PackageManager|MockObject $packageManager;
-    private ServiceManager|MockObject $serviceManager;
-    private CommandLine|MockObject $commandLine;
-    private Filesystem|MockObject $filesystem;
-    private Configuration|MockObject $config;
-    private Site|MockObject $site;
-    private Nginx|MockObject $nginx;
+    private MockInterface $packageManager;
+    private MockInterface $serviceManager;
+    private MockInterface $commandLine;
+    private MockInterface $filesystem;
+    private MockInterface $config;
+    private MockInterface $site;
+    private MockInterface $nginx;
     private PhpFpm $phpFpm;
 
     public function setUp(): void
@@ -37,14 +38,29 @@ class PhpFpmXdebugTest extends TestCase
         $this->site = Mockery::mock(Site::class);
         $this->nginx = Mockery::mock(Nginx::class);
 
+        /** @var Configuration $config */
+        $config = $this->config;
+        /** @var CommandLine $commandLine */
+        $commandLine = $this->commandLine;
+        /** @var PackageManager $packageManager */
+        $packageManager = $this->packageManager;
+        /** @var ServiceManager $serviceManager */
+        $serviceManager = $this->serviceManager;
+        /** @var Filesystem $filesystem */
+        $filesystem = $this->filesystem;
+        /** @var Site $site */
+        $site = $this->site;
+        /** @var Nginx $nginx */
+        $nginx = $this->nginx;
+
         $this->phpFpm = new PhpFpm(
-            $this->config,
-            $this->packageManager,
-            $this->serviceManager,
-            $this->commandLine,
-            $this->filesystem,
-            $this->site,
-            $this->nginx
+            $config,
+            $packageManager,
+            $serviceManager,
+            $commandLine,
+            $filesystem,
+            $site,
+            $nginx
         );
     }
 
@@ -197,7 +213,10 @@ class PhpFpmXdebugTest extends TestCase
 
         $this->phpFpm->xdebugStatus('8.2');
 
-        $output = Writer::output()->fetch();
+        /** @var \Symfony\Component\Console\Output\BufferedOutput $output */
+        $output = Writer::output();
+
+        $output = $output->fetch();
         $this->assertStringContainsString('8.2', $output);
         $this->assertStringContainsString('enabled', $output);
     }

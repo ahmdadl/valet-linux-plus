@@ -3,7 +3,8 @@
 namespace Valet\Tests\Unit;
 
 use Mockery;
-use PHPUnit\Framework\MockObject\MockObject;
+use Mockery\MockInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Valet\CommandLine;
 use Valet\Configuration;
 use Valet\Diagnose;
@@ -12,9 +13,9 @@ use Valet\Tests\TestCase;
 
 class DiagnoseTest extends TestCase
 {
-    private CommandLine|MockObject $commandLine;
-    private Filesystem|MockObject $filesystem;
-    private Configuration|MockObject $config;
+    private MockInterface $commandLine;
+    private MockInterface $filesystem;
+    private MockInterface $config;
     private Diagnose $diagnose;
 
     public function setUp(): void
@@ -25,7 +26,14 @@ class DiagnoseTest extends TestCase
         $this->filesystem = Mockery::mock(Filesystem::class);
         $this->config = Mockery::mock(Configuration::class);
 
-        $this->diagnose = new Diagnose($this->commandLine, $this->filesystem, $this->config);
+        /** @var CommandLine $commandLine */
+        $commandLine = $this->commandLine;
+        /** @var Filesystem $filesystem */
+        $filesystem = $this->filesystem;
+        /** @var Configuration $config */
+        $config = $this->config;
+
+        $this->diagnose = new Diagnose($commandLine, $filesystem, $config);
     }
 
     /**
@@ -39,7 +47,9 @@ class DiagnoseTest extends TestCase
 
         $this->diagnose->run(false);
 
-        $output = \ConsoleComponents\Writer::output()->fetch();
+        /** @var BufferedOutput $writerOutput */
+        $writerOutput = \ConsoleComponents\Writer::output();
+        $output = $writerOutput->fetch();
 
         $this->assertStringContainsString('Valet Diagnose', $output);
         $this->assertStringContainsString('OS', $output);
@@ -79,7 +89,9 @@ class DiagnoseTest extends TestCase
 
         $this->diagnose->run(true);
 
-        $output = \ConsoleComponents\Writer::output()->fetch();
+        /** @var BufferedOutput $writerOutput */
+        $writerOutput = \ConsoleComponents\Writer::output();
+        $output = $writerOutput->fetch();
 
         // The JSON keys should be present in the output. Note: the Writer info
         // component HTML-escapes content, so we assert on the plain key names
@@ -102,6 +114,7 @@ class DiagnoseTest extends TestCase
     {
         $this->mockGatherDependencies();
 
+        /** @var array<string, array<string, mixed>> $data */
         $data = $this->diagnose->gather();
 
         $this->assertArrayHasKey('os', $data);

@@ -3,7 +3,7 @@
 namespace Valet\Tests\Unit;
 
 use Illuminate\Container\Container;
-use PHPUnit\Framework\MockObject\MockObject;
+use Mockery\MockInterface;
 use Valet\CommandLine;
 use Valet\Configuration;
 use Valet\Contracts\ServiceManager;
@@ -19,14 +19,14 @@ use Valet\Tests\TestCase;
 
 class DashboardTest extends TestCase
 {
-    private Configuration|MockObject $config;
-    private Filesystem|MockObject $files;
-    private SiteLink|MockObject $siteLink;
-    private SiteProxy|MockObject $siteProxy;
-    private SiteSecure|MockObject $siteSecure;
-    private SiteIsolate|MockObject $siteIsolate;
-    private Nginx|MockObject $nginx;
-    private PhpFpm|MockObject $phpFpm;
+    private MockInterface $config;
+    private MockInterface $files;
+    private MockInterface $siteLink;
+    private MockInterface $siteProxy;
+    private MockInterface $siteSecure;
+    private MockInterface $siteIsolate;
+    private MockInterface $nginx;
+    private MockInterface $phpFpm;
     private Dashboard $dashboard;
 
     public function setUp(): void
@@ -42,15 +42,32 @@ class DashboardTest extends TestCase
         $this->nginx = \Mockery::mock(Nginx::class);
         $this->phpFpm = \Mockery::mock(PhpFpm::class);
 
+        /** @var Configuration $config */
+        $config = $this->config;
+        /** @var Filesystem $files */
+        $files = $this->files;
+        /** @var SiteLink $siteLink */
+        $siteLink = $this->siteLink;
+        /** @var SiteProxy $siteProxy */
+        $siteProxy = $this->siteProxy;
+        /** @var SiteSecure $siteSecure */
+        $siteSecure = $this->siteSecure;
+        /** @var SiteIsolate $siteIsolate */
+        $siteIsolate = $this->siteIsolate;
+        /** @var Nginx $nginx */
+        $nginx = $this->nginx;
+        /** @var PhpFpm $phpFpm */
+        $phpFpm = $this->phpFpm;
+
         $this->dashboard = new Dashboard(
-            $this->config,
-            $this->files,
-            $this->siteLink,
-            $this->siteProxy,
-            $this->siteSecure,
-            $this->siteIsolate,
-            $this->nginx,
-            $this->phpFpm
+            $config,
+            $files,
+            $siteLink,
+            $siteProxy,
+            $siteSecure,
+            $siteIsolate,
+            $nginx,
+            $phpFpm
         );
 
         // Bind best-effort service dependencies into the container so the
@@ -115,10 +132,12 @@ class DashboardTest extends TestCase
             'total'    => 4,
         ], $data['counts']);
 
-        $this->assertCount(6, $data['services']);
-        $this->assertSame('nginx', $data['services'][0]['name']);
-        $this->assertTrue($data['services'][0]['installed']);
-        $this->assertSame('running', $data['services'][0]['status']);
+        /** @var array<int, array{name: string, installed: bool, status: string}> $services */
+        $services = $data['services'];
+        $this->assertCount(6, $services);
+        $this->assertSame('nginx', $services[0]['name']);
+        $this->assertTrue($services[0]['installed']);
+        $this->assertSame('running', $services[0]['status']);
     }
 
     /**
@@ -130,20 +149,24 @@ class DashboardTest extends TestCase
 
         $data = $this->dashboard->data();
 
-        $names = array_column($data['sites'], 'name');
+        /** @var array<int, array{name: string, type: string, secured: bool, proxy: string, isolated: string}> $sites */
+        $sites = $data['sites'];
+        $names = array_column($sites, 'name');
         $sorted = $names;
         sort($sorted, SORT_STRING);
 
         $this->assertSame($sorted, $names);
-        $this->assertSame('linked-site', $data['sites'][0]['name']);
-        $this->assertSame('linked', $data['sites'][0]['type']);
-        $this->assertTrue($data['sites'][0]['secured']);
+        $this->assertSame('linked-site', $sites[0]['name']);
+        $this->assertSame('linked', $sites[0]['type']);
+        $this->assertTrue($sites[0]['secured']);
 
-        $proxy = collect($data['sites'])->firstWhere('type', 'proxy');
+        /** @var array<string, mixed> $proxy */
+        $proxy = collect($sites)->firstWhere('type', 'proxy');
         $this->assertSame('mails', $proxy['name']);
         $this->assertSame('http://127.0.0.1:8025', $proxy['proxy']);
 
-        $isolated = collect($data['sites'])->firstWhere('name', 'my-app');
+        /** @var array<string, mixed> $isolated */
+        $isolated = collect($sites)->firstWhere('name', 'my-app');
         $this->assertSame('8.1', $isolated['isolated']);
     }
 
