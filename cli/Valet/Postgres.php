@@ -189,6 +189,8 @@ class Postgres
 
     /**
      * Export Postgres database.
+     *
+     * @return array<string, string>
      */
     public function exportDatabase(string $database, bool $exportSql = false): array
     {
@@ -263,21 +265,29 @@ class Postgres
 
     /**
      * Get a list of databases.
+     *
+     * @return array<int, array<int, string>>
      */
     public function getDatabases(): array
     {
         $result = $this->query('SELECT datname FROM pg_database');
 
-        if (!$result) {
-            return ['Failed to get databases'];
+        if (!$result instanceof \PDOStatement) {
+            return [['Failed to get databases']];
         }
 
-        return collect($result->fetchAll(PDO::FETCH_ASSOC))
-            ->reject(function ($row) {
-                return \in_array($row['datname'], $this->getSystemDatabases());
-            })->map(function ($row) {
-                return [$row['datname']];
-            })->values()->toArray();
+        $systemDatabases = $this->getSystemDatabases();
+        $databases = [];
+
+        foreach ($result->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if (!isset($row['datname']) || \in_array($row['datname'], $systemDatabases, true)) {
+                continue;
+            }
+
+            $databases[] = [(string) $row['datname']];
+        }
+
+        return $databases;
     }
 
     /**
@@ -359,6 +369,8 @@ class Postgres
 
     /**
      * Get default databases of postgres.
+     *
+     * @return array<int, string>
      */
     private function getSystemDatabases(): array
     {
@@ -376,14 +388,6 @@ class Postgres
         } catch (\InvalidArgumentException $e) {
             return 'postgresql';
         }
-    }
-
-    /**
-     * Determine if PostgreSQL is installed/configured.
-     */
-    private function isPostgres(): bool
-    {
-        return $this->currentPackage !== null;
     }
 
     /**
@@ -433,7 +437,7 @@ class Postgres
     {
         /** @var array<string, string> $config */
         $config = $this->configuration->get('pgsql', []);
-        if (!isset($config['password']) || $config['password'] === null) {
+        if (!isset($config['password']) || $config['password'] === '') {
             Writer::warn('Valet database user is not configured!');
             exit;
         }

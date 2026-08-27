@@ -143,7 +143,7 @@ if (is_dir(VALET_HOME_PATH)) {
         $domain = Configuration::get('domain');
         $port = Configuration::get('port', 80);
         $phpVersion = PhpFpm::getCurrentVersion();
-        $pathsCount = count(Configuration::get('paths', []));
+        $pathsCount = count((array) Configuration::get('paths', []));
 
         Writer::table(
             ['Domain', 'Port', 'PHP Version', 'Paths'],
@@ -408,7 +408,7 @@ if (is_dir(VALET_HOME_PATH)) {
     $app->command('paths', function () {
         $paths = Configuration::get('paths');
 
-        if (count($paths) > 0) {
+        if (count((array) $paths) > 0) {
             $paths = array_map(function ($path) {
                 return [$path];
             }, $paths);
@@ -1017,15 +1017,17 @@ if (is_dir(VALET_HOME_PATH)) {
 
         $mode = $mode ?: 'status';
 
+        $xdebugVersion = is_scalar($version) ? (string) $version : null;
+
         switch ($mode) {
             case 'on':
-                PhpFpm::enableXdebug($version);
+                PhpFpm::enableXdebug($xdebugVersion);
                 break;
             case 'off':
-                PhpFpm::disableXdebug($version);
+                PhpFpm::disableXdebug($xdebugVersion);
                 break;
             default:
-                PhpFpm::xdebugStatus($version);
+                PhpFpm::xdebugStatus($xdebugVersion);
                 break;
         }
     })->descriptions('Toggle Xdebug for PHP', [

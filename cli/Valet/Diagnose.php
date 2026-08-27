@@ -57,7 +57,8 @@ class Diagnose
         $data = $this->gather();
 
         if ($json) {
-            Writer::info(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $encoded = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            Writer::info(is_string($encoded) ? $encoded : '');
 
             return;
         }
@@ -65,16 +66,16 @@ class Diagnose
         Writer::info('Valet Diagnose');
         Writer::info('');
 
-        $this->renderSection('OS', $data['os']);
+        $this->renderSection('OS', (array) $data['os']);
         $this->renderSection('Package & Service Managers', [
             'Package Manager' => $data['package_manager'],
             'Service Manager' => $data['service_manager'],
         ]);
-        $this->renderSection('PHP', $data['php']);
-        $this->renderSection('Nginx', $data['nginx']);
-        $this->renderSection('DNS', $data['dns']);
-        $this->renderSection('Services', $data['services']);
-        $this->renderSection('Paths', $data['paths']);
+        $this->renderSection('PHP', (array) $data['php']);
+        $this->renderSection('Nginx', (array) $data['nginx']);
+        $this->renderSection('DNS', (array) $data['dns']);
+        $this->renderSection('Services', (array) $data['services']);
+        $this->renderSection('Paths', (array) $data['paths']);
         $this->renderSection('Valet', [
             'Version' => $data['valet_version'],
         ]);
@@ -83,7 +84,7 @@ class Diagnose
     /**
      * Render a single diagnostic section as a table.
      *
-     * @param array<string, mixed> $rows
+     * @param array<int|string, mixed> $rows
      */
     private function renderSection(string $title, array $rows): void
     {
@@ -111,7 +112,15 @@ class Diagnose
             return implode(', ', $value);
         }
 
-        return (string) $value;
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_scalar($value)) {
+            return (string) $value;
+        }
+
+        return '';
     }
 
     /**
@@ -147,7 +156,12 @@ class Diagnose
     private function gatherPackageManager(): string
     {
         try {
-            return get_class(resolve(PackageManager::class));
+            $manager = resolve(PackageManager::class);
+            if (! is_object($manager)) {
+                return 'unknown';
+            }
+
+            return get_class($manager);
         } catch (\Throwable $e) {
             return 'unknown';
         }
@@ -156,7 +170,12 @@ class Diagnose
     private function gatherServiceManager(): string
     {
         try {
-            return get_class(resolve(ServiceManager::class));
+            $manager = resolve(ServiceManager::class);
+            if (! is_object($manager)) {
+                return 'unknown';
+            }
+
+            return get_class($manager);
         } catch (\Throwable $e) {
             return 'unknown';
         }
@@ -174,12 +193,7 @@ class Diagnose
             $configured = PHP_VERSION;
         }
 
-        $supported = [];
-        try {
-            $supported = PhpFpm::SUPPORTED_PHP_VERSIONS;
-        } catch (\Throwable $e) {
-            $supported = [];
-        }
+        $supported = PhpFpm::SUPPORTED_PHP_VERSIONS;
 
         $isolatedCount = 0;
         try {
@@ -303,7 +317,7 @@ class Diagnose
         }
 
         return [
-            'Configured Paths' => count($paths),
+            'Configured Paths' => count(is_array($paths) ? $paths : []),
             'Links' => $links,
             'Proxies' => $proxies,
             'Secured' => $secured,
@@ -315,8 +329,8 @@ class Diagnose
         try {
             $composer = $this->files->get(VALET_ROOT_PATH . '/composer.json');
             $decoded = json_decode($composer, true);
-            if (isset($decoded['version'])) {
-                return $decoded['version'];
+            if (is_array($decoded) && isset($decoded['version'])) {
+                return (string) $decoded['version'];
             }
         } catch (\Throwable $e) {
             // fall through to hardcoded fallback

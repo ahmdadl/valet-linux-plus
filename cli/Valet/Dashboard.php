@@ -364,13 +364,9 @@ class Dashboard
         ];
 
         // Append user-defined custom services (best-effort, never fatal).
-        try {
-            $custom = \Valet\Facades\ServiceRegistry::customServices();
-            foreach (array_keys($custom) as $name) {
-                $services[] = (string) $name;
-            }
-        } catch (\Throwable $e) {
-            // Ignore — custom service enumeration must not break the dashboard.
+        $custom = \Valet\Facades\ServiceRegistry::customServices();
+        foreach (array_keys($custom) as $name) {
+            $services[] = (string) $name;
         }
 
         return $services;
@@ -538,11 +534,7 @@ class Dashboard
      */
     private function safePhpVersions(): array
     {
-        try {
-            return PhpFpm::SUPPORTED_PHP_VERSIONS;
-        } catch (\Throwable $e) {
-            return [];
-        }
+        return PhpFpm::SUPPORTED_PHP_VERSIONS;
     }
 
     /**

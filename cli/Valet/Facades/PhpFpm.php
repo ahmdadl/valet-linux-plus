@@ -19,6 +19,9 @@ namespace Valet\Facades;
  * @method static string       fpmSocketFile($version)
  * @method static void         updateHomePath(string $oldHomePath, string $newHomePath)
  * @method static void         stopIfUnused(string $version)
+ * @method static bool         enableXdebug(?string $version = null)
+ * @method static bool         disableXdebug(?string $version = null)
+ * @method static void         xdebugStatus(?string $version = null)
  */
 class PhpFpm extends Facade
 {

@@ -15,6 +15,7 @@ namespace Valet\Facades;
  * @method static array       exportDatabase(string $database, bool $exportSql = false)
  * @method static void        importDatabase(string $file, string $database)
  * @method static array       getDatabases()
+ * @method static void        status()
  */
 class Postgres extends Facade
 {

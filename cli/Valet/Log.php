@@ -99,7 +99,7 @@ class Log
     {
         $contents = $this->files->get($path);
 
-        if ($contents === '' || $contents === false) {
+        if ($contents === '') {
             return '';
         }
 
