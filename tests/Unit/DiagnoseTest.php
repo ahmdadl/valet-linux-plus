@@ -171,7 +171,7 @@ class DiagnoseTest extends TestCase
         $this->filesystem
             ->shouldReceive('get')
             ->with(VALET_ROOT_PATH . '/composer.json')
-            ->andReturn(json_encode(['name' => 'genesisweb/valet-linux-plus', 'version' => '1.2.3']))
+            ->andReturn(json_encode(['name' => 'ahmdadl/valet-linux-plus', 'version' => '1.2.3']))
             ->zeroOrMoreTimes();
 
         $this->config
