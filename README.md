@@ -1,10 +1,9 @@
 <p align="center"><img width="500" src="art/logo.png"></p>
 
 <p align="center">
-<a href="https://scrutinizer-ci.com/g/genesisweb/valet-linux-plus/?branch=master"><img src="https://scrutinizer-ci.com/g/genesisweb/valet-linux-plus/badges/quality-score.png?b=master" alt="Scrutinizer"></a>
-<a href="https://packagist.org/packages/genesisweb/valet-linux-plus"><img src="https://poser.pugx.org/genesisweb/valet-linux-plus/downloads.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/genesisweb/valet-linux-plus"><img src="https://poser.pugx.org/genesisweb/valet-linux-plus/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/genesisweb/valet-linux-plus"><img src="https://poser.pugx.org/genesisweb/valet-linux-plus/license.svg" alt="License"></a>
+<a href="https://packagist.org/packages/ahmdadl/valet-linux-plus"><img src="https://poser.pugx.org/ahmdadl/valet-linux-plus/downloads.svg" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/ahmdadl/valet-linux-plus"><img src="https://poser.pugx.org/ahmdadl/valet-linux-plus/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/ahmdadl/valet-linux-plus"><img src="https://poser.pugx.org/ahmdadl/valet-linux-plus/license.svg" alt="License"></a>
 </p>
 
 ## Introduction
@@ -100,9 +99,9 @@ valet dashboard --open   # xdg-open http://valet.<domain> (also http://dashboard
 
 Served by `server.php` + `Dashboard.php` at `valet.<domain>`.
 
-## Official Documentation
+## Credits
 
-Documentation for Valet can be found on the [Valet Linux website](https://valetlinux.plus/).
+This is a community fork of [`genesisweb/valet-linux-plus`](https://github.com/genesisweb/valet-linux-plus) (now [`valet-linux-plus/valet-linux-plus`](https://github.com/valet-linux-plus/valet-linux-plus)) created by [Uttam Rabadiya](https://github.com/uttamrab) and [Divyank Munjapara](https://github.com/divyankmunjapara). All credit for the original base goes to them — this fork maintains and extends their work (2.1.x: diagnose, PostgreSQL, Xdebug toggle, logs/mail/status, backup/restore, configurable services, dashboard). This project is not affiliated with or endorsed by the original authors.
 
 ## License
 
