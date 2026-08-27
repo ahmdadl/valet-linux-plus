@@ -1,8 +1,8 @@
 # Valet Linux+ — Local Dev Enhancement Plan
 
-**Version:** 2.1.0-dev  
+**Version:** 2.1.0  
 **Date:** 2026-08-27  
-**Status:** In Progress
+**Status:** Done
 
 ---
 

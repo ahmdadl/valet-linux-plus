@@ -43,7 +43,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
  * Create the application.
  */
 Container::setInstance(new Container());
-$version = '2.0.3';
+$version = '2.1.0';
 
 $app = new Application('ValetLinux+', $version);
 
@@ -138,16 +138,34 @@ if (is_dir(VALET_HOME_PATH)) {
      * Remove the current working directory to paths configuration.
      */
     $app->command('status', function () {
+        // Per-service status messages (backwards compatible).
         ServiceRegistry::status();
 
+        // Unified service table: Service | Installed? | Enabled? | Active?
+        $rows = array_map(function (array $row) {
+            return [
+                $row['service'],
+                $row['installed'] ? 'yes' : 'no',
+                $row['enabled'] ? 'yes' : 'no',
+                $row['active'] ? 'yes' : 'no',
+            ];
+        }, ServiceRegistry::statusRows());
+
+        Writer::table(
+            ['Service', 'Installed?', 'Enabled?', 'Active?'],
+            $rows
+        );
+
+        // Global Valet configuration summary (domain, port, PHP, paths, sites).
         $domain = Configuration::get('domain');
         $port = Configuration::get('port', 80);
         $phpVersion = PhpFpm::getCurrentVersion();
         $pathsCount = count((array) Configuration::get('paths', []));
+        $sitesCount = Site::countSites();
 
         Writer::table(
-            ['Domain', 'Port', 'PHP Version', 'Paths'],
-            [[$domain, $port, $phpVersion, $pathsCount]]
+            ['Domain', 'Port', 'PHP Version', 'Paths', 'Sites'],
+            [[$domain, $port, $phpVersion, $pathsCount, $sitesCount]]
         );
     })->descriptions('View Valet service status');
 

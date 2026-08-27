@@ -59,6 +59,14 @@ class Site
     /**
      * Get PHP version from .valetphprc for a site.
      */
+    /**
+     * Return the total number of sites currently served by Valet.
+     */
+    public function countSites(): int
+    {
+        return $this->servedSites()->count();
+    }
+
     public function phpRcVersion(string $site): ?string
     {
         $servedSites = $this->servedSites();

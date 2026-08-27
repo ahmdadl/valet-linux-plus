@@ -41,6 +41,11 @@ interface ServiceManager
     public function disabled(string $service): bool;
 
     /**
+     * Determine whether the given service is currently active (running).
+     */
+    public function isActive(string $service): bool;
+
+    /**
      * Determine if service manager is available on the system.
      */
     public function isAvailable(): bool;

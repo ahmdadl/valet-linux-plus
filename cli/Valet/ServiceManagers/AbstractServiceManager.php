@@ -90,6 +90,25 @@ abstract class AbstractServiceManager implements ServiceManager
     }
 
     /**
+     * Determine whether the given service is currently active (running).
+     *
+     * Reuses the same status command as printStatus() but returns a boolean
+     * instead of emitting output, so callers can build unified reports.
+     */
+    public function isActive(string $service): bool
+    {
+        try {
+            $service = $this->resolveRealService($service);
+        } catch (DomainException $e) {
+            return false;
+        }
+
+        $status = $this->cli->run($this->statusCommand($service));
+
+        return strpos(trim($status), 'running') !== false;
+    }
+
+    /**
      * Enable services.
      */
     public function enable(string $service): void

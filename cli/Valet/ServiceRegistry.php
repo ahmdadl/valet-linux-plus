@@ -296,6 +296,112 @@ class ServiceRegistry
     }
 
     /**
+     * Collect unified status information for every known service.
+     *
+     * Returns one row per service (built-in + custom) describing whether it is
+     * installed, enabled and active. Detection is best-effort: it reuses the
+     * PackageManager and ServiceManager helpers where available and degrades
+     * gracefully to "no" when a check cannot be performed.
+     *
+     * @return array<int, array{service: string, installed: bool, enabled: bool, active: bool}>
+     */
+    public function statusRows(): array
+    {
+        $rows = [];
+
+        foreach ($this->builtInStatusDefinitions() as $name => $definition) {
+            $rows[] = $this->buildStatusRow($name, $definition['package'], $definition['service']);
+        }
+
+        foreach ($this->customServices() as $definition) {
+            $name = (string) $definition['name'];
+            $package = (string) $definition['package'];
+            $service = (string) $definition['service'];
+
+            $rows[] = $this->buildStatusRow($name, $package, $service);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Build the (package, service) metadata used for status detection of the
+     * built-in services.
+     *
+     * @return array<string, array{package: string, service: string}>
+     */
+    private function builtInStatusDefinitions(): array
+    {
+        $phpVersion = PhpFpm::getCurrentVersion();
+        $phpPackage = $this->pm()->getPhpFpmName($phpVersion);
+
+        return [
+            'nginx' => ['package' => 'nginx', 'service' => 'nginx'],
+            'php' => ['package' => $phpPackage, 'service' => $phpPackage],
+            'mailpit' => ['package' => 'mailpit', 'service' => 'mailpit'],
+            'dnsmasq' => ['package' => 'dnsmasq', 'service' => 'dnsmasq'],
+            'mysql' => ['package' => $this->resolvePackageName('mysql'), 'service' => 'mysql'],
+            'redis' => ['package' => $this->resolvePackageName('redis'), 'service' => 'redis'],
+            'postgres' => ['package' => $this->resolvePackageName('postgresql'), 'service' => 'postgresql'],
+        ];
+    }
+
+    /**
+     * Resolve a package name via the PackageManager, falling back to the
+     * requested key when the manager has no explicit mapping for it.
+     */
+    private function resolvePackageName(string $key): string
+    {
+        try {
+            return $this->pm()->packageName($key);
+        } catch (\Throwable $e) {
+            return $key;
+        }
+    }
+
+    /**
+     * Build a single unified status row for the given service.
+     *
+     * @return array{service: string, installed: bool, enabled: bool, active: bool}
+     */
+    private function buildStatusRow(string $name, string $package, string $service): array
+    {
+        return [
+            'service' => $name,
+            'installed' => $this->safeInstalled($package),
+            'enabled' => $this->safeEnabled($service),
+            'active' => $this->safeActive($service),
+        ];
+    }
+
+    private function safeInstalled(string $package): bool
+    {
+        try {
+            return $this->pm()->installed($package);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    private function safeEnabled(string $service): bool
+    {
+        try {
+            return !$this->sm()->disabled($service);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    private function safeActive(string $service): bool
+    {
+        try {
+            return $this->sm()->isActive($service);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Run the given facade method against the requested services.
      *
      * @param string[] $services
