@@ -188,12 +188,13 @@ class SiteIsolate
      */
     private function validateIsolationVersion(string $version): void
     {
-        if (!in_array($version, PhpFpm::ISOLATION_SUPPORTED_PHP_VERSIONS)) {
+        if (!PhpFpm::isIsolationSupportedVersion($version)) {
             throw new DomainException(
                 sprintf(
-                    "Invalid version [%s] used. Supported versions are: %s",
+                    "Invalid version [%s] used. Supported versions are: %s or later (%s)",
                     $version,
-                    implode(', ', PhpFpm::ISOLATION_SUPPORTED_PHP_VERSIONS)
+                    PhpFpm::MIN_ISOLATION_VERSION,
+                    implode(', ', PhpFpm::isolationSupportedPhpVersions())
                 )
             );
         }

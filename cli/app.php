@@ -43,7 +43,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
  * Create the application.
  */
 Container::setInstance(new Container());
-$version = '2.1.5';
+$version = '2.2.0';
 
 $app = new Application('ValetLinux+', $version);
 
@@ -594,15 +594,16 @@ if (is_dir(VALET_HOME_PATH)) {
         if (!$isValid) {
             Writer::error(
                 sprintf(
-                    "Invalid version [%s] used. Supported versions are: %s",
+                    "Invalid version [%s] used. Supported versions are: %s or later (%s)",
                     $preferredVersion,
-                    implode(', ', \Valet\PhpFpm::SUPPORTED_PHP_VERSIONS)
+                    \Valet\PhpFpm::MIN_SUPPORTED_VERSION,
+                    implode(', ', \Valet\PhpFpm::supportedPhpVersions())
                 )
             );
             Writer::info(
                 sprintf(
                     'You can still use any version from [%s] list using `valet isolate` command',
-                    implode(', ', \Valet\PhpFpm::ISOLATION_SUPPORTED_PHP_VERSIONS)
+                    implode(', ', \Valet\PhpFpm::isolationSupportedPhpVersions())
                 )
             );
             return;

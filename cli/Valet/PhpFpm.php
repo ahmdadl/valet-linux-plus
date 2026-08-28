@@ -18,6 +18,9 @@ class PhpFpm
     protected Nginx $nginx;
 
     /**
+     * @deprecated Use isSupportedVersion() / MIN_SUPPORTED_VERSION instead.
+     *             Kept for backwards compatibility.
+     *
      * PHP versions Valet can manage.
      *
      * 8.2, 8.3 and 8.4 are currently released. 8.5 and 8.6 are listed for
@@ -31,6 +34,10 @@ class PhpFpm
         '8.6'
     ];
 
+    /**
+     * @deprecated Use isIsolationSupportedVersion() / MIN_ISOLATION_VERSION instead.
+     *             Kept for backwards compatibility.
+     */
     public const ISOLATION_SUPPORTED_PHP_VERSIONS = [
         '7.0',
         '7.1',
@@ -41,6 +48,76 @@ class PhpFpm
         '8.1',
         ...self::SUPPORTED_PHP_VERSIONS
     ];
+
+    /**
+     * Minimum PHP version Valet can manage (non-isolation).
+     */
+    public const MIN_SUPPORTED_VERSION = '8.2';
+
+    /**
+     * Minimum PHP version supported for site isolation (legacy lower bound kept for BC).
+     */
+    public const MIN_ISOLATION_VERSION = '7.0';
+
+    /**
+     * Determine whether the given PHP version is supported by Valet (non-isolation).
+     */
+    public static function isSupportedVersion(string $version): bool
+    {
+        return $version !== '' && version_compare($version, self::MIN_SUPPORTED_VERSION, '>=');
+    }
+
+    /**
+     * Determine whether the given PHP version is supported for site isolation.
+     */
+    public static function isIsolationSupportedVersion(string $version): bool
+    {
+        return $version !== '' && version_compare($version, self::MIN_ISOLATION_VERSION, '>=');
+    }
+
+    /**
+     * Generate the list of supported PHP versions for display purposes.
+     *
+     * Covers 8.2 up to 8.12 and 9.0 up to 9.6 to cover the near future without
+     * a hard upper bound for validation (validation uses version_compare instead).
+     *
+     * @return array<int, string>
+     */
+    public static function supportedPhpVersions(): array
+    {
+        $versions = [];
+        foreach (['8', '9'] as $major) {
+            $start = $major === '8' ? 2 : 0;
+            $end = $major === '8' ? 12 : 6;
+            for ($minor = $start; $minor <= $end; $minor++) {
+                $versions[] = \sprintf('%s.%s', $major, $minor);
+            }
+        }
+
+        return $versions;
+    }
+
+    /**
+     * Generate the list of isolation-supported PHP versions for display purposes.
+     *
+     * Covers 7.0 up to 9.6 to cover the near future without a hard upper bound
+     * for validation (validation uses version_compare instead).
+     *
+     * @return array<int, string>
+     */
+    public static function isolationSupportedPhpVersions(): array
+    {
+        $versions = [];
+        foreach (['7', '8', '9'] as $major) {
+            $start = $major === '7' ? 0 : ($major === '8' ? 0 : 0);
+            $end = $major === '7' ? 4 : ($major === '8' ? 12 : 6);
+            for ($minor = $start; $minor <= $end; $minor++) {
+                $versions[] = \sprintf('%s.%s', $major, $minor);
+            }
+        }
+
+        return $versions;
+    }
 
     public const COMMON_EXTENSIONS = [
         'cli',
@@ -201,7 +278,7 @@ class PhpFpm
     public function normalizePhpVersion(string $version): string
     {
         preg_match(
-            '/^(?:php[@-]?)?(?<MAJOR_VERSION>[\d]{1}).?(?<MINOR_VERSION>[\d]{1})$/i',
+            '/^(?:php[@-]?)?(?<MAJOR_VERSION>\d{1,2})\.?(?<MINOR_VERSION>\d{1,2})$/i',
             $version,
             $matches
         );
@@ -390,7 +467,7 @@ class PhpFpm
 
     public function updateHomePath(string $oldHomePath, string $newHomePath): void
     {
-        foreach (self::ISOLATION_SUPPORTED_PHP_VERSIONS as $version) {
+        foreach (self::isolationSupportedPhpVersions() as $version) {
             try {
                 $confPath = $this->fpmConfigPath($version) . '/' . self::FPM_CONFIG_FILE_NAME;
                 if ($this->files->exists($confPath)) {
@@ -408,11 +485,7 @@ class PhpFpm
      */
     public function validateVersion(string $version): bool
     {
-        if (!in_array($version, self::SUPPORTED_PHP_VERSIONS)) {
-            return false;
-        }
-
-        return true;
+        return self::isSupportedVersion($version);
     }
 
     /**
@@ -499,7 +572,7 @@ class PhpFpm
     private function utilizedPhpVersions(): array
     {
         /** @var array<int, string> $fpmSockFiles */
-        $fpmSockFiles = collect(self::ISOLATION_SUPPORTED_PHP_VERSIONS)->map(function ($version) {
+        $fpmSockFiles = collect(self::isolationSupportedPhpVersions())->map(function ($version) {
             return $this->socketFileName($this->normalizePhpVersion($version));
         })->unique();
 
@@ -568,12 +641,13 @@ class PhpFpm
      */
     private function validateIsolationVersion(string $version): void
     {
-        if (!in_array($version, self::ISOLATION_SUPPORTED_PHP_VERSIONS)) {
+        if (!self::isIsolationSupportedVersion($version)) {
             throw new \DomainException(
                 \sprintf(
-                    "Invalid version [%s] used. Supported versions are: %s",
+                    "Invalid version [%s] used. Supported versions are: %s or later (%s)",
                     $version,
-                    implode(', ', self::ISOLATION_SUPPORTED_PHP_VERSIONS)
+                    self::MIN_ISOLATION_VERSION,
+                    implode(', ', self::isolationSupportedPhpVersions())
                 )
             );
         }

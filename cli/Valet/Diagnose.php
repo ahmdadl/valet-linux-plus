@@ -193,7 +193,7 @@ class Diagnose
             $configured = PHP_VERSION;
         }
 
-        $supported = PhpFpm::SUPPORTED_PHP_VERSIONS;
+        $supported = PhpFpm::supportedPhpVersions();
 
         $isolatedCount = 0;
         try {

@@ -125,7 +125,7 @@ class DashboardTest extends TestCase
         $this->assertSame(80, $data['port']);
         $this->assertSame(443, $data['https_port']);
         $this->assertSame('8.3', $data['php_version']);
-        $this->assertSame(['8.2', '8.3', '8.4', '8.5', '8.6'], $data['php_versions']);
+        $this->assertSame(\Valet\PhpFpm::supportedPhpVersions(), $data['php_versions']);
         $this->assertSame(['/home/user/Code'], $data['paths']);
         $this->assertSame('2.99.0', $data['valet_version']);
 

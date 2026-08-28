@@ -6,14 +6,14 @@
 <a href="https://packagist.org/packages/ahmdadl/valet-linux-plus"><img src="https://poser.pugx.org/ahmdadl/valet-linux-plus/license.svg" alt="License"></a>
 </p>
 
-<p align="center"><strong>Version 2.1.5</strong> &middot; An advanced local development environment for Linux.</p>
+<p align="center"><strong>Version 2.2.0</strong> &middot; An advanced local development environment for Linux.</p>
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Installation & Requirements](#installation--requirements)
 - [Command Overview](#command-overview)
-- [What's New (2.1.0 &ndash; 2.1.4)](#whats-new-210--214)
+- [Changelog](CHANGELOG.md)
 - [What's Different vs Upstream](#whats-different-vs-upstream)
 - [Credits](#credits)
 - [License](#license)
@@ -32,7 +32,7 @@ Valet *Linux+* is distributed as a Composer package and requires the following:
 
 | Requirement | Notes |
 | --- | --- |
-| **PHP** | `^8.2` (CLI). Extensions `pdo`, `posix`, `json`, `mbstring`, `xml` are required. |
+| **PHP** | `>=8.2` (CLI) — any PHP >=8.2 is supported (8.2, 8.3, 8.4 … 9.x, future-proof). Extensions `pdo`, `posix`, `json`, `mbstring`, `xml` are required. Valet validates with `version_compare >=8.2` and isolation supports `>=7.0`. |
 | **Nginx** | Installed and managed automatically by Valet. |
 | **DnsMasq** | Installed and configured automatically for the `*.test` TLD. |
 | **Composer** | Required to install Valet (`composer global require ahmdadl/valet-linux-plus`). |
@@ -65,34 +65,9 @@ Valet *Linux+* ships with a large command set. The complete, detailed reference 
 | **Sharing** | `share`, `fetch-share-url`, `ngrok-auth` |
 | **Diagnostics & 2.1.x** | `diagnose`, `xdebug`, `log`, `mail`, `dashboard`, `backup`, `restore` |
 
-## What's New (2.1.0 &ndash; 2.1.4)
+## Changelog
 
-### 2.1.0 &mdash; Major feature release
-
-- **Diagnose** &mdash; `valet diagnose` produces a human-readable health report (OS, PHP, Nginx, DNS, services, paths); `--json` for machine-readable output.
-- **PostgreSQL (opt-in)** &mdash; `valet install --with-pgsql` enables a full `pg:*` command family mirroring `db:*` (list/create/drop/reset/import/export/configure). System DBs are hidden from `pg:list`.
-- **Xdebug toggle** &mdash; `valet xdebug on|off|status [--version=8.3]` using `phpenmod`/`phpdismod` with a symlink fallback, restarting FPM.
-- **Logs, Mail, Status** &mdash; `valet log [nginx|php|mysql|mailpit|redis] [--tail=50]`, `valet mail` opens the Mailpit UI, and `valet status` shows a unified service table plus a global config summary.
-- **Backup / Restore** &mdash; `valet backup [--with-db]` archives config, Nginx, and certs (plus optional DB dumps); `valet restore <archive>` brings it back.
-- **Configurable Services** &mdash; define extra services in `config.json` (built-in `minio` template) and manage them via `service:add` / `service:remove`, auto-wired into `start`/`restart`/`stop`/`status`.
-- **Dashboard** &mdash; `valet dashboard [--open]` serves a landing page at `valet.<domain>` (also `dashboard.<domain>`).
-
-### 2.1.1 &mdash; Package rename
-
-- Renamed the Composer package to **`ahmdadl/valet-linux-plus`** for fork distribution; updated repository references and badges accordingly.
-
-### 2.1.2 &mdash; Server hardening
-
-- Hardened `server.php` (defensive requires using `__DIR__`, safer bootstrap helpers) to reduce the attack surface of the dashboard server.
-
-### 2.1.3 &mdash; Dashboard bootstrap
-
-- Dashboard now bootstraps through `server.php` with a proper container/request lifecycle, improving reliability and data collection.
-
-### 2.1.4 &mdash; Isolation & distro fixes
-
-- Fixed the isolated PHP version reported by the dashboard.
-- Distro-aware PHP-FPM service name resolution so isolation works correctly across Debian/Ubuntu, Fedora, and Arch.
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## What's Different vs Upstream
 

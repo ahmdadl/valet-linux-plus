@@ -575,7 +575,7 @@ class Dashboard
      */
     private function safePhpVersions(): array
     {
-        return PhpFpm::SUPPORTED_PHP_VERSIONS;
+        return PhpFpm::supportedPhpVersions();
     }
 
     /**
