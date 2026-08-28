@@ -352,7 +352,7 @@ class Dashboard
     private function serviceList(): array
     {
         $phpVersion = $this->safePhpVersion();
-        $phpService = 'php' . str_replace('.', '', $phpVersion) . '-fpm';
+        $phpService = $this->phpFpm->serviceName($phpVersion);
 
         $services = [
             'nginx',
@@ -469,20 +469,57 @@ class Dashboard
     /**
      * Map of isolated site name (without TLD) => isolated PHP version.
      *
+     * The primary source is the per-site Nginx configuration. If reading those
+     * fails for any reason we fall back to the "isolated_versions" config so a
+     * single failing Nginx read never hides every isolated version.
+     *
      * @return Collection<string, mixed>
      */
     private function safeIsolatedMap(string $domain): Collection
     {
+        $map = collect();
+
+        // Primary source: Nginx-based isolation map.
         try {
-            return $this->siteIsolate->isolatedDirectories()->mapWithKeys(function ($item, $key) use ($domain) {
+            $nginxMap = $this->siteIsolate->isolatedDirectories()->mapWithKeys(function ($item, $key) use ($domain) {
                 $name = str_replace('.' . $domain, '', (string) $key);
                 $itemArr = (array) $item;
 
                 return [$name => $itemArr['version'] ?? null];
             });
+            $map = $map->merge($nginxMap);
         } catch (\Throwable $e) {
-            return collect();
+            // Fall through to the config-based fallback below.
         }
+
+        // Secondary source: isolated_versions config (best-effort fallback).
+        try {
+            /** @var array<string, string> $isolatedConfig */
+            $isolatedConfig = $this->config->get('isolated_versions', []);
+            foreach ($isolatedConfig as $name => $binary) {
+                $name = (string) $name;
+                if (!$map->has($name)) {
+                    $map->put($name, $this->versionFromBinary((string) $binary));
+                }
+            }
+        } catch (\Throwable $e) {
+            // Ignore config fallback failures.
+        }
+
+        return $map;
+    }
+
+    /**
+     * Extract a normalized PHP version (e.g. "8.2") from an isolated binary
+     * path such as "/usr/local/bin/php8.2". Returns null when not detectable.
+     */
+    private function versionFromBinary(string $binary): ?string
+    {
+        if (preg_match('/php(\d+\.\d+)/', $binary, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 
     private function safeDomain(): string

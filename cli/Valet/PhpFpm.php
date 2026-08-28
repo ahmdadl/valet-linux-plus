@@ -428,9 +428,9 @@ class PhpFpm
     }
 
     /**
-     * Determine php service name.
+     * Determine php service name (distro-aware via the package manager).
      */
-    private function serviceName(string $version = null): string
+    public function serviceName(string $version = null): string
     {
         if (!$version) {
             $version = $this->getCurrentVersion();

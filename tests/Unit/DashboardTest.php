@@ -41,6 +41,12 @@ class DashboardTest extends TestCase
         $this->siteIsolate = \Mockery::mock(SiteIsolate::class);
         $this->nginx = \Mockery::mock(Nginx::class);
         $this->phpFpm = \Mockery::mock(PhpFpm::class);
+        // Default distro-aware service name expectation (overridable per-test).
+        $this->phpFpm
+            ->shouldReceive('serviceName')
+            ->andReturnUsing(function (string $version = null) {
+                return 'php' . $version . '-fpm';
+            });
 
         /** @var Configuration $config */
         $config = $this->config;
