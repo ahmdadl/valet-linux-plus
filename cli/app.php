@@ -43,7 +43,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
  * Create the application.
  */
 Container::setInstance(new Container());
-$version = '2.2.0';
+$version = '2.2.3';
 
 $app = new Application('ValetLinux+', $version);
 

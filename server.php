@@ -51,7 +51,19 @@ if (!class_exists(\Illuminate\Container\Container::class, false)) {
     }
     foreach ($autoloadCandidates as $candidate) {
         if ($candidate && file_exists($candidate)) {
-            require_once $candidate;
+            try {
+                require_once $candidate;
+            } catch (\Throwable $e) {
+                // Composer's platform_check.php throws a RuntimeException when the
+                // running PHP doesn't match the version the autoloader was built
+                // with. By the time it throws, Composer's class autoloader is
+                // already registered, so Valet can safely run under any PHP.
+                // Swallow that specific gate and continue; rethrow anything else.
+                if (str_contains($e->getMessage(), 'Composer detected issues in your platform')) {
+                    break;
+                }
+                throw $e;
+            }
             break;
         }
     }
