@@ -44,6 +44,15 @@ class SiteLink
         if ($this->files->exists($path)) {
             $this->files->unlink($path);
         }
+
+        // Also remove any per-site Nginx virtual host (created by isolation or
+        // TLS) so the site is fully unlinked and stops being served. Without
+        // this the symlink is gone but Nginx still answers the request.
+        $domain = $this->config->get('domain');
+        $nginxConf = $this->nginxPath($name . '.' . $domain);
+        if ($this->files->exists($nginxConf)) {
+            $this->files->unlink($nginxConf);
+        }
     }
 
     /**

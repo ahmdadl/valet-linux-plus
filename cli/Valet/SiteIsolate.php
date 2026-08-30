@@ -166,6 +166,67 @@ class SiteIsolate
     }
 
     /**
+     * Regenerate the Nginx config for every isolated site using the current
+     * Valet paths.
+     *
+     * Per-site configs bake in an absolute path to server.php at isolation
+     * time. When Valet is relocated (e.g. reinstalled under a new vendor
+     * path) those paths go stale and PHP-FPM returns "File not found" for
+     * every isolated site. Regenerating keeps them in sync without touching
+     * the TLS certificates.
+     */
+    public function rewriteIsolatedNginxFiles(): void
+    {
+        foreach (NginxFacade::configuredSites() as $site) {
+            $version = $this->isolatedPhpVersion($site);
+            if ($version === null) {
+                continue;
+            }
+
+            $secure = $this->siteSecure->secured()->contains($site);
+            $this->writeIsolationConfig($site, $version, $secure);
+        }
+    }
+
+    /**
+     * Write the Nginx config for an isolated site from the current Valet stub,
+     * preserving the isolated PHP-FPM socket and (for secure sites) the
+     * existing certificates.
+     */
+    private function writeIsolationConfig(string $url, string $phpVersion, bool $secure = false): void
+    {
+        $stub = $secure
+            ? VALET_ROOT_PATH . '/cli/stubs/secure.isolated.valet.conf'
+            : VALET_ROOT_PATH . '/cli/stubs/isolated.valet.conf';
+
+        $siteConf = strArrayReplace([
+            'VALET_FPM_SOCKET_FILE'      => PhpFpmFacade::fpmSocketFile($phpVersion),
+            'VALET_ISOLATED_PHP_VERSION' => $phpVersion,
+            'VALET_HOME_PATH'            => VALET_HOME_PATH,
+            'VALET_SERVER_PATH'          => VALET_SERVER_PATH,
+            'VALET_STATIC_PREFIX'        => VALET_STATIC_PREFIX,
+            'VALET_SITE'                 => $url,
+            'VALET_HTTP_PORT'            => $this->config->get('port', 80),
+            'VALET_HTTPS_PORT'           => $this->config->get('https_port', 443),
+        ], $this->files->get($stub));
+
+        if ($secure) {
+            $path = $this->certificatesPath();
+            $siteConf = strArrayReplace([
+                'VALET_CERT' => $path . '/' . $url . '.crt',
+                'VALET_KEY'  => $path . '/' . $url . '.key',
+            ], $siteConf);
+
+            $this->files->putAsUser($this->nginxPath($url), $siteConf);
+
+            return;
+        }
+
+        $siteConf = $this->siteSecure->buildUnsecureNginxServer($url, $siteConf);
+        $this->files->putAsUser($this->nginxPath($url), $siteConf);
+    }
+
+    /**
      * Remove PHP Version isolation from a specific site.
      */
     private function removeIsolation(string $siteName): void

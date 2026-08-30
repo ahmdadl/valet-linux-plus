@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Valet\Contracts\PackageManager;
 use Valet\Contracts\ServiceManager;
 use Valet\Facades\PhpFpm as PhpFpmFacade;
+use Valet\Facades\SiteIsolate as SiteIsolateFacade;
 
 class Nginx
 {
@@ -237,5 +238,6 @@ class Nginx
         $this->files->putAsUser($nginxDirectory . '/.keep', "\n");
 
         $this->rewriteSecureNginxFiles();
+        SiteIsolateFacade::rewriteIsolatedNginxFiles();
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
  * @method static void  unIsolateDirectory(string $directory)
  * @method static Collection  isolatedDirectories()
  * @method static string  isolatedPhpVersion(string $url)
+ * @method static void  rewriteIsolatedNginxFiles()
  */
 class SiteIsolate extends Facade
 {
