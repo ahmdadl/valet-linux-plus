@@ -77,5 +77,8 @@
     },
     "bin": [
         "valet"
-    ]
+    ],
+    "config": {
+        "platform-check": false
+    }
 }
