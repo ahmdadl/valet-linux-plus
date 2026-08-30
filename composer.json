@@ -77,5 +77,10 @@
     },
     "bin": [
         "valet"
-    ]
+    ],
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
+    }
 }
