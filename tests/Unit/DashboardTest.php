@@ -44,7 +44,7 @@ class DashboardTest extends TestCase
         // Default distro-aware service name expectation (overridable per-test).
         $this->phpFpm
             ->shouldReceive('serviceName')
-            ->andReturnUsing(function (string $version = null) {
+            ->andReturnUsing(function (?string $version = null) {
                 return 'php' . $version . '-fpm';
             });
 

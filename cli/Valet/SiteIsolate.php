@@ -178,6 +178,10 @@ class SiteIsolate
     public function rewriteIsolatedNginxFiles(): void
     {
         foreach (NginxFacade::configuredSites() as $site) {
+            if (!is_string($site)) {
+                continue;
+            }
+
             $version = $this->isolatedPhpVersion($site);
             if ($version === null) {
                 continue;

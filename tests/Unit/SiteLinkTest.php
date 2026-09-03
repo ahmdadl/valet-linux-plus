@@ -64,11 +64,23 @@ class SiteLinkTest extends TestCase
      */
     public function itWillUnlinkSite(): void
     {
+        $this->config
+            ->shouldReceive('get')
+            ->once()
+            ->with('domain')
+            ->andReturn('test');
+
         $this->filesystem
             ->shouldReceive('exists')
             ->once()
             ->with(VALET_HOME_PATH . '/Sites/path')
             ->andReturnTrue();
+
+        $this->filesystem
+            ->shouldReceive('exists')
+            ->once()
+            ->with(VALET_HOME_PATH . '/Nginx/path.test')
+            ->andReturnFalse();
 
         $this->filesystem
             ->shouldReceive('unlink')
@@ -85,10 +97,22 @@ class SiteLinkTest extends TestCase
      */
     public function itWillNotUnlinkWhenSiteNotLinked(): void
     {
+        $this->config
+            ->shouldReceive('get')
+            ->once()
+            ->with('domain')
+            ->andReturn('test');
+
         $this->filesystem
             ->shouldReceive('exists')
             ->once()
             ->with(VALET_HOME_PATH . '/Sites/path')
+            ->andReturnFalse();
+
+        $this->filesystem
+            ->shouldReceive('exists')
+            ->once()
+            ->with(VALET_HOME_PATH . '/Nginx/path.test')
             ->andReturnFalse();
 
         $this->filesystem

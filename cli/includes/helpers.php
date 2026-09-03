@@ -111,6 +111,15 @@ if (!function_exists('tap')) {
  */
 function user(): string
 {
+    if (testing()) {
+        $processUser = posix_getpwuid(posix_geteuid());
+        if ($processUser !== false) {
+            return $processUser['name'];
+        }
+
+        return $_SERVER['USER'] ?? 'root';
+    }
+
     if (!isset($_SERVER['SUDO_USER'])) {
         return $_SERVER['USER'];
     }
