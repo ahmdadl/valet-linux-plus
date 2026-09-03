@@ -27,6 +27,10 @@ use Valet\Facades\SiteProxy;
 use Valet\Facades\SiteSecure;
 use Valet\Facades\Valet;
 use Valet\Facades\ValetRedis;
+use Valet\Facades\Health;
+use Valet\Facades\JsonSchema;
+use Valet\Facades\ProjectContext;
+use Valet\Facades\ProjectDetector;
 
 /**
  * Load correct autoloader depending on install location.
@@ -137,7 +141,7 @@ if (is_dir(VALET_HOME_PATH)) {
     /**
      * Remove the current working directory to paths configuration.
      */
-    $app->command('status', function () {
+    $app->command('status [--json]', function ($json) {
         // Per-service status messages (backwards compatible).
         ServiceRegistry::status();
 
@@ -167,7 +171,25 @@ if (is_dir(VALET_HOME_PATH)) {
             ['Domain', 'Port', 'PHP Version', 'Paths', 'Sites'],
             [[$domain, $port, $phpVersion, $pathsCount, $sitesCount]]
         );
-    })->descriptions('View Valet service status');
+
+        if ($json) {
+            $data = [
+                'services' => ServiceRegistry::statusRows(),
+                'config' => [
+                    'domain' => $domain,
+                    'port' => $port,
+                    'phpVersion' => $phpVersion,
+                    'paths' => $pathsCount,
+                    'sites' => $sitesCount,
+                ],
+                'timestamp' => gmdate('c'),
+                'schema_version' => JsonSchema::VERSION,
+            ];
+            Writer::info(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        }
+    })->descriptions('View Valet service status', [
+        '--json' => 'Output as JSON',
+    ]);
 
     /**
      * Create a backup archive of the Valet home directory.
@@ -401,12 +423,13 @@ if (is_dir(VALET_HOME_PATH)) {
      * Determine which Valet driver the current directory is using.
      */
     $app->command('which', function () {
-        $driver = ValetDriver::assign(getcwd(), basename(getcwd()), '/');
+        $driver = ProjectDetector::detectDriver(getcwd(), basename(getcwd()));
 
         if ($driver) {
-            Writer::info('This site is served by [' . get_class($driver) . '].');
+            Writer::info('This site is served by [' . $driver . '].');
         } else {
-            Writer::warn('Valet could not determine which driver to use for this site.');
+            $context = ProjectContext::fromCwd();
+            Writer::info('This site is served by [' . $context['driver'] . '].');
         }
     })->descriptions('Determine which Valet driver serves the current working directory');
 
@@ -635,7 +658,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Create new database in MySQL.
      */
     $app->command('db:create [databaseName]', function ($databaseName) {
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         $isCreated = Mysql::createDatabase($databaseName);
         if ($isCreated) {
@@ -647,7 +670,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Drop database in MySQL.
      */
     $app->command('db:drop [databaseName] [-y|--yes]', function ($databaseName, $yes) {
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         if (!$yes) {
             $confirm = Writer::confirm(sprintf('Are you sure you want to delete [%s] database?', $databaseName));
@@ -861,9 +884,10 @@ if (is_dir(VALET_HOME_PATH)) {
      * Open the current directory in the browser.
      */
     $app->command('open [domain]', function ($domain = null) {
+        $site = $domain ?: (ProjectContext::site() ?: basename(getcwd()));
         $url = sprintf(
             'http://%s.%s/',
-            $domain ?: basename(getcwd()),
+            $site,
             Configuration::get('domain')
         );
 
@@ -907,6 +931,48 @@ if (is_dir(VALET_HOME_PATH)) {
     $app->command('diagnose [--json]', function ($json) {
         Diagnose::run((bool)$json);
     })->descriptions('Diagnose Valet setup and output system health', [
+        '--json' => 'Output as JSON',
+    ]);
+
+    /**
+     * Output the JSON schema for a command.
+     */
+    $app->command('schema [cmd]', function ($cmd = null) {
+        $command = $cmd ?: 'diagnose';
+        if (!JsonSchema::isValid($command)) {
+            Writer::error(sprintf('Unknown command [%s]. Valid commands: %s', $command, implode(', ', JsonSchema::VALID_COMMANDS)));
+            return;
+        }
+        Writer::info(json_encode(JsonSchema::get($command), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    })->descriptions('Output JSON schema for a command', [
+        'cmd' => 'Command name (diagnose, status, env, health)',
+    ]);
+
+    /**
+     * Check health of all services.
+     */
+    $app->command('health [--json]', function ($json) {
+        $results = Health::checkAll();
+        $healthy = array_reduce($results, fn($carry, $r) => $carry && $r['healthy'], true);
+
+        if ($json) {
+            Writer::info(json_encode([
+                'schema_version' => JsonSchema::VERSION,
+                'schema_command' => 'health',
+                'services' => $results,
+                'healthy' => $healthy,
+                'timestamp' => gmdate('c'),
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } else {
+            foreach ($results as $result) {
+                $status = $result['healthy'] ? '✓' : '✗';
+                $latency = round($result['latency_ms'], 2);
+                Writer::info(sprintf('%s %s (%.2fms): %s', $status, $result['service'], $latency, $result['message']));
+            }
+            Writer::info('');
+            Writer::info($healthy ? 'All services healthy' : 'Some services unhealthy');
+        }
+    })->descriptions('Check health of all services', [
         '--json' => 'Output as JSON',
     ]);
 

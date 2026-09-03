@@ -43,6 +43,8 @@ class Diagnose
     public function gather(): array
     {
         return [
+            'schema_version' => JsonSchema::VERSION,
+            'timestamp' => gmdate('c'),
             'os' => $this->gatherOs(),
             'package_manager' => $this->gatherPackageManager(),
             'service_manager' => $this->gatherServiceManager(),

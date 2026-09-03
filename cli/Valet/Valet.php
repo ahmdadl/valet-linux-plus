@@ -127,6 +127,10 @@ class Valet
     {
         $this->serviceManagerSetup();
         $this->packageManagerSetup();
+        $this->projectContextSetup();
+        $this->projectDetectorSetup();
+        $this->jsonSchemaSetup();
+        $this->healthSetup();
     }
 
     /**
@@ -251,6 +255,54 @@ class Valet
             return resolve($pm)->isAvailable();
         }, function () {
             throw new DomainException('No compatible package manager found.');
+        });
+    }
+
+    /**
+     * Configure project context.
+     */
+    private function projectContextSetup(): void
+    {
+        Container::getInstance()->bind(ProjectContext::class, function () {
+            return new ProjectContext(
+                resolve(Configuration::class),
+                resolve(CommandLine::class),
+                resolve(Filesystem::class)
+            );
+        });
+    }
+
+    /**
+     * Configure project detector.
+     */
+    private function projectDetectorSetup(): void
+    {
+        Container::getInstance()->bind(ProjectDetector::class, function () {
+            return new ProjectDetector();
+        });
+    }
+
+    /**
+     * Configure JSON schema.
+     */
+    private function jsonSchemaSetup(): void
+    {
+        Container::getInstance()->bind(JsonSchema::class, function () {
+            return new JsonSchema();
+        });
+    }
+
+    /**
+     * Configure health checks.
+     */
+    private function healthSetup(): void
+    {
+        Container::getInstance()->bind(Health::class, function () {
+            return new Health(
+                resolve(CommandLine::class),
+                resolve(Configuration::class),
+                resolve(Filesystem::class)
+            );
         });
     }
 
