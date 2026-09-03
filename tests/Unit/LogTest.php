@@ -106,7 +106,7 @@ class LogTest extends TestCase
             ->shouldReceive('run')
             ->once()
             ->andReturnUsing(function ($command, $onError) {
-                $this->assertSame('journalctl --no-pager -n 50 -u php*-fpm', $command);
+                $this->assertSame('journalctl --no-pager -n 50 -u '.escapeshellarg('php*-fpm'), $command);
 
                 return "[php-fpm] worker started\n[php-fpm] request served\n";
             });
@@ -131,7 +131,7 @@ class LogTest extends TestCase
             ->shouldReceive('run')
             ->once()
             ->andReturnUsing(function ($command, $onError) {
-                $this->assertSame('journalctl --no-pager -n 50 -u unknownservice', $command);
+                $this->assertSame('journalctl --no-pager -n 50 -u '.escapeshellarg('unknownservice'), $command);
                 // Simulate journalctl failure so the caller falls back / warns.
                 $onError(1, '');
 

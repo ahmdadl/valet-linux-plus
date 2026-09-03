@@ -6,7 +6,7 @@
 <a href="https://packagist.org/packages/ahmdadl/valet-linux-plus"><img src="https://poser.pugx.org/ahmdadl/valet-linux-plus/license.svg" alt="License"></a>
 </p>
 
-<p align="center"><strong>Version 2.2.0</strong> &middot; An advanced local development environment for Linux.</p>
+<p align="center"><strong>Version 2.2.3</strong> &middot; An advanced local development environment for Linux.</p>
 
 ## Table of Contents
 

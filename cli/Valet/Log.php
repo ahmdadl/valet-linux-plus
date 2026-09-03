@@ -117,7 +117,7 @@ class Log
         $failed = false;
 
         $output = $this->cli->run(
-            "journalctl --no-pager -n $lines -u $service",
+            "journalctl --no-pager -n $lines -u " . escapeshellarg($service),
             function () use (&$failed) {
                 $failed = true;
             }

@@ -8,40 +8,40 @@ class Systemd extends AbstractServiceManager
 {
     protected function startService(string $service): void
     {
-        $this->cli->quietly('sudo systemctl start '.$service);
+        $this->cli->quietly('sudo systemctl start '.escapeshellarg($service));
     }
 
     protected function stopService(string $service): void
     {
-        $this->cli->quietly('sudo systemctl stop '.$service);
+        $this->cli->quietly('sudo systemctl stop '.escapeshellarg($service));
     }
 
     protected function restartService(string $service): void
     {
-        $this->cli->quietly('sudo systemctl restart '.$service);
+        $this->cli->quietly('sudo systemctl restart '.escapeshellarg($service));
     }
 
     protected function statusCommand(string $service): string
     {
-        return 'systemctl status '.$service.' | grep "Active:"';
+        return 'systemctl status '.escapeshellarg($service).' | grep "Active:"';
     }
 
     protected function isEnabledCommand(string $service): string
     {
-        return \sprintf('systemctl is-enabled %s', $service);
+        return \sprintf('systemctl is-enabled %s', escapeshellarg($service));
     }
 
     protected function enableService(string $service): void
     {
         if ($this->disabled($service)) {
-            $this->cli->quietly('sudo systemctl enable '.$service);
+            $this->cli->quietly('sudo systemctl enable '.escapeshellarg($service));
         }
     }
 
     protected function disableService(string $service): void
     {
         if (!$this->disabled($service)) {
-            $this->cli->quietly('sudo systemctl disable '.$service);
+            $this->cli->quietly('sudo systemctl disable '.escapeshellarg($service));
         }
     }
 
@@ -61,7 +61,7 @@ class Systemd extends AbstractServiceManager
      */
     protected function resolveRealService(string $service): string
     {
-        if (strpos($this->cli->run("systemctl status $service | grep Loaded"), 'Loaded: loaded') !== false) {
+        if (strpos($this->cli->run("systemctl status ".escapeshellarg($service)." | grep Loaded"), 'Loaded: loaded') !== false) {
             return $service;
         }
 

@@ -1,6 +1,6 @@
 # Valet Linux+ Command Reference
 
-This document is the complete reference for every command shipped with **Valet Linux+** (version `2.1.4`). It is generated from `cli/app.php`, which is the source of truth for command syntax, options, and descriptions.
+This document is the complete reference for every command shipped with **Valet Linux+** (version `2.2.3`). It is generated from `cli/app.php`, which is the source of truth for command syntax, options, and descriptions.
 
 All commands are invoked through the `valet` binary (e.g. `valet start`, `valet db:create`). Most commands require Valet to be installed first (`valet install`).
 

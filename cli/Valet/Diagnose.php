@@ -15,15 +15,21 @@ class Diagnose
     public CommandLine $cli;
     public Filesystem $files;
     public Configuration $config;
+    public ServiceManager $sm;
 
     /**
      * Create a new Diagnose instance.
      */
-    public function __construct(CommandLine $cli, Filesystem $files, Configuration $config)
-    {
+    public function __construct(
+        CommandLine $cli,
+        Filesystem $files,
+        Configuration $config,
+        ServiceManager $sm
+    ) {
         $this->cli = $cli;
         $this->files = $files;
         $this->config = $config;
+        $this->sm = $sm;
     }
 
     /**
@@ -273,8 +279,8 @@ class Diagnose
 
         foreach ($services as $service) {
             try {
-                $status = trim($this->cli->run("systemctl is-active {$service} 2>/dev/null")) ?: 'unknown';
-                $statuses[$service] = $status;
+                $active = $this->sm->isActive($service) ? 'active' : 'inactive';
+                $statuses[$service] = $active;
             } catch (\Throwable $e) {
                 $statuses[$service] = 'unknown';
             }

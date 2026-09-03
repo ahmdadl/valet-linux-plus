@@ -247,7 +247,7 @@ class ServiceRegistry
      */
     public function start(array $services): void
     {
-        $this->run('restart', $services, 'started');
+        $this->run('start', $services, 'started');
     }
 
     /**

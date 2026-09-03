@@ -7,6 +7,7 @@ use Mockery\MockInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Valet\CommandLine;
 use Valet\Configuration;
+use Valet\Contracts\ServiceManager;
 use Valet\Diagnose;
 use Valet\Filesystem;
 use Valet\Tests\TestCase;
@@ -16,6 +17,7 @@ class DiagnoseTest extends TestCase
     private MockInterface $commandLine;
     private MockInterface $filesystem;
     private MockInterface $config;
+    private MockInterface $serviceManager;
     private Diagnose $diagnose;
 
     public function setUp(): void
@@ -25,6 +27,7 @@ class DiagnoseTest extends TestCase
         $this->commandLine = Mockery::mock(CommandLine::class);
         $this->filesystem = Mockery::mock(Filesystem::class);
         $this->config = Mockery::mock(Configuration::class);
+        $this->serviceManager = Mockery::mock(ServiceManager::class);
 
         /** @var CommandLine $commandLine */
         $commandLine = $this->commandLine;
@@ -32,8 +35,10 @@ class DiagnoseTest extends TestCase
         $filesystem = $this->filesystem;
         /** @var Configuration $config */
         $config = $this->config;
+        /** @var ServiceManager $serviceManager */
+        $serviceManager = $this->serviceManager;
 
-        $this->diagnose = new Diagnose($commandLine, $filesystem, $config);
+        $this->diagnose = new Diagnose($commandLine, $filesystem, $config, $serviceManager);
     }
 
     /**

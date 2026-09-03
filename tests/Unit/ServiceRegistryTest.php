@@ -61,13 +61,13 @@ class ServiceRegistryTest extends TestCase
         $redis = Mockery::mock();
         $postgres = Mockery::mock();
 
-        $nginx->shouldReceive('restart')->once();
-        $php->shouldReceive('restart')->once();
-        $mailpit->shouldReceive('restart')->once();
-        $dnsmasq->shouldReceive('restart')->once();
-        $mysql->shouldReceive('restart')->once();
-        $redis->shouldReceive('restart')->once();
-        $postgres->shouldReceive('restart')->once();
+        $nginx->shouldReceive('start')->once();
+        $php->shouldReceive('start')->once();
+        $mailpit->shouldReceive('start')->once();
+        $dnsmasq->shouldReceive('start')->once();
+        $mysql->shouldReceive('start')->once();
+        $redis->shouldReceive('start')->once();
+        $postgres->shouldReceive('start')->once();
 
         swap('Valet\Nginx', $nginx);
         swap('Valet\PhpFpm', $php);
@@ -88,8 +88,8 @@ class ServiceRegistryTest extends TestCase
         $nginx = Mockery::mock();
         $php = Mockery::mock();
 
-        $nginx->shouldReceive('restart')->once();
-        $php->shouldNotReceive('restart');
+        $nginx->shouldReceive('start')->once();
+        $php->shouldNotReceive('start');
 
         swap('Valet\Nginx', $nginx);
         swap('Valet\PhpFpm', $php);

@@ -169,7 +169,7 @@ class ServiceRegistryCustomTest extends TestCase
         $pm->shouldReceive('installed')->with('minio')->once()->andReturnTrue();
 
         $sm = Mockery::mock(ServiceManager::class);
-        $sm->shouldReceive('restart')->with('minio')->once();
+        $sm->shouldReceive('start')->with('minio')->once();
 
         swap(PackageManager::class, $pm);
         swap(ServiceManager::class, $sm);
