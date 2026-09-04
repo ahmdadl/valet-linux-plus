@@ -28,7 +28,7 @@ This document is the implementation plan for the next wave of local-development 
 
 ## 3. Prerequisites (Phase 0)
 
-Complete before feature work. Tracked in [PLAN.md](../PLAN.md).
+Complete before feature work. Items below; Phase 0 work is tracked in this document.
 
 | ID | Task | Files | Outcome |
 | --- | --- | --- | --- |
@@ -54,9 +54,12 @@ Phase 0 (Prerequisites)
   │     └─→ Phase 4 — Dashboard & tooling (UI, DB GUI, addons)
   │
   └─→ Phase 5 — Advanced (Node, snapshots, machine API v1)
+        │
+        └─→ Phase 6 — Day-to-day DX (clone, Vite, workers, sleep, …)
+              See [roadmap-local-dev-phase6.md](roadmap-local-dev-phase6.md)
 ```
 
-Phases 2–4 can overlap after Phase 1 lands; Phase 5 depends on stable JSON schemas from Phase 1.
+Phases 2–4 can overlap after Phase 1 lands; Phase 5 depends on stable JSON schemas from Phase 1. Phase 6 depends on Phase 5 foundation pieces (profiles, init, Node, API v1) and is specified separately.
 
 ---
 
@@ -644,6 +647,7 @@ valet api [--json] [resource]
 | **2.5.0** | Phase 3 |
 | **2.6.0** | Phase 4 |
 | **3.0.0** | Phase 5 + API v1 stability guarantee |
+| **3.1.0–3.5.0** | Phase 6 — see [roadmap-local-dev-phase6.md](roadmap-local-dev-phase6.md) |
 
 ---
 
@@ -672,6 +676,7 @@ Priority if shipping incrementally:
 6. **F-303 + F-302** — logs + certs (debugging)  
 7. **F-401 + F-404** — dashboard + addons (visibility)  
 8. **F-501 + F-502 + F-503** — Node, snapshots, API (3.0.0)
+9. **Phase 6** — day-to-day DX ([roadmap-local-dev-phase6.md](roadmap-local-dev-phase6.md))
 
 ---
 
@@ -686,4 +691,5 @@ Priority if shipping incrementally:
 
 ---
 
-*Created: 2026-09-04*
+*Created: 2026-09-04*  
+*Phase 6 companion: [roadmap-local-dev-phase6.md](roadmap-local-dev-phase6.md)*
