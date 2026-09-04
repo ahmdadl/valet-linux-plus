@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ahmdadl/valet-linux-plus/docs/schemas/v1/sites.json",
+  "title": "Valet API v1 sites",
+  "allOf": [{ "$ref": "envelope.json" }],
+  "properties": {
+    "schema_command": { "const": "sites" },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "secured": { "type": "boolean" },
+          "proxy": { "type": "string" },
+          "isolated": { "type": "string" }
+        }
+      }
+    }
+  }
+}

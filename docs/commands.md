@@ -1161,6 +1161,78 @@ Disable an addon (data retained where applicable).
 valet addon:disable name
 ```
 
+### node:current
+
+Show the active Node version, project `.nvmrc` / `.node-version`, and whether nvm is available.
+
+```bash
+valet node:current
+```
+
+### node:install
+
+Install a Node version via nvm (defaults to the project `.nvmrc`). Does nothing without nvm; Valet never installs Node during `valet install`.
+
+```bash
+valet node:install [version]
+```
+
+### node:use
+
+Select a Node version via nvm (defaults to `.nvmrc`). Also used when applying a profile `node` field.
+
+```bash
+valet node:use [version]
+```
+
+### snapshot:create
+
+Create a per-project snapshot under `~/.config/valet/snapshots/{site}/` (profile, redacted `.env`, optional DB dump).
+
+```bash
+valet snapshot:create [name] [--with-db] [--notes=]
+```
+
+### snapshot:list
+
+List snapshots for the current project.
+
+```bash
+valet snapshot:list
+```
+
+### snapshot:restore
+
+Restore a snapshot (re-applies profile; optionally imports DB).
+
+```bash
+valet snapshot:restore name [--force]
+```
+
+### snapshot:delete
+
+Delete a named snapshot.
+
+```bash
+valet snapshot:delete name
+```
+
+### api
+
+Machine-readable API v1. Omit `resource` for the catalog. See `docs/api-v1.md`.
+
+```bash
+valet api [resource]
+```
+
+Examples:
+
+```bash
+valet api
+valet api sites
+valet api env | jq .data.SITE_URL
+```
+
 ### health
 
 Probe whether core services actually accept connections (not just systemd state).

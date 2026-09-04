@@ -49,7 +49,7 @@ class JsonSchema
     /**
      * Wrap data payload with versioned envelope.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      * @return array<string, mixed>
      */
     public static function envelope(string $command, array $data): array

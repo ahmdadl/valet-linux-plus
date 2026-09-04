@@ -139,6 +139,9 @@ class Valet
         $this->certificateSetup();
         $this->addonSetup();
         $this->databaseGuiSetup();
+        $this->nodeSetup();
+        $this->snapshotSetup();
+        $this->apiSetup();
     }
 
     /**
@@ -446,6 +449,48 @@ class Valet
             $cli = resolve(CommandLine::class);
 
             return new DatabaseGui($config, $cli);
+        });
+    }
+
+    /**
+     * Configure Node version helpers (nvm integration).
+     */
+    private function nodeSetup(): void
+    {
+        Container::getInstance()->bind(Node::class, function () {
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+
+            return new Node($files, $cli);
+        });
+    }
+
+    /**
+     * Configure per-project snapshots.
+     */
+    private function snapshotSetup(): void
+    {
+        Container::getInstance()->bind(Snapshot::class, function () {
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+
+            return new Snapshot($files, $config, $cli);
+        });
+    }
+
+    /**
+     * Configure machine-readable API facade.
+     */
+    private function apiSetup(): void
+    {
+        Container::getInstance()->bind(Api::class, function () {
+            return new Api();
         });
     }
 

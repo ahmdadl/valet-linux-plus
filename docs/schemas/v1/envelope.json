@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ahmdadl/valet-linux-plus/docs/schemas/v1/envelope.json",
+  "title": "Valet API v1 envelope",
+  "type": "object",
+  "required": ["schema_version", "schema_command", "data", "timestamp"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "schema_command": { "type": "string" },
+    "data": {},
+    "timestamp": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ahmdadl/valet-linux-plus/docs/schemas/v1/health.json",
+  "title": "Valet API v1 health",
+  "allOf": [{ "$ref": "envelope.json" }],
+  "properties": {
+    "schema_command": { "const": "health" },
+    "data": {
+      "type": "object",
+      "required": ["services", "healthy"],
+      "properties": {
+        "services": { "type": "array" },
+        "healthy": { "type": "boolean" }
+      }
+    }
+  }
+}

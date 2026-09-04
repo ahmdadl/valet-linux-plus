@@ -5,6 +5,7 @@ namespace Valet;
 use ConsoleComponents\Writer;
 use InvalidArgumentException;
 use Valet\Facades\Mysql as MysqlFacade;
+use Valet\Facades\Node as NodeFacade;
 use Valet\Facades\Postgres as PostgresFacade;
 use Valet\Facades\ProjectContext as ProjectContextFacade;
 use Valet\Facades\ServiceRegistry as ServiceRegistryFacade;
@@ -254,8 +255,7 @@ class Profile
         }
 
         if (isset($data['node']) && is_scalar($data['node'])) {
-            Writer::warn(sprintf('Profile requests Node %s; install/use via nvm (valet node not available yet)', (string) $data['node']));
-            $steps[] = sprintf('Noted Node %s (manual)', (string) $data['node']);
+            $steps[] = NodeFacade::applyVersion((string) $data['node']);
         }
 
         return $steps;

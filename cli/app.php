@@ -39,6 +39,9 @@ use Valet\Facades\Profile;
 use Valet\Facades\Certificate;
 use Valet\Facades\Addon;
 use Valet\Facades\DatabaseGui;
+use Valet\Facades\Node;
+use Valet\Facades\Snapshot;
+use Valet\Facades\Api;
 
 /**
  * Load correct autoloader depending on install location.
@@ -1136,6 +1139,97 @@ if (is_dir(VALET_HOME_PATH)) {
     })->descriptions('Open a database GUI for the current project', [
         '--gui' => 'adminer (default), dbeaver, or tableplus',
         '--pg' => 'Prefer PostgreSQL connection details',
+    ]);
+
+    /**
+     * Node.js version helpers (nvm).
+     */
+    $app->command('node:current', function () {
+        Node::runCurrent();
+    })->descriptions('Show active Node version, project .nvmrc, and nvm availability');
+
+    $app->command('node:install [version]', function ($version = null) {
+        try {
+            Node::install(is_string($version) ? $version : null);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Install a Node version via nvm (defaults to .nvmrc)', [
+        'version' => 'Node version (e.g. 20 or 20.11.0)',
+    ]);
+
+    $app->command('node:use [version]', function ($version = null) {
+        try {
+            Node::use(is_string($version) ? $version : null);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Select a Node version via nvm (defaults to .nvmrc)', [
+        'version' => 'Node version (e.g. 20 or 20.11.0)',
+    ]);
+
+    /**
+     * Per-project snapshots.
+     */
+    $app->command('snapshot:create [name] [--with-db] [--notes=]', function ($name, $withDb, $notes) {
+        try {
+            Snapshot::create(
+                is_string($name) && $name !== '' ? $name : null,
+                (bool) $withDb,
+                is_string($notes) && $notes !== '' ? $notes : null
+            );
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Create a per-project snapshot (profile, redacted env, optional DB)', [
+        'name' => 'Snapshot name (default: timestamp)',
+        '--with-db' => 'Include a MySQL dump',
+        '--notes' => 'Optional notes stored in the manifest',
+    ]);
+
+    $app->command('snapshot:list', function () {
+        Snapshot::runList();
+    })->descriptions('List snapshots for the current project');
+
+    $app->command('snapshot:restore name [--force]', function ($name, $force) {
+        try {
+            Snapshot::restore((string) $name, (bool) $force);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Restore a per-project snapshot', [
+        'name' => 'Snapshot name',
+        '--force' => 'Skip confirmation',
+    ]);
+
+    $app->command('snapshot:delete name', function ($name) {
+        try {
+            Snapshot::delete((string) $name);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Delete a per-project snapshot', [
+        'name' => 'Snapshot name',
+    ]);
+
+    /**
+     * Machine-readable API v1.
+     */
+    $app->command('api [resource]', function ($resource = null) {
+        if ($resource === null || $resource === '') {
+            echo json_encode(Api::catalog(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+
+            return;
+        }
+
+        try {
+            $payload = Api::get((string) $resource);
+            echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Machine-readable API v1 (sites, services, env, health, profiles)', [
+        'resource' => 'Optional resource name; omit for catalog',
     ]);
 
     /**

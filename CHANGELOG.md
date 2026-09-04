@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- `valet node:current` / `node:install` / `node:use` — Node version helpers via nvm (reads `.nvmrc` / `.node-version`; no Node install without nvm).
+- `valet snapshot:*` — per-project snapshots (`create`, `list`, `restore`, `delete`) with optional DB dump and redacted `.env`.
+- `valet api` — machine-readable API v1 (`sites`, `services`, `env`, `health`, `profiles`); see `docs/api-v1.md`.
 - `valet addon:*` — enable/disable local presets (minio, meilisearch, adminer, mailpit).
 - `valet db:url` / `db:open` — connection URL and Adminer GUI helper (password never written to temp files).
 - Dashboard enhancements: service health, Mailpit link, confirmed service restart API.
