@@ -62,7 +62,26 @@ class Health
             // ignore
         }
 
+        $results[] = $this->checkPdoSqlite();
+
         return $results;
+    }
+
+    /**
+     * @return array{service: string, healthy: bool, latency_ms: float, message: string, timestamp: string}
+     */
+    public function checkPdoSqlite(): array
+    {
+        $start = microtime(true);
+        $loaded = extension_loaded('pdo_sqlite');
+        $latency = (microtime(true) - $start) * 1000;
+
+        return $this->result(
+            'pdo_sqlite',
+            $loaded,
+            $latency,
+            $loaded ? 'Extension loaded' : 'Missing pdo_sqlite — install php-sqlite3 for your PHP version'
+        );
     }
 
     /**

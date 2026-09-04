@@ -2,7 +2,7 @@
 
 **Version target:** 3.1.0 → 3.5.0  
 **Date:** 2026-09-04  
-**Status:** Planned  
+**Status:** In progress — **3.1.0 shipped** (F-601 clone, F-609 tinker, F-612 sqlite, F-613 cache); next 3.2.0  
 **Depends on:** [roadmap-local-dev.md](roadmap-local-dev.md) Phases 0–5 (especially F-101 ProjectContext, F-201 init, F-202 profiles, F-203 env, F-301 doctor, F-404 addons, F-501 Node)
 
 This document is the full implementation plan for the **next wave of day-to-day DX features** beyond onboarding, health, and the machine API. Every feature here aims at **faster feedback loops**, **less manual wiring**, or **lower idle cost** on a native Linux stack.
@@ -796,7 +796,9 @@ Rationale: ship quick wins first; put Vite + share next (high daily pain); worke
 
 | ID | Command / feature | Phase | Effort | Primary value |
 | --- | --- | --- | --- | --- |
-| F-601 | `valet clone` | 6A | M | Faster onboarding |
+| ID | Command / feature | Phase | Effort | Primary value |
+| --- | --- | --- | --- | --- |
+| F-601 | `valet clone` ✅ 3.1.0 | 6A | M | Faster onboarding |
 | F-602 | `valet shell-hook` | 6A | M | Correct PHP on cd |
 | F-603 | `valet vite` | 6A | L | HMR + HTTPS |
 | F-606 | `valet tune` | 6A | M | Faster PHP responses |
@@ -804,11 +806,11 @@ Rationale: ship quick wins first; put Vite + share next (high daily pain); worke
 | F-605 | `valet queue` / `schedule` / `worker` | 6B | L | Background jobs |
 | F-607 | `valet bench` | 6B | S–M | Measure TTFB |
 | F-608 | `valet webhook` | 6C | M–L | Webhook debugging |
-| F-609 | `valet tinker` | 6C | S | Instant REPL |
+| F-609 | `valet tinker` ✅ 3.1.0 | 6C | S | Instant REPL |
 | F-610 | multi-provider `share` | 6C | M–L | Reliable demos |
 | F-611 | `valet workspace` | 6D | M | Monorepos |
-| F-612 | `valet db:sqlite` | 6D | S–M | Throwaway DBs |
-| F-613 | `valet cache` | 6D | S | Faster installs |
+| F-612 | `valet db:sqlite` ✅ 3.1.0 | 6D | S–M | Throwaway DBs |
+| F-613 | `valet cache:*` ✅ 3.1.0 | 6D | S | Faster installs |
 
 ---
 

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-09-04
+
+### Added
+
+- `valet clone` — clone a git repository and optionally link / init / secure / isolate / open (F-601).
+- `valet tinker` / `valet repl` — framework REPL with the site PHP binary (Laravel tinker, Symfony console, psysh, or `php -a`) (F-609).
+- `valet db:sqlite` / `db:sqlite:reset` — first-class SQLite file creation and `.env` wiring; `health` reports `pdo_sqlite` (F-612).
+- `valet cache:status|path|clear|doctor` — Composer/npm/Valet cache awareness; default clear is Valet temps only (F-613).
+- Driver hook `replCommand()` on `ValetDriver` (Laravel override).
+
 ## [Unreleased]
 
 ### Added

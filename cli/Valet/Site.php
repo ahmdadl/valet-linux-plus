@@ -82,6 +82,24 @@ class Site
     }
 
     /**
+     * Resolve the filesystem path for a parked or linked site name.
+     */
+    public function path(string $site): ?string
+    {
+        $tld = $this->config->get('domain');
+        $site = str_replace('.' . $tld, '', $site);
+        $served = $this->servedSites();
+
+        if (!$served->has($site)) {
+            return null;
+        }
+
+        $path = $served->get($site);
+
+        return is_string($path) && $path !== '' ? $path : null;
+    }
+
+    /**
      * List of all sites served by valet
      * @return Collection<int|string, string>
      */

@@ -217,6 +217,16 @@ abstract class ValetDriver
     }
 
     /**
+     * Optional REPL argv after the PHP binary for `valet tinker` / `valet repl`.
+     *
+     * @return list<string>|null
+     */
+    public function replCommand(string $sitePath): ?array
+    {
+        return null;
+    }
+
+    /**
      * Optional `.env` key/value overrides for project onboarding.
      *
      * @param array{database?: string, username?: string, password?: string, host?: string, port?: string, connection?: string} $db

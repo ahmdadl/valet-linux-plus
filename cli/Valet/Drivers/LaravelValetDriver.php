@@ -71,4 +71,16 @@ class LaravelValetDriver extends ValetDriver
             'seed' => ['artisan', 'db:seed', '--force'],
         ];
     }
+
+    /**
+     * @return list<string>|null
+     */
+    public function replCommand(string $sitePath): ?array
+    {
+        if (!file_exists($sitePath.'/artisan')) {
+            return null;
+        }
+
+        return ['artisan', 'tinker'];
+    }
 }

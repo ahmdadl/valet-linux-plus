@@ -9,6 +9,7 @@ namespace Valet\Facades;
  * @method static string      getSiteUrl(string $directory)
  * @method static string|null phpRcVersion($site)
  * @method static int         countSites()
+ * @method static string|null path(string $site)
  */
 class Site extends Facade
 {

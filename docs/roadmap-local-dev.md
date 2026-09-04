@@ -2,7 +2,7 @@
 
 **Version target:** 2.3.0 → 3.0.0  
 **Date:** 2026-09-04  
-**Status:** In progress — Phases 0–5 ✅ (F-501–F-503); next Phase 6 DX
+**Status:** In progress — Phases 0–5 ✅; Phase 6 3.1.0 ✅ (F-601, F-609, F-612, F-613); next 3.2.0 (shell-hook, tune, bench)
 
 This document is the implementation plan for the next wave of local-development features. It assumes the existing command surface documented in [commands.md](commands.md) and the architecture under `cli/Valet/`.
 

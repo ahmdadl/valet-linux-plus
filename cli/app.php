@@ -42,6 +42,10 @@ use Valet\Facades\DatabaseGui;
 use Valet\Facades\Node;
 use Valet\Facades\Snapshot;
 use Valet\Facades\Api;
+use Valet\Facades\Repl;
+use Valet\Facades\Sqlite;
+use Valet\Facades\Cache;
+use Valet\Facades\CloneProject;
 
 /**
  * Load correct autoloader depending on install location.
@@ -58,7 +62,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
  * Create the application.
  */
 Container::setInstance(new Container());
-$version = '2.2.3';
+$version = '3.1.0';
 
 $app = new Application('ValetLinux+', $version);
 
@@ -1052,6 +1056,129 @@ if (is_dir(VALET_HOME_PATH)) {
         '--seed' => 'Also run framework seed command when available',
         '--pg' => 'Use PostgreSQL instead of MySQL',
         '--force' => 'Recreate the database if it already exists',
+    ]);
+
+    /**
+     * Create a SQLite database file and optionally wire `.env`.
+     */
+    $app->command('db:sqlite [name] [--path=] [--env]', function ($name, $path, $env) {
+        $relative = is_string($path) && $path !== '' ? $path : null;
+        Sqlite::create(is_string($name) && $name !== '' ? $name : null, $relative, (bool) $env);
+    })->descriptions('Create a SQLite database file for the current project', [
+        'name' => 'Optional label (defaults to site name; used only for messaging)',
+        '--path' => 'Relative path for the sqlite file (default: database/database.sqlite)',
+        '--env' => 'Update .env for DB_CONNECTION=sqlite and absolute DB_DATABASE',
+    ]);
+
+    /**
+     * Reset (recreate) the project SQLite database file.
+     */
+    $app->command('db:sqlite:reset [-y|--yes]', function ($yes) {
+        Sqlite::reset((bool) $yes);
+    })->descriptions('Recreate the project SQLite database file (never touches MySQL/Postgres)', [
+        '--yes' => 'Skip confirmation prompt',
+    ]);
+
+    /**
+     * Launch framework REPL / tinker with the site PHP binary.
+     */
+    $app->command('tinker [--site=]', function ($site = null) {
+        try {
+            Repl::run(is_string($site) && $site !== '' ? $site : null);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Open a framework REPL (Laravel tinker, Symfony console, or php -a)', [
+        '--site' => 'Linked/parked site name (defaults to current directory)',
+    ]);
+
+    $app->command('repl [--site=]', function ($site = null) {
+        try {
+            Repl::run(is_string($site) && $site !== '' ? $site : null);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Alias for valet tinker', [
+        '--site' => 'Linked/parked site name (defaults to current directory)',
+    ]);
+
+    /**
+     * Cache introspection and cleanup.
+     */
+    $app->command('cache:status [--json]', function ($json) {
+        Cache::runStatus((bool) $json);
+    })->descriptions('Show Composer, npm/pnpm/yarn, and Valet cache sizes', [
+        '--json' => 'Output as JSON',
+    ]);
+
+    $app->command('cache:path', function () {
+        Cache::runPath();
+    })->descriptions('Print known cache directory paths');
+
+    $app->command('cache:clear [--composer] [--npm] [--valet] [-y|--yes]', function ($composer, $npm, $valet, $yes) {
+        Cache::runClear((bool) $composer, (bool) $npm, (bool) $valet, (bool) $yes);
+    })->descriptions('Clear caches (default: Valet temps only)', [
+        '--composer' => 'Also clear the Composer cache directory',
+        '--npm' => 'Also clear npm/pnpm/yarn caches when present',
+        '--valet' => 'Clear Valet-managed temps (default when no other flags)',
+        '--yes' => 'Skip confirmation for Composer/npm clears',
+    ]);
+
+    $app->command('cache:doctor', function () {
+        Cache::runDoctor();
+    })->descriptions('Suggest fixes for slow installs and cache issues');
+
+    /**
+     * Clone a git repository and optionally bootstrap with Valet.
+     */
+    $app->command('clone repository [directory] [--branch=] [--link] [--init] [--db] [--migrate] [--secure] [--isolate=] [--open] [--ssh] [--https] [--force]', function (
+        $repository,
+        $directory,
+        $branch,
+        $link,
+        $init,
+        $db,
+        $migrate,
+        $secure,
+        $isolate,
+        $open,
+        $ssh,
+        $https,
+        $force
+    ) {
+        try {
+            CloneProject::run(
+                (string) $repository,
+                is_string($directory) && $directory !== '' ? $directory : null,
+                is_string($branch) && $branch !== '' ? $branch : null,
+                (bool) $link,
+                (bool) $init,
+                (bool) $db,
+                (bool) $migrate,
+                (bool) $secure,
+                is_string($isolate) && $isolate !== '' ? $isolate : null,
+                (bool) $open,
+                (bool) $ssh,
+                (bool) $https,
+                (bool) $force
+            );
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Clone a git repository and optionally link/init/secure the site', [
+        'repository' => 'Git clone URL or GitHub shorthand (org/repo)',
+        'directory' => 'Target directory (default: repository basename)',
+        '--branch' => 'Branch to checkout',
+        '--link' => 'Create a Valet link after clone',
+        '--init' => 'Run valet init after clone',
+        '--db' => 'Create a database (implies init)',
+        '--migrate' => 'Run migrations (implies init)',
+        '--secure' => 'Secure the site with TLS',
+        '--isolate' => 'Isolate to a PHP version (e.g. 8.3)',
+        '--open' => 'Open the site in a browser',
+        '--ssh' => 'Prefer SSH clone URL when converting shorthand',
+        '--https' => 'Prefer HTTPS clone URL when converting shorthand',
+        '--force' => 'Allow cloning into a non-empty directory',
     ]);
 
     /**

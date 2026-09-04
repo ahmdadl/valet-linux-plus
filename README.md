@@ -6,7 +6,7 @@
 <a href="https://packagist.org/packages/ahmdadl/valet-linux-plus"><img src="https://poser.pugx.org/ahmdadl/valet-linux-plus/license.svg" alt="License"></a>
 </p>
 
-<p align="center"><strong>Version 2.2.3</strong> &middot; An advanced local development environment for Linux.</p>
+<p align="center"><strong>Version 3.1.0</strong> &middot; An advanced local development environment for Linux.</p>
 
 ## Table of Contents
 
@@ -58,12 +58,13 @@ Valet *Linux+* ships with a large command set. The complete, detailed reference 
 | **Version & update** | `is-latest`, `update` |
 | **Domain, port & networking** | `domain`, `port`, `which`, `proxy`, `unproxy`, `proxies` |
 | **Paths & linking** | `park`, `paths`, `forget`, `link`, `unlink`, `links`, `secure`, `unsecure`, `secured` |
-| **Database (MySQL/MariaDB)** | `db:list`, `db:create`, `db:drop`, `db:reset`, `db:import`, `db:export`, `db:configure` |
+| **Database (MySQL/MariaDB)** | `db:list`, `db:create`, `db:drop`, `db:reset`, `db:setup`, `db:refresh`, `db:sqlite`, `db:sqlite:reset`, `db:import`, `db:export`, `db:configure`, `db:url`, `db:open` |
 | **PostgreSQL** | `pg:list`, `pg:create`, `pg:drop`, `pg:reset`, `pg:import`, `pg:export`, `pg:configure` |
-| **PHP isolation** | `use`, `isolate`, `unisolate`, `isolated`, `which-php`, `php`, `composer` |
+| **PHP isolation** | `use`, `isolate`, `unisolate`, `isolated`, `which-php`, `php`, `composer`, `tinker`, `repl` |
+| **Project DX** | `clone`, `init`, `env`, `profile:*`, `cache:status`, `cache:path`, `cache:clear`, `cache:doctor` |
 | **IDE helpers** | `code`, `ps`, `subl`, `open` |
 | **Sharing** | `share`, `fetch-share-url`, `ngrok-auth` |
-| **Diagnostics & 2.1.x** | `diagnose`, `xdebug`, `log`, `mail`, `dashboard`, `backup`, `restore` |
+| **Diagnostics** | `diagnose`, `doctor`, `health`, `xdebug`, `log`, `logs`, `mail`, `dashboard`, `backup`, `restore` |
 
 ## Changelog
 
@@ -73,6 +74,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 This fork is based on [`valet-linux-plus/valet-linux-plus`](https://github.com/valet-linux-plus/valet-linux-plus) and extends it with the following capabilities not present in the upstream base:
 
+- **Project DX (3.1.0)** &mdash; `valet clone`, `tinker`/`repl`, `db:sqlite`, and `cache` helpers for faster day-to-day workflows.
 - **Diagnose** &mdash; a built-in, scriptable health check (`valet diagnose [--json]`).
 - **PostgreSQL (opt-in)** &mdash; a complete `pg:*` API alongside the existing MySQL tooling.
 - **Xdebug toggle** &mdash; one-command enable/disable/status per PHP version.

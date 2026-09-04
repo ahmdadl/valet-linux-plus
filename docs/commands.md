@@ -1,6 +1,6 @@
 # Valet Linux+ Command Reference
 
-This document is the complete reference for every command shipped with **Valet Linux+** (version `2.2.3`). It is generated from `cli/app.php`, which is the source of truth for command syntax, options, and descriptions.
+This document is the complete reference for every command shipped with **Valet Linux+** (version `3.1.0`). It is generated from `cli/app.php`, which is the source of truth for command syntax, options, and descriptions.
 
 All commands are invoked through the `valet` binary (e.g. `valet start`, `valet db:create`). Most commands require Valet to be installed first (`valet install`).
 
@@ -47,6 +47,8 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [db:reset](#dbreset)
   - [db:setup](#dbsetup)
   - [db:refresh](#dbrefresh)
+  - [db:sqlite](#dbsqlite)
+  - [db:sqlite:reset](#dbsqlitereset)
   - [db:import](#dbimport)
   - [db:export](#dbexport)
   - [db:configure](#dbconfigure)
@@ -66,6 +68,14 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [which-php](#which-php)
   - [php](#php)
   - [composer](#composer)
+  - [tinker](#tinker)
+  - [repl](#repl)
+- [Project DX](#project-dx)
+  - [clone](#clone)
+  - [cache:status](#cachestatus)
+  - [cache:path](#cachepath)
+  - [cache:clear](#cacheclear)
+  - [cache:doctor](#cachedoctor)
 - [IDE Helpers](#ide-helpers)
   - [code](#code)
   - [ps](#ps)
@@ -598,6 +608,37 @@ valet db:refresh -y
 valet db:refresh --seed --yes
 ```
 
+### db:sqlite
+
+Create a SQLite database file for the current project (default `database/database.sqlite`). Does not create or drop MySQL/Postgres databases.
+
+```bash
+valet db:sqlite [name] [--path=database/database.sqlite] [--env]
+```
+
+| Option | Description |
+| --- | --- |
+| `name` | Optional label (defaults to site name; messaging only). |
+| `--path` | Relative path for the sqlite file. |
+| `--env` | Set `DB_CONNECTION=sqlite` and absolute `DB_DATABASE` in `.env`. |
+
+Examples:
+
+```bash
+valet db:sqlite --env
+valet db:sqlite --path=storage/app/testing.sqlite --env
+```
+
+Requires the PHP `pdo_sqlite` extension (`valet health` reports it).
+
+### db:sqlite:reset
+
+Recreate the project SQLite file (truncate). Never touches MySQL or Postgres.
+
+```bash
+valet db:sqlite:reset [-y|--yes]
+```
+
 ### db:url
 
 Print a database connection URL for the current project (or named database). Password is included in the CLI output only — never written to a temp file.
@@ -883,6 +924,98 @@ Example:
 
 ```bash
 valet composer --site=my-app install
+```
+
+### tinker
+
+Open a framework REPL using the site's PHP binary. Prefers Laravel `artisan tinker`, then Symfony `bin/console`, then `vendor/bin/psysh`, then `php -a`.
+
+```bash
+valet tinker [--site=]
+```
+
+| Option | Description |
+| --- | --- |
+| `--site` | Linked/parked site name (defaults to current directory). |
+
+Examples:
+
+```bash
+valet tinker
+valet tinker --site=my-app
+```
+
+### repl
+
+Alias for `valet tinker`.
+
+```bash
+valet repl [--site=]
+```
+
+---
+
+## Project DX
+
+### clone
+
+Clone a git repository and optionally bootstrap it with Valet (`link`, `init`, profile apply, open).
+
+```bash
+valet clone <repository> [directory] [--branch=] [--link] [--init] [--db] [--migrate] [--secure] [--isolate=] [--open] [--ssh] [--https] [--force]
+```
+
+| Argument / Option | Description |
+| --- | --- |
+| `repository` | Git URL or GitHub shorthand (`org/repo`). |
+| `directory` | Target directory (default: repository basename). |
+| `--branch` | Branch to checkout. |
+| `--link` | Create a Valet link after clone. |
+| `--init` | Run `valet init` after clone. |
+| `--db` / `--migrate` / `--secure` / `--isolate` | Passed through to init (imply init). |
+| `--open` | Open the site in a browser. |
+| `--ssh` / `--https` | Prefer SSH or HTTPS when converting shorthand URLs. |
+| `--force` | Allow cloning into a non-empty directory. |
+
+Examples:
+
+```bash
+valet clone git@github.com:org/app.git --init --db --secure --open
+valet clone org/app --https --link
+```
+
+If the repo contains `.valet/profile.json`, Valet applies that profile after clone.
+
+### cache:status
+
+Show Composer, npm/pnpm/yarn, and Valet temp cache sizes.
+
+```bash
+valet cache:status [--json]
+```
+
+### cache:path
+
+Print known cache directory paths.
+
+```bash
+valet cache:path
+```
+
+### cache:clear
+
+Clear caches. **Default (no flags): Valet temps only** (`shell-hook.cache.json`, tune backups, old webhook bodies). Pass `--composer` / `--npm` to clear those caches explicitly.
+
+```bash
+valet cache:clear [--composer] [--npm] [--valet] [-y|--yes]
+```
+
+### cache:doctor
+
+Suggest fixes for slow installs and cache issues.
+
+```bash
+valet cache:doctor
 ```
 
 ---
