@@ -131,6 +131,8 @@ class Valet
         $this->projectDetectorSetup();
         $this->jsonSchemaSetup();
         $this->healthSetup();
+        $this->environmentIntrospectionSetup();
+        $this->doctorSetup();
     }
 
     /**
@@ -264,11 +266,7 @@ class Valet
     private function projectContextSetup(): void
     {
         Container::getInstance()->bind(ProjectContext::class, function () {
-            return new ProjectContext(
-                resolve(Configuration::class),
-                resolve(CommandLine::class),
-                resolve(Filesystem::class)
-            );
+            return new ProjectContext();
         });
     }
 
@@ -298,11 +296,50 @@ class Valet
     private function healthSetup(): void
     {
         Container::getInstance()->bind(Health::class, function () {
-            return new Health(
-                resolve(CommandLine::class),
-                resolve(Configuration::class),
-                resolve(Filesystem::class)
-            );
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+
+            return new Health($cli, $config, $files);
+        });
+    }
+
+    /**
+     * Configure environment introspection.
+     */
+    private function environmentIntrospectionSetup(): void
+    {
+        Container::getInstance()->bind(Environment::class, function () {
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+
+            return new Environment($config, $files);
+        });
+    }
+
+    /**
+     * Configure doctor (diagnose + repair).
+     */
+    private function doctorSetup(): void
+    {
+        Container::getInstance()->bind(Doctor::class, function () {
+            /** @var Diagnose $diagnose */
+            $diagnose = resolve(Diagnose::class);
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+            /** @var ServiceManager $sm */
+            $sm = resolve(ServiceManager::class);
+
+            return new Doctor($diagnose, $cli, $files, $config, $sm);
         });
     }
 

@@ -257,7 +257,7 @@ class Diagnose
 
         $dnsmasq = 'unknown';
         try {
-            $dnsmasq = trim($this->cli->run('systemctl is-active dnsmasq 2>/dev/null')) ?: 'unknown';
+            $dnsmasq = $this->sm->isActive('dnsmasq') ? 'active' : 'inactive';
         } catch (\Throwable $e) {
             $dnsmasq = 'unknown';
         }

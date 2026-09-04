@@ -190,5 +190,10 @@ class DiagnoseTest extends TestCase
                 };
             })
             ->zeroOrMoreTimes();
+
+        $this->serviceManager
+            ->shouldReceive('isActive')
+            ->andReturn(true)
+            ->zeroOrMoreTimes();
     }
 }

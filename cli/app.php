@@ -31,6 +31,8 @@ use Valet\Facades\Health;
 use Valet\Facades\JsonSchema;
 use Valet\Facades\ProjectContext;
 use Valet\Facades\ProjectDetector;
+use Valet\Facades\Environment;
+use Valet\Facades\Doctor;
 
 /**
  * Load correct autoloader depending on install location.
@@ -932,6 +934,29 @@ if (is_dir(VALET_HOME_PATH)) {
         Diagnose::run((bool)$json);
     })->descriptions('Diagnose Valet setup and output system health', [
         '--json' => 'Output as JSON',
+    ]);
+
+    /**
+     * Doctor: diagnose and optionally repair common Valet issues.
+     */
+    $app->command('doctor [--fix] [--dry-run] [--json]', function ($fix, $dryRun, $json) {
+        Doctor::run((bool)$fix, (bool)$dryRun, (bool)$json);
+    })->descriptions('Diagnose Valet and optionally repair common issues', [
+        '--fix' => 'Attempt safe automatic repairs',
+        '--dry-run' => 'List repair actions without executing them',
+        '--json' => 'Output as JSON',
+    ]);
+
+    /**
+     * Print merged project / Valet environment variables.
+     */
+    $app->command('env [--json] [--export=] [--print-db-url]', function ($json, $export, $printDbUrl) {
+        $exportFormat = is_string($export) && $export !== '' ? $export : null;
+        Environment::run((bool)$json, $exportFormat, (bool)$printDbUrl);
+    })->descriptions('Print environment variables for the current project', [
+        '--json' => 'Output as versioned JSON',
+        '--export' => 'Export format: dotenv, shell, or json',
+        '--print-db-url' => 'Print only the database connection URL',
     ]);
 
     /**

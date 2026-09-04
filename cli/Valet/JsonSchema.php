@@ -127,16 +127,18 @@ class JsonSchema
             'schema_version' => self::VERSION,
             'schema_command' => 'env',
             'fields' => [
-                'site' => 'string',
-                'url' => 'string',
-                'driver' => 'string',
-                'framework' => 'string',
-                'env_path' => 'string|null',
-                'site_path' => 'string|null',
-                'timestamp' => 'string',
-                'schema_version' => 'integer',
+                'SITE_URL' => 'string',
+                'PHP_VERSION' => 'string',
+                'DB_CONNECTION' => 'string',
+                'DB_HOST' => 'string',
+                'DB_PORT' => 'string',
+                'DB_DATABASE' => 'string',
+                'DB_USERNAME' => 'string',
+                'DB_PASSWORD' => 'string',
+                'REDIS_URL' => 'string',
+                'MAIL_URL' => 'string',
             ],
-            'description' => 'Project context derived from CWD.',
+            'description' => 'Merged project .env and Valet config defaults for the current site.',
         ];
     }
 

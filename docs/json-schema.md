@@ -14,7 +14,7 @@ The current schema version is `1`. Every JSON envelope includes
 | ---------- | --------------- | -------------------------------------------- |
 | `diagnose` | `--json`        | Diagnostic snapshot of the Valet install.    |
 | `status`   | `--json`        | Service status + global config summary.      |
-| `env`      | always JSON     | Project context derived from the CWD.        |
+| `env`      | `--json` / `--export=json` | Merged project `.env` + Valet DB/Mail/Redis defaults. |
 | `health`   | `--json`        | Health checks for known services.            |
 | `schema`   | (default JSON)  | Print the JSON schema for a command.         |
 
@@ -41,8 +41,8 @@ valet schema diagnose
 # Run a health check and print JSON
 valet health --json
 
-# Resolve project context from the CWD
-valet env
+# Print merged env for the current project
+valet env --json
 ```
 
 ## Health Result Shape

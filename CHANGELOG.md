@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Added
+
+- `valet env` — print merged project / Valet environment variables (`--json`, `--export`, `--print-db-url`).
+- `valet doctor` — diagnose and optionally repair common issues (`--fix`, `--dry-run`, `--json`).
+
+### Fixed
+
+- `Diagnose` DnsMasq check now uses the configured service manager instead of hard-coded `systemctl`.
+- `ProjectContext` container binding no longer passes unused constructor arguments.
 ## [2.2.3] - 2026-09-04
 
 ### Changed

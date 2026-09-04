@@ -71,6 +71,10 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [ngrok-auth](#ngrok-auth)
 - [Diagnostics & 2.1.x Features](#diagnostics--21x-features)
   - [diagnose](#diagnose)
+  - [doctor](#doctor)
+  - [env](#env)
+  - [health](#health)
+  - [schema](#schema)
   - [xdebug](#xdebug)
   - [log](#log)
   - [mail](#mail)
@@ -896,6 +900,68 @@ Examples:
 ```bash
 valet diagnose
 valet diagnose --json
+```
+
+### doctor
+
+Diagnose Valet and optionally repair common issues (invalid Nginx config, inactive services, DnsMasq, missing certs, home-path permissions). Destructive process kills are never performed; port conflicts are reported only.
+
+```bash
+valet doctor [--fix] [--dry-run] [--json]
+```
+
+| Option | Description |
+| --- | --- |
+| `--fix` | Attempt safe automatic repairs. |
+| `--dry-run` | List repair actions without executing them. |
+| `--json` | Output diagnosis and actions as JSON. |
+
+Examples:
+
+```bash
+valet doctor
+valet doctor --dry-run
+valet doctor --fix
+```
+
+### env
+
+Print merged environment variables for the current project (Valet defaults overlaid with project `.env`).
+
+```bash
+valet env [--json] [--export=dotenv|shell|json] [--print-db-url]
+```
+
+| Option | Description |
+| --- | --- |
+| `--json` | Versioned JSON envelope. |
+| `--export` | `dotenv` (default human), `shell` (`export KEY=value`), or `json`. |
+| `--print-db-url` | Print only the database connection URL. |
+
+Examples:
+
+```bash
+valet env
+valet env --export=shell
+eval "$(valet env --export=shell)"
+valet env --print-db-url
+valet env --json
+```
+
+### health
+
+Probe whether core services actually accept connections (not just systemd state).
+
+```bash
+valet health [--json]
+```
+
+### schema
+
+Print the JSON schema definition for a machine-readable command.
+
+```bash
+valet schema [diagnose|status|env|health]
 ```
 
 ### xdebug
