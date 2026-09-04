@@ -12,6 +12,7 @@ namespace Valet\Facades;
  * @method static void        configure(bool $force = false)
  * @method static bool        createDatabase(string $name)
  * @method static bool        dropDatabase(string $name)
+ * @method static bool        isDatabaseExists(string $name)
  * @method static array       exportDatabase(string $database, bool $exportSql = false)
  * @method static void        importDatabase(string $file, string $database)
  * @method static array       getDatabases()

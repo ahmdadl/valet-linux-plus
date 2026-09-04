@@ -133,6 +133,8 @@ class Valet
         $this->healthSetup();
         $this->environmentIntrospectionSetup();
         $this->doctorSetup();
+        $this->initSetup();
+        $this->databaseSetupSetup();
     }
 
     /**
@@ -340,6 +342,40 @@ class Valet
             $sm = resolve(ServiceManager::class);
 
             return new Doctor($diagnose, $cli, $files, $config, $sm);
+        });
+    }
+
+    /**
+     * Configure project init.
+     */
+    private function initSetup(): void
+    {
+        Container::getInstance()->bind(Init::class, function () {
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+
+            return new Init($cli, $files, $config);
+        });
+    }
+
+    /**
+     * Configure database setup helpers.
+     */
+    private function databaseSetupSetup(): void
+    {
+        Container::getInstance()->bind(DatabaseSetup::class, function () {
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+
+            return new DatabaseSetup($cli, $files, $config);
         });
     }
 

@@ -39,4 +39,15 @@ class WordPressValetDriver extends BasicValetDriver
 
         return $uri;
     }
+
+    /**
+     * Classic WordPress uses wp-config.php, not `.env`.
+     *
+     * @param array{database?: string, username?: string, password?: string, host?: string, port?: string, connection?: string} $db
+     * @return array<string, string>
+     */
+    public function envKeys(string $sitePath, array $db = []): array
+    {
+        return [];
+    }
 }

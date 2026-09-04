@@ -293,7 +293,7 @@ class Postgres
     /**
      * Check if database already exists.
      */
-    private function isDatabaseExists(string $name): bool
+    public function isDatabaseExists(string $name): bool
     {
         $pdo = $this->getConnection();
         $stmt = $pdo->prepare('SELECT 1 FROM pg_database WHERE datname = ?');

@@ -57,4 +57,22 @@ class BedrockValetDriver extends BasicValetDriver
 
         return $uri;
     }
+
+    /**
+     * @param array{database?: string, username?: string, password?: string, host?: string, port?: string, connection?: string} $db
+     * @return array<string, string>
+     */
+    public function envKeys(string $sitePath, array $db = []): array
+    {
+        if ($db === []) {
+            return [];
+        }
+
+        return [
+            'DB_NAME' => $db['database'] ?? '',
+            'DB_USER' => $db['username'] ?? 'valet',
+            'DB_PASSWORD' => $db['password'] ?? '',
+            'DB_HOST' => $db['host'] ?? '127.0.0.1',
+        ];
+    }
 }

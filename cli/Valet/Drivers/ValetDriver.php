@@ -203,6 +203,41 @@ abstract class ValetDriver
         }
     }
 
+    /**
+     * Optional framework commands used by `valet init` / `db:setup`.
+     *
+     * Keys are logical names (`migrate`, `seed`); values are argv after the PHP binary
+     * (e.g. `['artisan', 'migrate', '--force']`).
+     *
+     * @return array<string, list<string>>
+     */
+    public function initCommands(string $sitePath): array
+    {
+        return [];
+    }
+
+    /**
+     * Optional `.env` key/value overrides for project onboarding.
+     *
+     * @param array{database?: string, username?: string, password?: string, host?: string, port?: string, connection?: string} $db
+     * @return array<string, string>
+     */
+    public function envKeys(string $sitePath, array $db = []): array
+    {
+        if ($db === []) {
+            return [];
+        }
+
+        return [
+            'DB_CONNECTION' => $db['connection'] ?? 'mysql',
+            'DB_HOST' => $db['host'] ?? '127.0.0.1',
+            'DB_PORT' => $db['port'] ?? '3306',
+            'DB_DATABASE' => $db['database'] ?? '',
+            'DB_USERNAME' => $db['username'] ?? 'valet',
+            'DB_PASSWORD' => $db['password'] ?? '',
+        ];
+    }
+
     public function composerRequires(string $sitePath, string $namespacedPackage): bool
     {
         if (!file_exists($sitePath.'/composer.json')) {

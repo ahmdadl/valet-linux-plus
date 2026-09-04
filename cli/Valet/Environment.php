@@ -187,6 +187,85 @@ class Environment
     }
 
     /**
+     * Ensure `.env` exists (copy from `.env.example` when available) and upsert keys.
+     *
+     * @param array<string, string> $keys
+     * @return array{path: string, created: bool, updated: bool}
+     */
+    public function ensureAndWrite(string $sitePath, array $keys, bool $force = false): array
+    {
+        $envPath = rtrim($sitePath, '/') . '/.env';
+        $examplePath = rtrim($sitePath, '/') . '/.env.example';
+        $created = false;
+
+        if (!$this->files->exists($envPath)) {
+            if ($this->files->exists($examplePath)) {
+                $this->files->putAsUser($envPath, $this->files->get($examplePath));
+            } else {
+                $this->files->putAsUser($envPath, '');
+            }
+            $created = true;
+        } elseif (!$force && $keys === []) {
+            return ['path' => $envPath, 'created' => false, 'updated' => false];
+        }
+
+        $updated = $this->upsertDotEnvFile($envPath, $keys, $force || $created);
+
+        return ['path' => $envPath, 'created' => $created, 'updated' => $updated];
+    }
+
+    /**
+     * Upsert key/value pairs in a dotenv file.
+     *
+     * @param array<string, string> $keys
+     */
+    public function upsertDotEnvFile(string $envPath, array $keys, bool $overwrite = true): bool
+    {
+        if ($keys === []) {
+            return false;
+        }
+
+        $contents = $this->files->exists($envPath) ? $this->files->get($envPath) : '';
+        $lines = preg_split("/\r\n|\n|\r/", $contents) ?: [];
+        $seen = [];
+        $changed = false;
+
+        foreach ($lines as $index => $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || str_starts_with($trimmed, '#') || !str_contains($trimmed, '=')) {
+                continue;
+            }
+
+            [$key] = explode('=', $trimmed, 2);
+            $key = trim($key);
+            if (!array_key_exists($key, $keys)) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $newLine = $key . '=' . $keys[$key];
+            if ($overwrite && $lines[$index] !== $newLine) {
+                $lines[$index] = $newLine;
+                $changed = true;
+            }
+        }
+
+        foreach ($keys as $key => $value) {
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $lines[] = $key . '=' . $value;
+            $changed = true;
+        }
+
+        if ($changed) {
+            $this->files->putAsUser($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
+        }
+
+        return $changed;
+    }
+
+    /**
      * @return array<string, string>
      */
     private function readDotEnv(): array

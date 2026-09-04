@@ -287,7 +287,7 @@ class Mysql
     /**
      * Check if database already exists.
      */
-    private function isDatabaseExists(string $name): bool
+    public function isDatabaseExists(string $name): bool
     {
         $pdo = $this->getConnection();
         $stmt = $pdo->prepare('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?');

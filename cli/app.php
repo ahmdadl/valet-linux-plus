@@ -33,6 +33,8 @@ use Valet\Facades\ProjectContext;
 use Valet\Facades\ProjectDetector;
 use Valet\Facades\Environment;
 use Valet\Facades\Doctor;
+use Valet\Facades\Init;
+use Valet\Facades\DatabaseSetup;
 
 /**
  * Load correct autoloader depending on install location.
@@ -957,6 +959,60 @@ if (is_dir(VALET_HOME_PATH)) {
         '--json' => 'Output as versioned JSON',
         '--export' => 'Export format: dotenv, shell, or json',
         '--print-db-url' => 'Print only the database connection URL',
+    ]);
+
+    /**
+     * Bootstrap the current project for local development.
+     */
+    $app->command('init [--db] [--migrate] [--composer] [--isolate=] [--secure] [--force] [--pg]', function (
+        $db,
+        $migrate,
+        $composer,
+        $isolate,
+        $secure,
+        $force,
+        $pg
+    ) {
+        $isolateVersion = is_string($isolate) && $isolate !== '' ? $isolate : null;
+        Init::run(
+            (bool) $db,
+            (bool) $migrate,
+            (bool) $composer,
+            $isolateVersion,
+            (bool) $secure,
+            (bool) $force,
+            (bool) $pg
+        );
+    })->descriptions('Initialize the current project (DB, .env, composer, migrate, isolate, secure)', [
+        '--db' => 'Create a database named after the project directory',
+        '--migrate' => 'Run framework migrate command when available',
+        '--composer' => 'Run composer install with the site PHP binary',
+        '--isolate' => 'Isolate the site to a PHP version (e.g. 8.3)',
+        '--secure' => 'Create a trusted TLS certificate for the site',
+        '--force' => 'Overwrite .env and recreate existing database',
+        '--pg' => 'Use PostgreSQL instead of MySQL',
+    ]);
+
+    /**
+     * Create DB, wire .env, optionally migrate/seed.
+     */
+    $app->command('db:setup [--seed] [--pg] [--force]', function ($seed, $pg, $force) {
+        DatabaseSetup::setup((bool) $seed, (bool) $pg, (bool) $force);
+    })->descriptions('Create project database, update .env, and run migrations', [
+        '--seed' => 'Also run framework seed command when available',
+        '--pg' => 'Use PostgreSQL instead of MySQL',
+        '--force' => 'Recreate the database if it already exists',
+    ]);
+
+    /**
+     * Reset DB then migrate (optionally seed).
+     */
+    $app->command('db:refresh [--seed] [--pg] [-y|--yes]', function ($seed, $pg, $yes) {
+        DatabaseSetup::refresh((bool) $seed, (bool) $pg, (bool) $yes);
+    })->descriptions('Reset project database and re-run migrations', [
+        '--seed' => 'Also run framework seed command when available',
+        '--pg' => 'Use PostgreSQL instead of MySQL',
+        '--yes' => 'Skip confirmation prompt',
     ]);
 
     /**

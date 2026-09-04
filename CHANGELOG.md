@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- `valet init` — bootstrap a project (`--db`, `--migrate`, `--composer`, `--isolate`, `--secure`, `--force`, `--pg`).
+- `valet db:setup` / `valet db:refresh` — create or reset the project database, sync `.env`, run migrate/seed.
+- Driver hooks `initCommands()` / `envKeys()` on `ValetDriver` (Laravel, Bedrock, WordPress).
 - `valet env` — print merged project / Valet environment variables (`--json`, `--export`, `--print-db-url`).
 - `valet doctor` — diagnose and optionally repair common issues (`--fix`, `--dry-run`, `--json`).
 

@@ -41,6 +41,8 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [db:create](#dbcreate)
   - [db:drop](#dbdrop)
   - [db:reset](#dbreset)
+  - [db:setup](#dbsetup)
+  - [db:refresh](#dbrefresh)
   - [db:import](#dbimport)
   - [db:export](#dbexport)
   - [db:configure](#dbconfigure)
@@ -73,6 +75,7 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [diagnose](#diagnose)
   - [doctor](#doctor)
   - [env](#env)
+  - [init](#init)
   - [health](#health)
   - [schema](#schema)
   - [xdebug](#xdebug)
@@ -512,6 +515,43 @@ Example:
 valet db:reset my_app -y
 ```
 
+### db:setup
+
+Create the project database (named after the current directory), sync DB keys into `.env`, and run the framework migrate command when available.
+
+```bash
+valet db:setup [--seed] [--pg] [--force]
+```
+
+| Option | Description |
+| --- | --- |
+| `--seed` | Also run the framework seed command when available. |
+| `--pg` | Use PostgreSQL instead of MySQL. |
+| `--force` | Drop and recreate the database if it already exists. |
+
+Examples:
+
+```bash
+valet db:setup
+valet db:setup --seed
+valet db:setup --pg --force
+```
+
+### db:refresh
+
+Reset the project database and re-run migrations (Laravel `migrate:fresh`-style ergonomics). Prompts unless `-y`/`--yes`.
+
+```bash
+valet db:refresh [--seed] [--pg] [-y|--yes]
+```
+
+Examples:
+
+```bash
+valet db:refresh -y
+valet db:refresh --seed --yes
+```
+
 ### db:import
 
 Import a SQL dump file into the named database.
@@ -946,6 +986,31 @@ valet env --export=shell
 eval "$(valet env --export=shell)"
 valet env --print-db-url
 valet env --json
+```
+
+### init
+
+Bootstrap the current project for local development. All steps are opt-in via flags. Existing databases and `.env` files are skipped unless `--force` is passed.
+
+```bash
+valet init [--db] [--migrate] [--composer] [--isolate=] [--secure] [--force] [--pg]
+```
+
+| Option | Description |
+| --- | --- |
+| `--db` | Create a database named after the project directory. |
+| `--migrate` | Run the framework migrate command when available. |
+| `--composer` | Run `composer install` with the site PHP binary. |
+| `--isolate` | Isolate the site to a PHP version (e.g. `8.3`). |
+| `--secure` | Create a trusted TLS certificate for the site. |
+| `--force` | Overwrite `.env` and recreate an existing database. |
+| `--pg` | Use PostgreSQL instead of MySQL for `--db`. |
+
+Examples:
+
+```bash
+valet init --db --migrate --composer
+valet init --db --isolate=8.3 --secure --force
 ```
 
 ### health

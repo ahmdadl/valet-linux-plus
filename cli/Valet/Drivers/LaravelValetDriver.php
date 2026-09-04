@@ -60,4 +60,15 @@ class LaravelValetDriver extends ValetDriver
 
         return $sitePath.'/public/index.php';
     }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public function initCommands(string $sitePath): array
+    {
+        return [
+            'migrate' => ['artisan', 'migrate', '--force'],
+            'seed' => ['artisan', 'db:seed', '--force'],
+        ];
+    }
 }
