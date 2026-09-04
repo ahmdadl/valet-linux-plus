@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-09-04
+
+### Added
+
+- `valet shell-hook` — emit zsh/bash/fish hooks to auto-switch PHP on `cd` into Valet sites; `valet env --php-bin` for the resolver (F-602).
+- `valet tune` — PHP-FPM performance presets (`dev`, `fast`, `debug`, `show`) with drop-in backups (F-606).
+- `valet bench` — local DNS/connect/TLS/TTFB latency measurement with percentiles and `--json` (F-607).
+
 ## [3.1.0] - 2026-09-04
 
 ### Added

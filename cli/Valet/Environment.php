@@ -107,8 +107,14 @@ class Environment
     /**
      * Run the env command and write output.
      */
-    public function run(bool $json = false, ?string $export = null, bool $printDbUrl = false): void
+    public function run(bool $json = false, ?string $export = null, bool $printDbUrl = false, bool $phpBin = false): void
     {
+        if ($phpBin) {
+            \Valet\Facades\ShellHook::printPhpBin();
+
+            return;
+        }
+
         if ($printDbUrl) {
             Writer::info($this->databaseUrl());
 

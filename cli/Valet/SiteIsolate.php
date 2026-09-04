@@ -63,6 +63,7 @@ class SiteIsolate
             NginxFacade::restart();
 
             $this->addBinFileToConfig($version, $directory);
+            \Valet\Facades\ShellHook::invalidateCache();
         } catch (DomainException $exception) {
             Writer::error($exception->getMessage());
             return false;
@@ -88,6 +89,7 @@ class SiteIsolate
         NginxFacade::restart();
 
         $this->removeBinFromConfig($directory);
+        \Valet\Facades\ShellHook::invalidateCache();
     }
 
     /**

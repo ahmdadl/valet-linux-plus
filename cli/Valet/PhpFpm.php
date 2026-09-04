@@ -230,6 +230,8 @@ class PhpFpm
         if ($updateCli) {
             $this->cli->run("update-alternatives --set php /usr/bin/php$version");
         }
+
+        \Valet\Facades\ShellHook::invalidateCache();
     }
 
     /**

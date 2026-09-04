@@ -137,4 +137,12 @@ class ProjectContext
         $ctx = self::fromCwd();
         return $ctx['site'];
     }
+
+    /**
+     * Resolve the PHP binary for a filesystem path (delegates to ShellHook cache).
+     */
+    public static function phpBinaryForPath(string $path): ?string
+    {
+        return \Valet\Facades\ShellHook::phpBinaryForPath($path);
+    }
 }

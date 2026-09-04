@@ -1,6 +1,6 @@
 # Valet Linux+ Command Reference
 
-This document is the complete reference for every command shipped with **Valet Linux+** (version `3.1.0`). It is generated from `cli/app.php`, which is the source of truth for command syntax, options, and descriptions.
+This document is the complete reference for every command shipped with **Valet Linux+** (version `3.2.0`). It is generated from `cli/app.php`, which is the source of truth for command syntax, options, and descriptions.
 
 All commands are invoked through the `valet` binary (e.g. `valet start`, `valet db:create`). Most commands require Valet to be installed first (`valet install`).
 
@@ -76,6 +76,9 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [cache:path](#cachepath)
   - [cache:clear](#cacheclear)
   - [cache:doctor](#cachedoctor)
+  - [shell-hook](#shell-hook)
+  - [tune](#tune)
+  - [bench](#bench)
 - [IDE Helpers](#ide-helpers)
   - [code](#code)
   - [ps](#ps)
@@ -1018,6 +1021,59 @@ Suggest fixes for slow installs and cache issues.
 valet cache:doctor
 ```
 
+### shell-hook
+
+Print a shell snippet that auto-exports the site PHP binary when you `cd` into a linked/parked Valet site. Add to your shell rc:
+
+```bash
+eval "$(valet shell-hook)"                 # zsh (default)
+eval "$(valet shell-hook --shell=bash)"    # bash
+valet shell-hook --shell=fish | source     # fish
+```
+
+Direnv users can prefer `eval "$(valet env --export=shell)"` instead. The hook is a no-op outside Valet sites and never installs packages.
+
+### tune
+
+Apply PHP-FPM performance presets via a Valet-managed `conf.d` drop-in (`99-valet-tune.ini`). Previous drop-ins are backed up under `~/.config/valet/Backups/tune/`.
+
+```bash
+valet tune [preset] [--version=] [--site=] [--dry-run] [--force]
+```
+
+| Preset | Intent |
+| --- | --- |
+| `dev` | Balanced local (default show if omitted shows current) |
+| `fast` | Larger OPcache / realpath cache |
+| `debug` | OPcache off — pair with `valet xdebug on` |
+| `show` | Report current drop-in / stored preset |
+
+Examples:
+
+```bash
+valet tune show
+valet tune fast --dry-run
+valet tune debug --version=8.3
+valet tune fast --site=my-app
+```
+
+### bench
+
+Measure local DNS, TCP connect, TLS (if secured), TTFB, and total latency for a Valet site.
+
+```bash
+valet bench [site] [--requests=20] [--path=/] [--warmup=2] [--json]
+```
+
+Exit code `1` if the site is unreachable; otherwise `0`.
+
+Examples:
+
+```bash
+valet bench
+valet bench my-app --requests=50 --json
+```
+
 ---
 
 ## IDE Helpers
@@ -1164,7 +1220,7 @@ valet doctor --fix
 Print merged environment variables for the current project (Valet defaults overlaid with project `.env`).
 
 ```bash
-valet env [--json] [--export=dotenv|shell|json] [--print-db-url]
+valet env [--json] [--export=dotenv|shell|json] [--print-db-url] [--php-bin]
 ```
 
 | Option | Description |
@@ -1172,6 +1228,7 @@ valet env [--json] [--export=dotenv|shell|json] [--print-db-url]
 | `--json` | Versioned JSON envelope. |
 | `--export` | `dotenv` (default human), `shell` (`export KEY=value`), or `json`. |
 | `--print-db-url` | Print only the database connection URL. |
+| `--php-bin` | Print absolute PHP binary for the current directory (used by `shell-hook`). |
 
 Examples:
 
@@ -1181,6 +1238,7 @@ valet env --export=shell
 eval "$(valet env --export=shell)"
 valet env --print-db-url
 valet env --json
+valet env --php-bin
 ```
 
 ### init

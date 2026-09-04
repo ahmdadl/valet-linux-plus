@@ -12,6 +12,7 @@ namespace Valet\Facades;
  * @method static string|false framework()
  * @method static string|false url()
  * @method static string|false site()
+ * @method static string|null phpBinaryForPath(string $path)
  */
 class ProjectContext extends Facade
 {

@@ -46,6 +46,9 @@ use Valet\Facades\Repl;
 use Valet\Facades\Sqlite;
 use Valet\Facades\Cache;
 use Valet\Facades\CloneProject;
+use Valet\Facades\ShellHook;
+use Valet\Facades\Tune;
+use Valet\Facades\Bench;
 
 /**
  * Load correct autoloader depending on install location.
@@ -62,7 +65,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
  * Create the application.
  */
 Container::setInstance(new Container());
-$version = '3.1.0';
+$version = '3.2.0';
 
 $app = new Application('ValetLinux+', $version);
 
@@ -1006,13 +1009,14 @@ if (is_dir(VALET_HOME_PATH)) {
     /**
      * Print merged project / Valet environment variables.
      */
-    $app->command('env [--json] [--export=] [--print-db-url]', function ($json, $export, $printDbUrl) {
+    $app->command('env [--json] [--export=] [--print-db-url] [--php-bin]', function ($json, $export, $printDbUrl, $phpBin) {
         $exportFormat = is_string($export) && $export !== '' ? $export : null;
-        Environment::run((bool)$json, $exportFormat, (bool)$printDbUrl);
+        Environment::run((bool)$json, $exportFormat, (bool)$printDbUrl, (bool)$phpBin);
     })->descriptions('Print environment variables for the current project', [
         '--json' => 'Output as versioned JSON',
         '--export' => 'Export format: dotenv, shell, or json',
         '--print-db-url' => 'Print only the database connection URL',
+        '--php-bin' => 'Print absolute PHP binary path for the current directory',
     ]);
 
     /**
@@ -1127,6 +1131,80 @@ if (is_dir(VALET_HOME_PATH)) {
     $app->command('cache:doctor', function () {
         Cache::runDoctor();
     })->descriptions('Suggest fixes for slow installs and cache issues');
+
+    /**
+     * Emit a shell hook that switches PHP on cd into Valet sites.
+     */
+    $app->command('shell-hook [--shell=]', function ($shell = null) {
+        try {
+            ShellHook::run(is_string($shell) && $shell !== '' ? $shell : null);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Print a shell hook to auto-switch PHP when entering Valet sites', [
+        '--shell' => 'Shell dialect: zsh (default), bash, or fish',
+    ]);
+
+    /**
+     * Apply PHP-FPM performance presets.
+     */
+    $app->command('tune [preset] [--version=] [--site=] [--dry-run] [--force]', function (
+        $preset,
+        $version,
+        $site,
+        $dryRun,
+        $force
+    ) {
+        try {
+            Tune::run(
+                is_string($preset) && $preset !== '' ? $preset : null,
+                is_string($version) && $version !== '' ? $version : null,
+                is_string($site) && $site !== '' ? $site : null,
+                (bool) $dryRun,
+                (bool) $force
+            );
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Apply PHP performance presets (dev, fast, debug) or show current', [
+        'preset' => 'dev | fast | debug | show (default: show)',
+        '--version' => 'PHP version to tune (default: current)',
+        '--site' => 'Resolve PHP version from an isolated site',
+        '--dry-run' => 'Print the drop-in without writing',
+        '--force' => 'Overwrite a non-Valet-managed drop-in',
+    ]);
+
+    /**
+     * Benchmark local site latency.
+     */
+    $app->command('bench [site] [--requests=] [--path=] [--warmup=] [--json]', function (
+        $site,
+        $requests,
+        $path,
+        $warmup,
+        $json
+    ) {
+        try {
+            Bench::run(
+                is_string($site) && $site !== '' ? $site : null,
+                is_numeric($requests) ? (int) $requests : 20,
+                is_string($path) && $path !== '' ? $path : '/',
+                is_numeric($warmup) ? (int) $warmup : 2,
+                (bool) $json
+            );
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+            return 1;
+        }
+
+        return 0;
+    })->descriptions('Measure DNS, connect, TLS, TTFB, and total latency for a local site', [
+        'site' => 'Site name or host (defaults to current project)',
+        '--requests' => 'Number of timed requests after warmup (default: 20)',
+        '--path' => 'Request path (default: /)',
+        '--warmup' => 'Warmup requests discarded from stats (default: 2)',
+        '--json' => 'Output as JSON',
+    ]);
 
     /**
      * Clone a git repository and optionally bootstrap with Valet.
