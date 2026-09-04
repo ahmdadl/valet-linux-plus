@@ -143,6 +143,54 @@ class SiteSecure
     }
 
     /**
+     * Install (or check) the Valet CA in the system / browser trust stores.
+     *
+     * @return array{ca_exists: bool, trusted: bool, ca_path: string, system_path: string, installed?: bool}
+     */
+    public function trustCaCertificate(bool $checkOnly = false): array
+    {
+        $caPemPath = $this->caPath($this->caCertificatePem);
+        $systemPath = sprintf('%s/%s.crt', $this->pm->getCaCertificatesPath(), $this->caCertificatePem);
+        $caExists = $this->files->exists($caPemPath);
+        $trusted = $this->files->exists($systemPath);
+
+        $result = [
+            'ca_exists' => $caExists,
+            'trusted' => $trusted,
+            'ca_path' => $caPemPath,
+            'system_path' => $systemPath,
+        ];
+
+        if ($checkOnly) {
+            return $result;
+        }
+
+        if (!$caExists) {
+            throw new \DomainException('Valet CA not found. Secure a site first (`valet secure`) to generate the CA.');
+        }
+
+        $this->trustCa($caPemPath);
+        $result['installed'] = true;
+        $result['trusted'] = $this->files->exists($systemPath);
+
+        return $result;
+    }
+
+    /**
+     * Absolute path to a site certificate file (or the certificates directory).
+     */
+    public function certificateFilePath(?string $site = null, string $extension = 'crt'): string
+    {
+        if ($site === null || $site === '') {
+            return $this->certificatesPath();
+        }
+
+        $site = $this->validateSiteUrl($site);
+
+        return $this->certificatesPath($site . '.' . $extension);
+    }
+
+    /**
      * If CA and root certificates are nonexistent, create them and trust the root cert.
      *
      * @param int $caExpireInDays The number of days the self-signed certificate authority is valid.

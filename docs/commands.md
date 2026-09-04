@@ -36,6 +36,10 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [secure](#secure)
   - [unsecure](#unsecure)
   - [secured](#secured)
+  - [trust](#trust)
+  - [certlist](#certlist)
+  - [certinfo](#certinfo)
+  - [certrenew](#certrenew)
 - [Database (MySQL / MariaDB)](#database-mysql--mariadb)
   - [db:list](#dblist)
   - [db:create](#dbcreate)
@@ -76,10 +80,16 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [doctor](#doctor)
   - [env](#env)
   - [init](#init)
+  - [profilelist](#profilelist)
+  - [profileshow](#profileshow)
+  - [profilesave](#profilesave)
+  - [profileuse](#profileuse)
+  - [profiledelete](#profiledelete)
   - [health](#health)
   - [schema](#schema)
   - [xdebug](#xdebug)
   - [log](#log)
+  - [logs](#logs)
   - [mail](#mail)
   - [dashboard](#dashboard)
   - [backup](#backup)
@@ -454,6 +464,42 @@ valet secured
 valet secured my-app
 ```
 
+### trust
+
+Install the Valet CA into the system trust store (`update-ca-certificates` + browser NSS stores when available). Use `--check` to report status without changing anything.
+
+```bash
+valet trust [--check]
+```
+
+If browsers still show warnings after trusting, restart them. The CA PEM lives under `~/.config/valet/CA/`.
+
+### cert:list
+
+List all secured site certificates with expiry dates.
+
+```bash
+valet cert:list [--json]
+```
+
+JSON rows include `expires_at` and `days_remaining`.
+
+### cert:info
+
+Show OpenSSL-parsed details for one site certificate (defaults to the current directory site).
+
+```bash
+valet cert:info [site]
+```
+
+### cert:renew
+
+Renew certificates that expire within 30 days. Pass a site to target one certificate, or omit to scan all secured sites. `--force` renews regardless of remaining lifetime.
+
+```bash
+valet cert:renew [site] [--force]
+```
+
 ---
 
 ## Database (MySQL / MariaDB)
@@ -550,6 +596,22 @@ Examples:
 ```bash
 valet db:refresh -y
 valet db:refresh --seed --yes
+```
+
+### db:url
+
+Print a database connection URL for the current project (or named database). Password is included in the CLI output only — never written to a temp file.
+
+```bash
+valet db:url [name] [--driver=mysql|postgres]
+```
+
+### db:open
+
+Open Adminer for the given database. Requires `valet addon:enable adminer`. The password is never put in the URL or a temp file.
+
+```bash
+valet db:open [name] [--driver=mysql|postgres]
 ```
 
 ### db:import
@@ -1013,6 +1075,92 @@ valet init --db --migrate --composer
 valet init --db --isolate=8.3 --secure --force
 ```
 
+### profile:list
+
+List the project profile (`.valet/profile.json`) and global templates under `~/.config/valet/profiles/`.
+
+```bash
+valet profile:list
+```
+
+### profile:show
+
+Print a profile as JSON. Omit the name to show the project profile.
+
+```bash
+valet profile:show [name]
+```
+
+### profile:save
+
+Capture current site settings (PHP isolation, secure flag, default DB name) into `.valet/profile.json`. Pass a name to also write a reusable global template.
+
+```bash
+valet profile:save [name]
+```
+
+Examples:
+
+```bash
+valet profile:save
+valet profile:save laravel-app
+```
+
+### profile:use
+
+Copy a global profile into the current project's `.valet/profile.json`. With `--apply`, isolate/secure the site, create the configured database, and start listed services.
+
+```bash
+valet profile:use name [--apply]
+```
+
+Examples:
+
+```bash
+valet profile:use laravel-app
+valet profile:use laravel-app --apply
+```
+
+### profile:delete
+
+Delete the project profile or a named global template.
+
+```bash
+valet profile:delete [name]
+```
+
+### addon:list
+
+List available local addon presets and whether each is enabled.
+
+```bash
+valet addon:list
+```
+
+### addon:enable
+
+Enable a local addon preset (`minio`, `meilisearch`, `adminer`, `mailpit`).
+
+```bash
+valet addon:enable name
+```
+
+Examples:
+
+```bash
+valet addon:enable adminer
+valet addon:enable minio
+valet addon:enable meilisearch
+```
+
+### addon:disable
+
+Disable an addon (data retained where applicable).
+
+```bash
+valet addon:disable name
+```
+
 ### health
 
 Probe whether core services actually accept connections (not just systemd state).
@@ -1068,6 +1216,29 @@ Examples:
 valet log
 valet log php --tail=100
 valet log mailpit
+```
+
+### logs
+
+Aggregate logs from multiple services with `[service]` prefixes. Supports an optional Laravel app log (`app` → `storage/logs/laravel.log`).
+
+```bash
+valet logs [--follow] [--services=nginx,php,mysql] [--tail=50] [--grep=pattern]
+```
+
+| Option | Description |
+| --- | --- |
+| `--follow` | Stream until Ctrl+C. |
+| `--services` | Comma-separated list (default `nginx,php`; also `mysql`, `redis`, `mailpit`, `app`). |
+| `--tail` | Lines per service when not following (default `50`). |
+| `--grep` | Only include lines containing this substring. |
+
+Examples:
+
+```bash
+valet logs
+valet logs --services=nginx,php,app --grep=ERROR
+valet logs --follow --services=nginx,php
 ```
 
 ### mail
@@ -1150,7 +1321,7 @@ Custom services are defined in `~/.config/valet/config.json` under the `services
 | `healthCheck` | Health check URL. |
 | `description` | Human-readable description. |
 
-Built-in templates currently available: `minio`.
+Built-in templates currently available: `minio`, `meilisearch`.
 
 Example `config.json` snippet:
 

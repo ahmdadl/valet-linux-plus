@@ -2,7 +2,7 @@
 
 **Version target:** 2.3.0 → 3.0.0  
 **Date:** 2026-09-04  
-**Status:** In progress — Phase 0 ✅, Phase 1 ✅, F-201 ✅, F-203 ✅, F-204 ✅, F-301 ✅
+**Status:** In progress — Phases 0–4 ✅ (F-401–F-404); next Phase 5
 
 This document is the implementation plan for the next wave of local-development features. It assumes the existing command surface documented in [commands.md](commands.md) and the architecture under `cli/Valet/`.
 

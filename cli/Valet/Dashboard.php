@@ -70,6 +70,8 @@ class Dashboard
             'sites'         => $sites,
             'counts'        => $this->buildCounts($sites),
             'services'      => $this->gatherServices(),
+            'health'        => $this->gatherHealth(),
+            'mail_url'      => 'https://mails.' . $domain,
             'nginx_sites'   => $this->gatherNginxSites(),
             'valet_version' => $this->gatherValetVersion(),
         ];
@@ -387,6 +389,50 @@ class Dashboard
             return $this->nginx->configuredSites()->count();
         } catch (\Throwable $e) {
             return 0;
+        }
+    }
+
+    /**
+     * Best-effort health checks for the dashboard.
+     *
+     * @return array<int, array{service: string, healthy: bool, message: string}>
+     */
+    private function gatherHealth(): array
+    {
+        try {
+            $results = \Valet\Facades\Health::checkAll();
+
+            return array_map(function (array $row) {
+                return [
+                    'service' => (string) ($row['service'] ?? ''),
+                    'healthy' => (bool) ($row['healthy'] ?? false),
+                    'message' => (string) ($row['message'] ?? ''),
+                ];
+            }, $results);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Restart a known service after UI confirmation (mutating dashboard action).
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function restartService(string $service): array
+    {
+        $service = strtolower(trim($service));
+        $allowed = ['nginx', 'php', 'mailpit', 'mysql', 'redis', 'dnsmasq'];
+        if (!in_array($service, $allowed, true)) {
+            return ['ok' => false, 'message' => 'Service not allowed: ' . $service];
+        }
+
+        try {
+            \Valet\Facades\ServiceRegistry::restart([$service]);
+
+            return ['ok' => true, 'message' => sprintf('Restarted %s', $service)];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => $e->getMessage()];
         }
     }
 

@@ -56,6 +56,15 @@ class ServiceRegistry
             'healthCheck' => 'http://127.0.0.1:9000/minio/health/live',
             'description' => 'MinIO object storage',
         ],
+        'meilisearch' => [
+            'name' => 'meilisearch',
+            'package' => 'meilisearch',
+            'service' => 'meilisearch',
+            'port' => 7700,
+            'proxyHost' => 'http://127.0.0.1:7700',
+            'healthCheck' => 'http://127.0.0.1:7700/health',
+            'description' => 'Meilisearch full-text search',
+        ],
     ];
 
     /**

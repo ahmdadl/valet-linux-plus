@@ -520,12 +520,18 @@
         {name:'redis', installed:false, status:'unknown'},
         {name:'postgres', installed:false, status:'unknown'}
       ],
+      health:[],
+      mail_url:'https://mails.test',
       valet_version:'unknown',
       nginx_sites:0
     };
     // show hint that data missing is OK
     const foot = document.getElementById('foot-meta');
     if(foot) foot.textContent = 'Preview mode — live data appears when served via Valet';
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
   // header
@@ -568,17 +574,60 @@
   // services
   const grid = $('#services-grid');
   const services = Array.isArray(data.services) ? data.services : [];
+  const healthMap = {};
+  (Array.isArray(data.health) ? data.health : []).forEach(h=>{
+    if(h && h.service) healthMap[String(h.service).toLowerCase()] = h;
+  });
   grid.innerHTML = services.map(s=>{
     const name = s.name||'';
     const status = (s.status||'unknown').toLowerCase();
     const dotClass = status==='running' ? 'dot--running' : status==='stopped' ? 'dot--stopped' : 'dot--unknown';
     const installed = !!s.installed;
     const statusLabel = status==='running' ? 'running' : status==='stopped' ? 'stopped' : 'unknown';
+    const base = name.replace(/-fpm$/,'');
+    const health = healthMap[base] || healthMap[name.toLowerCase()];
+    const healthLabel = health ? (health.healthy ? 'healthy' : 'unhealthy') : '';
+    const restartName = ['nginx','mailpit','mysql','redis','dnsmasq'].includes(base) ? base : (name.includes('php') ? 'php' : '');
+    const restartBtn = restartName
+      ? `<button type="button" class="copy-btn svc-restart" data-restart="${escapeHtml(restartName)}" title="Restart ${escapeHtml(restartName)}" style="margin-left:auto">restart</button>`
+      : '';
     return `<div class="svc" role="listitem">
-      <div class="svc-top"><span class="dot ${dotClass}" aria-hidden="true"></span><span class="svc-name">${escapeHtml(name)}</span></div>
-      <div class="svc-sub"><span class="svc-status">${escapeHtml(statusLabel)}</span> <span class="pill-installed ${installed?'is-yes':''}">${installed?'installed':'not installed'}</span></div>
+      <div class="svc-top"><span class="dot ${dotClass}" aria-hidden="true"></span><span class="svc-name">${escapeHtml(name)}</span>${restartBtn}</div>
+      <div class="svc-sub"><span class="svc-status">${escapeHtml(statusLabel)}</span> <span class="pill-installed ${installed?'is-yes':''}">${installed?'installed':'not installed'}</span>${healthLabel?` <span class="pill-installed ${health.healthy?'is-yes':''}">${escapeHtml(healthLabel)}</span>`:''}</div>
     </div>`;
   }).join('') || `<div style="grid-column:1/-1; padding:16px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:12px; text-align:center">No service data</div>`;
+
+  // Mailpit quick open
+  if(data.mail_url){
+    const hdr = document.querySelector('header .hdr-right') || document.querySelector('header');
+    if(hdr && !document.getElementById('open-mailpit')){
+      const a = document.createElement('a');
+      a.id = 'open-mailpit';
+      a.href = data.mail_url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = 'Open Mailpit';
+      a.style.cssText = 'margin-left:12px;font-size:12px;font-weight:600;color:var(--accent,#2563eb)';
+      hdr.appendChild(a);
+    }
+  }
+
+  document.addEventListener('click', async (ev)=>{
+    const btn = ev.target.closest('[data-restart]');
+    if(!btn) return;
+    const service = btn.getAttribute('data-restart');
+    if(!service) return;
+    if(!confirm('Restart service “'+service+'”?')) return;
+    btn.disabled = true;
+    try{
+      const res = await fetch('?valet_action=restart&confirm=1&service='+encodeURIComponent(service), {headers:{'Accept':'application/json'}});
+      const json = await res.json();
+      alert(json.message || (json.ok ? 'Restarted' : 'Failed'));
+    }catch(e){
+      alert('Restart request failed');
+    }
+    btn.disabled = false;
+  });
 
   // sites
   const sites = Array.isArray(data.sites) ? data.sites.slice() : [];
@@ -589,9 +638,6 @@
   let activeFilter = 'all';
   let query = '';
 
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
   function pillClass(type){
     if(type==='proxy') return 'pill--proxy';
     if(type==='linked') return 'pill--linked';

@@ -127,6 +127,25 @@ $__valetDashboardHost = preg_replace('/^www\./', '', $__valetDashboardHost);
 $__valetDashboardDomain = $valetConfig['domain'] ?? 'test';
 $__valetDashboardHosts = ['valet.' . $__valetDashboardDomain, 'dashboard.' . $__valetDashboardDomain];
 if (in_array($__valetDashboardHost, $__valetDashboardHosts, true)) {
+    // Mutating dashboard API (requires explicit confirm=1 from the UI).
+    $__valetAction = $_GET['valet_action'] ?? null;
+    if ($__valetAction === 'restart' && ($_GET['confirm'] ?? '') === '1') {
+        header('Content-Type: application/json');
+        try {
+            $service = is_string($_GET['service'] ?? null) ? $_GET['service'] : '';
+            if (class_exists(\Illuminate\Container\Container::class) && \Illuminate\Container\Container::getInstance()) {
+                $dashboard = \Illuminate\Container\Container::getInstance()->make(\Valet\Dashboard::class);
+                echo json_encode($dashboard->restartService($service));
+                exit;
+            }
+        } catch (Throwable $e) {
+            echo json_encode(['ok' => false, 'message' => $e->getMessage()]);
+            exit;
+        }
+        echo json_encode(['ok' => false, 'message' => 'Dashboard unavailable']);
+        exit;
+    }
+
     try {
         if (class_exists(\Illuminate\Container\Container::class) && \Illuminate\Container\Container::getInstance()) {
             $dashboard = \Illuminate\Container\Container::getInstance()->make(\Valet\Dashboard::class);

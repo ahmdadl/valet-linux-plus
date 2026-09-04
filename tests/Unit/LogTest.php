@@ -171,4 +171,59 @@ class LogTest extends TestCase
 
         $this->log->openMail();
     }
+
+    /**
+     * @test
+     */
+    public function itAggregatesPrefixedLinesFromMultipleServices(): void
+    {
+        $nginxPath = VALET_HOME_PATH . '/Log/nginx-error.log';
+
+        $this->filesystem
+            ->shouldReceive('exists')
+            ->with($nginxPath)
+            ->andReturnTrue();
+        $this->filesystem
+            ->shouldReceive('get')
+            ->with($nginxPath)
+            ->andReturn("nginx boom\nnginx ok\n");
+
+        $this->commandLine
+            ->shouldReceive('run')
+            ->once()
+            ->andReturnUsing(function ($command) {
+                $this->assertStringContainsString('php*-fpm', $command);
+
+                return "php worker\nphp done\n";
+            });
+
+        $lines = $this->log->collect(['nginx', 'php'], 50);
+
+        $this->assertContains('[nginx] nginx boom', $lines);
+        $this->assertContains('[php] php worker', $lines);
+    }
+
+    /**
+     * @test
+     */
+    public function itFiltersAggregatedLinesWithGrep(): void
+    {
+        $nginxPath = VALET_HOME_PATH . '/Log/nginx-error.log';
+
+        $this->filesystem
+            ->shouldReceive('exists')
+            ->with($nginxPath)
+            ->andReturnTrue();
+        $this->filesystem
+            ->shouldReceive('get')
+            ->with($nginxPath)
+            ->andReturn("error one\ninfo two\nerror three\n");
+
+        $lines = $this->log->collect(['nginx'], 50, 'error');
+
+        $this->assertSame([
+            '[nginx] error one',
+            '[nginx] error three',
+        ], $lines);
+    }
 }

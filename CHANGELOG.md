@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- `valet addon:*` — enable/disable local presets (minio, meilisearch, adminer, mailpit).
+- `valet db:url` / `db:open` — connection URL and Adminer GUI helper (password never written to temp files).
+- Dashboard enhancements: service health, Mailpit link, confirmed service restart API.
+- Commands default to `ProjectContext` site name (`status`, `db:*`, `pg:*`, `secure`, `isolate`, `which-php`, …).
+- `valet trust` / `cert:list` / `cert:info` / `cert:renew` — certificate visibility, renewal, and CA trust.
+- `valet logs` — aggregate multi-service logs (`--follow`, `--services`, `--tail`, `--grep`), including optional Laravel `app` log.
+- `valet profile:*` — per-project and global profiles (`list`, `show`, `save`, `use [--apply]`, `delete`).
 - `valet init` — bootstrap a project (`--db`, `--migrate`, `--composer`, `--isolate`, `--secure`, `--force`, `--pg`).
 - `valet db:setup` / `valet db:refresh` — create or reset the project database, sync `.env`, run migrate/seed.
 - Driver hooks `initCommands()` / `envKeys()` on `ValetDriver` (Laravel, Bedrock, WordPress).

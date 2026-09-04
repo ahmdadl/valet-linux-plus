@@ -35,6 +35,10 @@ use Valet\Facades\Environment;
 use Valet\Facades\Doctor;
 use Valet\Facades\Init;
 use Valet\Facades\DatabaseSetup;
+use Valet\Facades\Profile;
+use Valet\Facades\Certificate;
+use Valet\Facades\Addon;
+use Valet\Facades\DatabaseGui;
 
 /**
  * Load correct autoloader depending on install location.
@@ -176,6 +180,20 @@ if (is_dir(VALET_HOME_PATH)) {
             [[$domain, $port, $phpVersion, $pathsCount, $sitesCount]]
         );
 
+        $project = ProjectContext::fromCwd();
+        if (!empty($project['site'])) {
+            $driver = is_string($project['driver']) ? basename(str_replace('\\', '/', $project['driver'])) : '—';
+            Writer::table(
+                ['Current Project', 'URL', 'Framework', 'Driver'],
+                [[
+                    $project['site'],
+                    $project['url'],
+                    $project['framework'] ?: '—',
+                    $driver,
+                ]]
+            );
+        }
+
         if ($json) {
             $data = [
                 'services' => ServiceRegistry::statusRows(),
@@ -186,6 +204,7 @@ if (is_dir(VALET_HOME_PATH)) {
                     'paths' => $pathsCount,
                     'sites' => $sitesCount,
                 ],
+                'project' => $project,
                 'timestamp' => gmdate('c'),
                 'schema_version' => JsonSchema::VERSION,
             ];
@@ -571,7 +590,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Secure the given domain with a trusted TLS certificate.
      */
     $app->command('secure [domain]', function ($domain = null) {
-        $url = ($domain ?: basename(getcwd()));
+        $url = ($domain ?: (ProjectContext::site() ?: basename(getcwd())));
         $url = Configuration::parseDomain($url);
 
         SiteSecure::secure($url);
@@ -584,7 +603,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Stop serving the given domain over HTTPS and remove the trusted TLS certificate.
      */
     $app->command('unsecure [domain]', function ($domain = null) {
-        $url = ($domain ?: basename(getcwd()));
+        $url = ($domain ?: (ProjectContext::site() ?: basename(getcwd())));
         $url = Configuration::parseDomain($url);
 
         SiteSecure::unsecure($url, true);
@@ -597,7 +616,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Determine if the site is secured or not.
      */
     $app->command('secured [site]', function ($site) {
-        $site = $site ?: basename(getcwd());
+        $site = $site ?: (ProjectContext::site() ?: basename(getcwd()));
         $site = Configuration::parseDomain($site);
 
         if (SiteSecure::secured()->contains($site)) {
@@ -607,6 +626,34 @@ if (is_dir(VALET_HOME_PATH)) {
 
         Writer::info("$site is not secured.");
     })->descriptions('Determine if the site is secured or not');
+
+    /**
+     * Install / check the Valet CA in the system trust store.
+     */
+    $app->command('trust [--check]', function ($check) {
+        Certificate::runTrust((bool) $check);
+    })->descriptions('Install the Valet CA into the system trust store', [
+        '--check' => 'Only report whether the CA is present and trusted',
+    ]);
+
+    $app->command('cert:list [--json]', function ($json) {
+        Certificate::runList((bool) $json);
+    })->descriptions('List secured site certificates and expiry dates', [
+        '--json' => 'Output as JSON',
+    ]);
+
+    $app->command('cert:info [site]', function ($site = null) {
+        Certificate::runInfo(is_string($site) ? $site : null);
+    })->descriptions('Show OpenSSL details for a site certificate', [
+        'site' => 'Site name or FQDN (defaults to CWD)',
+    ]);
+
+    $app->command('cert:renew [site] [--force]', function ($site, $force) {
+        Certificate::runRenew(is_string($site) && $site !== '' ? $site : null, (bool) $force);
+    })->descriptions('Renew site certificates that expire within 30 days (or all with --force)', [
+        'site' => 'Optional site; omit to scan all secured sites',
+        '--force' => 'Renew even when more than 30 days remain',
+    ]);
 
     /**
      * Change the PHP version to the desired one.
@@ -694,7 +741,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Reset database in MySQL.
      */
     $app->command('db:reset [databaseName] [-y|--yes]', function ($databaseName, $yes) {
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         if (!$yes) {
             $confirm = Writer::confirm(sprintf('Are you sure you want to reset [%s] database?', $databaseName));
@@ -753,7 +800,7 @@ if (is_dir(VALET_HOME_PATH)) {
      */
     $app->command('db:export [databaseName] [--sql]', function ($databaseName, $sql) {
         Writer::info('Exporting database...');
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         $data = Mysql::exportDatabase($databaseName, $sql);
 
@@ -796,7 +843,7 @@ if (is_dir(VALET_HOME_PATH)) {
      */
     $app->command('isolate [phpVersion] [--site=] [--secure]', function ($phpVersion, $site, $secure) {
         if (!$site) {
-            $site = basename((string)getcwd());
+            $site = ProjectContext::site() ?: basename((string)getcwd());
         }
 
         if ($phpVersion === null && $phpVersion = Site::phpRcVersion($site)) {
@@ -824,7 +871,7 @@ if (is_dir(VALET_HOME_PATH)) {
      */
     $app->command('unisolate [--site=]', function ($site = null) {
         if (!$site) {
-            $site = basename((string)getcwd());
+            $site = ProjectContext::site() ?: basename((string)getcwd());
         }
 
         SiteIsolate::unIsolateDirectory($site);
@@ -847,12 +894,12 @@ if (is_dir(VALET_HOME_PATH)) {
      * Get the PHP executable path for a site.
      */
     $app->command('which-php [site]', function ($site) {
-        $site = basename($site ?: (string)getcwd());
+        $site = basename($site ?: (ProjectContext::site() ?: (string) getcwd()));
         $domain = Configuration::parseDomain($site);
         $phpVersion = SiteIsolate::isolatedPhpVersion($domain);
 
         if (!$phpVersion) {
-            $phpVersion = Site::phpRcVersion($site ?: basename(getcwd()));
+            $phpVersion = Site::phpRcVersion($site);
         }
 
         echo PhpFpm::getPhpExecutablePath($phpVersion);
@@ -1016,6 +1063,82 @@ if (is_dir(VALET_HOME_PATH)) {
     ]);
 
     /**
+     * Per-project / global Valet profiles.
+     */
+    $app->command('profile:list', function () {
+        Profile::runList();
+    })->descriptions('List project and global Valet profiles');
+
+    $app->command('profile:show [name]', function ($name = null) {
+        Profile::runShow(is_string($name) ? $name : null);
+    })->descriptions('Show a project or named global profile as JSON', [
+        'name' => 'Global profile name, or omit for the project profile',
+    ]);
+
+    $app->command('profile:save [name]', function ($name = null) {
+        Profile::runSave(is_string($name) ? $name : null);
+    })->descriptions('Save current settings to the project profile and optional global template', [
+        'name' => 'Optional global template name',
+    ]);
+
+    $app->command('profile:use name [--apply]', function ($name, $apply) {
+        Profile::runUse((string) $name, (bool) $apply);
+    })->descriptions('Copy a global profile into the project; optionally apply it', [
+        'name' => 'Global profile name',
+        '--apply' => 'Isolate, secure, create DB, and start listed services',
+    ]);
+
+    $app->command('profile:delete [name]', function ($name = null) {
+        Profile::runDelete(is_string($name) ? $name : null);
+    })->descriptions('Delete the project profile or a named global template', [
+        'name' => 'Global profile name, or omit for the project profile',
+    ]);
+
+    /**
+     * Local addon presets.
+     */
+    $app->command('addon:list', function () {
+        Addon::runList();
+    })->descriptions('List available local addon presets');
+
+    $app->command('addon:enable name', function ($name) {
+        try {
+            Addon::enable((string) $name);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Enable a local addon preset (minio, meilisearch, adminer, mailpit)', [
+        'name' => 'Addon name',
+    ]);
+
+    $app->command('addon:disable name', function ($name) {
+        try {
+            Addon::disable((string) $name);
+        } catch (\Throwable $e) {
+            Writer::error($e->getMessage());
+        }
+    })->descriptions('Disable a local addon preset (keeps data)', [
+        'name' => 'Addon name',
+    ]);
+
+    /**
+     * Database GUI helpers.
+     */
+    $app->command('db:url [--pg]', function ($pg) {
+        DatabaseGui::runUrl((bool) $pg);
+    })->descriptions('Print a database connection URL for the current project', [
+        '--pg' => 'Use PostgreSQL URL format',
+    ]);
+
+    $app->command('db:open [--gui=] [--pg]', function ($gui, $pg) {
+        $guiName = is_string($gui) && $gui !== '' ? $gui : 'adminer';
+        DatabaseGui::runOpen($guiName, (bool) $pg);
+    })->descriptions('Open a database GUI for the current project', [
+        '--gui' => 'adminer (default), dbeaver, or tableplus',
+        '--pg' => 'Prefer PostgreSQL connection details',
+    ]);
+
+    /**
      * Output the JSON schema for a command.
      */
     $app->command('schema [cmd]', function ($cmd = null) {
@@ -1070,7 +1193,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Create a new database in PostgreSQL.
      */
     $app->command('pg:create [databaseName]', function ($databaseName) {
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         $isCreated = Postgres::createDatabase($databaseName);
         if ($isCreated) {
@@ -1082,7 +1205,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Drop a database in PostgreSQL.
      */
     $app->command('pg:drop [databaseName] [-y|--yes]', function ($databaseName, $yes) {
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         if (!$yes) {
             $confirm = Writer::confirm(sprintf('Are you sure you want to delete [%s] database?', $databaseName));
@@ -1102,7 +1225,7 @@ if (is_dir(VALET_HOME_PATH)) {
      * Reset a database in PostgreSQL.
      */
     $app->command('pg:reset [databaseName] [-y|--yes]', function ($databaseName, $yes) {
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         if (!$yes) {
             $confirm = Writer::confirm(sprintf('Are you sure you want to reset [%s] database?', $databaseName));
@@ -1159,7 +1282,7 @@ if (is_dir(VALET_HOME_PATH)) {
      */
     $app->command('pg:export [databaseName] [--sql]', function ($databaseName, $sql) {
         Writer::info('Exporting database...');
-        $databaseName = $databaseName ?: basename((string)getcwd());
+        $databaseName = $databaseName ?: ProjectContext::site();
 
         $data = Postgres::exportDatabase($databaseName, $sql);
 
@@ -1207,6 +1330,22 @@ if (is_dir(VALET_HOME_PATH)) {
         Log::tail($service ?: 'nginx', (int)($tail ?? 50));
     })->descriptions('Tail the logs for a given service', [
         '--tail' => 'Number of lines to show',
+    ]);
+
+    /**
+     * Aggregate logs from multiple services.
+     */
+    $app->command('logs [--follow] [--services=] [--tail=] [--grep=]', function ($follow, $services, $tail, $grep) {
+        $list = is_string($services) && $services !== ''
+            ? explode(',', $services)
+            : ['nginx', 'php'];
+        $grepPattern = is_string($grep) && $grep !== '' ? $grep : null;
+        Log::aggregate($list, (int) ($tail ?? 50), (bool) $follow, $grepPattern);
+    })->descriptions('Aggregate logs from multiple services with prefixes', [
+        '--follow' => 'Stream until Ctrl+C',
+        '--services' => 'Comma-separated services (default: nginx,php; also: mysql,redis,mailpit,app)',
+        '--tail' => 'Lines per service (default 50)',
+        '--grep' => 'Only include lines containing this substring',
     ]);
 
     /**

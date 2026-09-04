@@ -135,6 +135,10 @@ class Valet
         $this->doctorSetup();
         $this->initSetup();
         $this->databaseSetupSetup();
+        $this->profileSetup();
+        $this->certificateSetup();
+        $this->addonSetup();
+        $this->databaseGuiSetup();
     }
 
     /**
@@ -376,6 +380,72 @@ class Valet
             $config = resolve(Configuration::class);
 
             return new DatabaseSetup($cli, $files, $config);
+        });
+    }
+
+    /**
+     * Configure project profiles.
+     */
+    private function profileSetup(): void
+    {
+        Container::getInstance()->bind(Profile::class, function () {
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+
+            return new Profile($files, $config);
+        });
+    }
+
+    /**
+     * Configure certificate management.
+     */
+    private function certificateSetup(): void
+    {
+        Container::getInstance()->bind(Certificate::class, function () {
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+
+            return new Certificate($files, $cli, $config);
+        });
+    }
+
+    /**
+     * Configure local addon presets.
+     */
+    private function addonSetup(): void
+    {
+        Container::getInstance()->bind(Addon::class, function () {
+            /** @var Filesystem $files */
+            $files = resolve(Filesystem::class);
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+            /** @var PackageManager $pm */
+            $pm = resolve(PackageManager::class);
+
+            return new Addon($files, $config, $cli, $pm);
+        });
+    }
+
+    /**
+     * Configure database GUI helpers.
+     */
+    private function databaseGuiSetup(): void
+    {
+        Container::getInstance()->bind(DatabaseGui::class, function () {
+            /** @var Configuration $config */
+            $config = resolve(Configuration::class);
+            /** @var CommandLine $cli */
+            $cli = resolve(CommandLine::class);
+
+            return new DatabaseGui($config, $cli);
         });
     }
 
