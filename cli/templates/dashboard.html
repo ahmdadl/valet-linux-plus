@@ -522,6 +522,7 @@
       ],
       health:[],
       mail_url:'https://mails.test',
+      database_url:'https://database.valet.test',
       valet_version:'unknown',
       nginx_sites:0
     };
@@ -597,7 +598,7 @@
     </div>`;
   }).join('') || `<div style="grid-column:1/-1; padding:16px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:12px; text-align:center">No service data</div>`;
 
-  // Mailpit quick open
+  // Mailpit / Adminer quick open
   if(data.mail_url){
     const hdr = document.querySelector('header .hdr-right') || document.querySelector('header');
     if(hdr && !document.getElementById('open-mailpit')){
@@ -607,6 +608,19 @@
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
       a.textContent = 'Open Mailpit';
+      a.style.cssText = 'margin-left:12px;font-size:12px;font-weight:600;color:var(--accent,#2563eb)';
+      hdr.appendChild(a);
+    }
+  }
+  if(data.database_url){
+    const hdr = document.querySelector('header .hdr-right') || document.querySelector('header');
+    if(hdr && !document.getElementById('open-database')){
+      const a = document.createElement('a');
+      a.id = 'open-database';
+      a.href = data.database_url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = 'Open Database';
       a.style.cssText = 'margin-left:12px;font-size:12px;font-weight:600;color:var(--accent,#2563eb)';
       hdr.appendChild(a);
     }

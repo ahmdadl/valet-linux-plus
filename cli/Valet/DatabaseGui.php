@@ -3,7 +3,6 @@
 namespace Valet;
 
 use ConsoleComponents\Writer;
-use Valet\Facades\Addon as AddonFacade;
 use Valet\Facades\Environment as EnvironmentFacade;
 
 class DatabaseGui
@@ -63,22 +62,9 @@ class DatabaseGui
 
     private function openAdminer(bool $pg): void
     {
-        $enabled = false;
-        foreach (AddonFacade::list() as $row) {
-            if (($row['name'] ?? '') === 'adminer' && !empty($row['enabled'])) {
-                $enabled = true;
-                break;
-            }
-        }
-        if (!$enabled) {
-            try {
-                AddonFacade::enable('adminer');
-            } catch (\Throwable $e) {
-                Writer::warn($e->getMessage());
-            }
-        }
+        \Valet\Facades\Adminer::ensureInstalled();
 
-        $adminer = AddonFacade::adminerUrl();
+        $adminer = \Valet\Facades\Adminer::url();
         $vars = EnvironmentFacade::gather();
         $server = $vars['DB_HOST'] ?? '127.0.0.1';
         $user = $vars['DB_USERNAME'] ?? 'valet';
@@ -95,6 +81,7 @@ class DatabaseGui
         $url = $adminer . '/?' . $query;
         $this->cli->quietly('xdg-open ' . escapeshellarg($url));
         Writer::info('Opening Adminer: ' . $url);
+        Writer::info(sprintf('Plugins: %s', \Valet\Facades\Adminer::pluginsPath()));
         Writer::info('Enter the database password in the Adminer form (not stored in temp files).');
     }
 }

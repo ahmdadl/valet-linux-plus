@@ -505,7 +505,7 @@ valet addon disable [name]
 | --- | --- | --- | --- |
 | `minio` | minio | `minio.test` | Already partially exists |
 | `meilisearch` | meilisearch | `search.test` | Opt-in |
-| `adminer` | — | `adminer.test` | Static PHP, no package |
+| `adminer` | — | `database.valet.test` | Always-on single-file Adminer + plugins dir |
 | `mailpit` | — | — | Already built-in; expose as addon for consistency |
 
 **Files:** extend `ServiceRegistry` templates, `cli/Valet/Addon.php`, `cli/stubs/addons/`

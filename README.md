@@ -67,7 +67,7 @@ Valet *Linux+* ships with a large command set. The complete, detailed reference 
 | **Database (MySQL/MariaDB)** | `db:list`, `db:create`, `db:drop`, `db:reset`, `db:setup`, `db:refresh`, `db:sqlite`, `db:sqlite:reset`, `db:import`, `db:export`, `db:configure`, `db:url`, `db:open` |
 | **PostgreSQL** | `pg:list`, `pg:create`, `pg:drop`, `pg:reset`, `pg:import`, `pg:export`, `pg:configure` |
 | **PHP isolation** | `use`, `isolate`, `unisolate`, `isolated`, `which-php`, `php`, `composer`, `tinker`, `repl`, `shell-hook`, `tune`, `bench` |
-| **Project DX** | `clone`, `init`, `env`, `profile:*`, `cache:status`, `cache:path`, `cache:clear`, `cache:doctor` |
+| **Project DX** | `clone`, `init`, `env`, `profile:*`, `cache:*`, `database` |
 | **IDE helpers** | `code`, `ps`, `subl`, `open` |
 | **Sharing** | `share`, `fetch-share-url`, `ngrok-auth` |
 | **Diagnostics** | `diagnose`, `doctor`, `health`, `xdebug`, `log`, `logs`, `mail`, `dashboard`, `backup`, `restore` |

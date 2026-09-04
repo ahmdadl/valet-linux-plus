@@ -72,9 +72,19 @@ class Dashboard
             'services'      => $this->gatherServices(),
             'health'        => $this->gatherHealth(),
             'mail_url'      => 'https://mails.' . $domain,
+            'database_url'  => $this->safeDatabaseUrl($domain),
             'nginx_sites'   => $this->gatherNginxSites(),
             'valet_version' => $this->gatherValetVersion(),
         ];
+    }
+
+    private function safeDatabaseUrl(string $domain): string
+    {
+        try {
+            return \Valet\Facades\Adminer::url();
+        } catch (\Throwable $e) {
+            return 'https://database.valet.' . $domain;
+        }
     }
 
     /**

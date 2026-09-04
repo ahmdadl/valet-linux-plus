@@ -49,10 +49,11 @@ class DatabaseGuiTest extends TestCase
      */
     public function it_opens_adminer_without_password_in_url(): void
     {
-        $addon = Mockery::mock();
-        $addon->shouldReceive('list')->andReturn([['name' => 'adminer', 'enabled' => true]]);
-        $addon->shouldReceive('adminerUrl')->andReturn('https://adminer.test');
-        swap('Valet\Addon', $addon);
+        $adminer = Mockery::mock();
+        $adminer->shouldReceive('ensureInstalled')->once();
+        $adminer->shouldReceive('url')->andReturn('https://database.valet.test');
+        $adminer->shouldReceive('pluginsPath')->andReturn('/tmp/plugins');
+        swap('Valet\Adminer', $adminer);
 
         $environment = Mockery::mock();
         $environment->shouldReceive('gather')->andReturn([
@@ -65,7 +66,7 @@ class DatabaseGuiTest extends TestCase
         swap('Valet\Environment', $environment);
 
         $this->cli->shouldReceive('quietly')->once()->withArgs(function (string $command) {
-            return str_contains($command, 'https://adminer.test')
+            return str_contains($command, 'https://database.valet.test')
                 && str_contains($command, 'my_app')
                 && !str_contains($command, 'secret');
         });

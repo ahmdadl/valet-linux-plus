@@ -37,6 +37,7 @@ use Valet\Facades\Init;
 use Valet\Facades\DatabaseSetup;
 use Valet\Facades\Profile;
 use Valet\Facades\Certificate;
+use Valet\Facades\Adminer;
 use Valet\Facades\Addon;
 use Valet\Facades\DatabaseGui;
 use Valet\Facades\Node;
@@ -88,6 +89,7 @@ $app->command('install [--ignore-selinux] [--mariadb] [--with-pgsql]', function 
     PhpFpm::install();
     DnsMasq::install(Configuration::get('domain'));
     Mailpit::install();
+    Adminer::install();
     ValetRedis::install();
     Nginx::restart();
     Mysql::install($mariadb);
@@ -150,6 +152,7 @@ if (is_dir(VALET_HOME_PATH)) {
         PhpFpm::uninstall();
         DnsMasq::uninstall();
         Mailpit::uninstall();
+        Adminer::uninstall();
         Configuration::uninstall();
         Valet::uninstall();
 
@@ -1344,6 +1347,16 @@ if (is_dir(VALET_HOME_PATH)) {
     })->descriptions('Open a database GUI for the current project', [
         '--gui' => 'adminer (default), dbeaver, or tableplus',
         '--pg' => 'Prefer PostgreSQL connection details',
+    ]);
+
+    /**
+     * Always-on Adminer status / paths / open.
+     */
+    $app->command('database [--open] [--path]', function ($open, $path) {
+        Adminer::status((bool) $open, (bool) $path);
+    })->descriptions('Show Adminer URL and plugin paths (always-on database GUI)', [
+        '--open' => 'Open https://database.valet.<domain> in the browser',
+        '--path' => 'Print only the plugins directory path',
     ]);
 
     /**

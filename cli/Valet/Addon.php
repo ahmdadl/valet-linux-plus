@@ -4,10 +4,8 @@ namespace Valet;
 
 use ConsoleComponents\Writer;
 use Valet\Contracts\PackageManager;
-use Valet\Facades\Configuration as ConfigurationFacade;
 use Valet\Facades\Nginx as NginxFacade;
 use Valet\Facades\ServiceRegistry as ServiceRegistryFacade;
-use Valet\Facades\SiteLink as SiteLinkFacade;
 use Valet\Facades\SiteSecure as SiteSecureFacade;
 
 class Addon
@@ -31,8 +29,8 @@ class Addon
             'proxy' => 'search',
         ],
         'adminer' => [
-            'type' => 'php',
-            'description' => 'Adminer database GUI at adminer.<domain>',
+            'type' => 'builtin',
+            'description' => 'Adminer DB GUI at database.valet.<domain> (always-on; plugins under ~/.config/valet/database/plugins)',
         ],
         'mailpit' => [
             'type' => 'builtin',
@@ -79,7 +77,6 @@ class Addon
 
         match ($meta['type']) {
             'service' => $this->enableServiceAddon($name, $meta),
-            'php' => $this->enableAdminer(),
             'builtin' => $this->enableBuiltin($name),
         };
 
@@ -101,8 +98,7 @@ class Addon
 
         match ($meta['type']) {
             'service' => $this->disableServiceAddon($name, $meta),
-            'php' => $this->disableAdminer(),
-            'builtin' => Writer::warn('Mailpit is a built-in service; use `valet stop mailpit` instead of disabling the addon.'),
+            'builtin' => $this->disableBuiltin($name),
         };
 
         $enabled = $this->enabledMap();
@@ -146,11 +142,8 @@ class Addon
 
     private function isEffectivelyEnabled(string $name): bool
     {
-        if ($name === 'mailpit') {
+        if ($name === 'mailpit' || $name === 'adminer') {
             return true;
-        }
-        if ($name === 'adminer') {
-            return $this->files->exists($this->adminerPath() . '/index.php');
         }
         if (isset(self::CATALOG[$name]['template'])) {
             return ServiceRegistryFacade::isCustomService($name);
@@ -238,54 +231,25 @@ class Addon
             }
             Writer::info('Mailpit is a built-in Valet service (also `valet mail`).');
         }
+
+        if ($name === 'adminer') {
+            \Valet\Facades\Adminer::install();
+            Writer::info('Adminer is built-in (also `valet database`).');
+        }
     }
 
-    private function enableAdminer(): void
+    private function disableBuiltin(string $name): void
     {
-        $dir = $this->adminerPath();
-        $this->files->ensureDirExists($dir, user());
-        $target = $dir . '/index.php';
+        if ($name === 'mailpit') {
+            Writer::warn('Mailpit is a built-in service; use `valet stop mailpit` instead of disabling the addon.');
 
-        if (!$this->files->exists($target)) {
-            Writer::info('Downloading Adminer…');
-            $tmp = tempnam(sys_get_temp_dir(), 'adminer-');
-            if ($tmp === false) {
-                throw new \RuntimeException('Could not create temp file for Adminer download');
-            }
-            $url = 'https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1.php';
-            $this->cli->run(sprintf(
-                'curl -fsSL %s -o %s',
-                escapeshellarg($url),
-                escapeshellarg($tmp)
-            ), function ($code, $output) {
-                throw new \RuntimeException(trim((string) $output) ?: 'Adminer download failed');
-            });
-            $this->files->putAsUser($target, $this->files->get($tmp));
-            @unlink($tmp);
+            return;
         }
 
-        SiteLinkFacade::link($dir, 'adminer');
-        $domain = $this->domain();
-        try {
-            SiteSecureFacade::secure('adminer.' . $domain);
-        } catch (\Throwable $e) {
-            Writer::warn('Could not secure adminer: ' . $e->getMessage());
+        if ($name === 'adminer') {
+            Writer::warn('Adminer is built-in like Mailpit. Use `valet database` for paths; unlink is not recommended.');
+            Writer::info(sprintf('Plugins live at: %s', \Valet\Facades\Adminer::pluginsPath()));
         }
-        NginxFacade::restart();
-
-        Writer::info(sprintf('Adminer available at https://adminer.%s', $domain));
-    }
-
-    private function disableAdminer(): void
-    {
-        $domain = $this->domain();
-        try {
-            SiteSecureFacade::unsecure('adminer.' . $domain);
-        } catch (\Throwable $e) {
-        }
-        SiteLinkFacade::unlink('adminer');
-        NginxFacade::restart();
-        // Keep downloaded Adminer file under addons/adminer for re-enable.
     }
 
     private function domain(): string
@@ -295,16 +259,14 @@ class Addon
         return is_scalar($domainRaw) ? (string) $domainRaw : 'test';
     }
 
+    /** @deprecated Use Adminer::path() */
     public function adminerPath(): string
     {
-        return VALET_HOME_PATH . '/addons/adminer';
+        return \Valet\Facades\Adminer::path();
     }
 
     public function adminerUrl(): string
     {
-        $domain = ConfigurationFacade::get('domain', 'test');
-        $domain = is_scalar($domain) ? (string) $domain : 'test';
-
-        return 'https://adminer.' . $domain;
+        return \Valet\Facades\Adminer::url();
     }
 }

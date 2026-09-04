@@ -652,7 +652,7 @@ valet db:url [name] [--driver=mysql|postgres]
 
 ### db:open
 
-Open Adminer for the given database. Requires `valet addon:enable adminer`. The password is never put in the URL or a temp file.
+Open Adminer for the given database. Adminer is always-on at `https://database.valet.<domain>` (same idea as Mailpit). Use `valet database` to print the plugins directory.
 
 ```bash
 valet db:open [name] [--driver=mysql|postgres]
@@ -1339,10 +1339,32 @@ valet addon:enable name
 Examples:
 
 ```bash
-valet addon:enable adminer
+valet addon:enable adminer   # refreshes built-in Adminer at https://database.valet.test
 valet addon:enable minio
 valet addon:enable meilisearch
 ```
+
+### database
+
+Show the always-on Adminer URL and customization paths (plugins).
+
+```bash
+valet database [--open] [--path]
+```
+
+| Option | Description |
+| --- | --- |
+| `--open` | Open Adminer in the browser. |
+| `--path` | Print only `~/.config/valet/database/plugins`. |
+
+Customize Adminer by dropping plugin `.php` files into the plugins directory and listing them in `enabled.php`:
+
+```bash
+valet database --path
+# → ~/.config/valet/database/plugins
+```
+
+See https://www.adminer.org/en/plugins/
 
 ### addon:disable
 
