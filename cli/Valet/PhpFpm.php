@@ -307,12 +307,40 @@ class PhpFpm
     public function getPhpExecutablePath(string $version = null)
     {
         if (!$version) {
-            return DevToolsFacade::getBin('php', ['/usr/local/bin/php']);
+            $bin = DevToolsFacade::getBin('php', ['/usr/local/bin/php']);
+
+            if ($bin) {
+                return $bin;
+            }
+
+            // `which php` may resolve to the ignored /usr/local/bin/php shim
+            // while the `locate` fallback is often unavailable. Fall back to
+            // the configured binary instead of returning false, which makes
+            // `valet php` fail with a cryptic "command not found".
+            $fallback = $this->config->get('fallback_binary');
+
+            if (is_string($fallback) && $fallback !== '' && $this->files->exists($fallback)) {
+                return $fallback;
+            }
+
+            return '/usr/bin/php';
         }
 
         $version = $this->normalizePhpVersion($version);
 
-        return DevToolsFacade::getBin('php' . $version, ['/usr/local/bin/php']);
+        $bin = DevToolsFacade::getBin('php' . $version, ['/usr/local/bin/php']);
+
+        if ($bin) {
+            return $bin;
+        }
+
+        $candidate = '/usr/bin/php' . $version;
+
+        if ($version !== '' && $this->files->exists($candidate)) {
+            return $candidate;
+        }
+
+        return $bin;
     }
 
     /**

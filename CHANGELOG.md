@@ -19,6 +19,10 @@ All notable changes to this project are documented in this file. The format is b
 - `valet tune` — PHP-FPM performance presets (`dev`, `fast`, `debug`, `show`) with drop-in backups (F-606).
 - `valet bench` — local DNS/connect/TLS/TTFB latency measurement with percentiles and `--json` (F-607).
 
+### Fixed
+
+- `valet php` / `valet composer` no longer fail with cryptic `command not found` when the PHP binary can't be resolved: `getPhpExecutablePath()` falls back to the configured `fallback_binary`, then `/usr/bin/php` (or `/usr/bin/phpX.Y` for versioned lookups), and the `valet` wrapper exits with a clear hint (`valet isolate <version>` or a `.valetphprc` file) instead of executing an empty binary.
+
 ## [3.1.0] - 2026-09-04
 
 ### Added
