@@ -3,56 +3,57 @@
 use ConsoleComponents\Writer;
 use Illuminate\Container\Container;
 use Silly\Application;
-use Valet\Drivers\ValetDriver;
+use Valet\Facades\Addon;
+use Valet\Facades\Adminer;
+use Valet\Facades\Api;
 use Valet\Facades\Backup;
+use Valet\Facades\Bench;
+use Valet\Facades\Cache;
+use Valet\Facades\Certificate;
+use Valet\Facades\CloneProject;
 use Valet\Facades\Configuration;
 use Valet\Facades\Dashboard;
 use Valet\Facades\DashboardApi as DashboardApiFacade;
 use Valet\Facades\DashboardJob as DashboardJobFacade;
 use Valet\Facades\DashboardPrivilege as DashboardPrivilegeFacade;
+use Valet\Facades\DatabaseGui;
+use Valet\Facades\DatabaseSetup;
 use Valet\Facades\DevTools;
 use Valet\Facades\Diagnose;
 use Valet\Facades\DnsMasq;
+use Valet\Facades\Doctor;
+use Valet\Facades\Environment;
 use Valet\Facades\Filesystem;
+use Valet\Facades\Health;
+use Valet\Facades\Init;
+use Valet\Facades\JsonSchema;
 use Valet\Facades\Log;
 use Valet\Facades\Mailpit;
 use Valet\Facades\Mysql;
 use Valet\Facades\Nginx;
 use Valet\Facades\Ngrok;
+use Valet\Facades\Node;
 use Valet\Facades\PhpFpm;
 use Valet\Facades\Postgres;
+use Valet\Facades\Profile;
+use Valet\Facades\ProjectContext;
+use Valet\Facades\ProjectDetector;
+use Valet\Facades\Repl;
 use Valet\Facades\Requirements;
+use Valet\Facades\ServiceMemory;
 use Valet\Facades\ServiceRegistry;
+use Valet\Facades\ShellHook;
 use Valet\Facades\Site;
 use Valet\Facades\SiteIsolate;
 use Valet\Facades\SiteLink;
 use Valet\Facades\SiteProxy;
 use Valet\Facades\SiteSecure;
+use Valet\Facades\SiteSleep;
+use Valet\Facades\Snapshot;
+use Valet\Facades\Sqlite;
+use Valet\Facades\Tune;
 use Valet\Facades\Valet;
 use Valet\Facades\ValetRedis;
-use Valet\Facades\Health;
-use Valet\Facades\JsonSchema;
-use Valet\Facades\ProjectContext;
-use Valet\Facades\ProjectDetector;
-use Valet\Facades\Environment;
-use Valet\Facades\Doctor;
-use Valet\Facades\Init;
-use Valet\Facades\DatabaseSetup;
-use Valet\Facades\Profile;
-use Valet\Facades\Certificate;
-use Valet\Facades\Adminer;
-use Valet\Facades\Addon;
-use Valet\Facades\DatabaseGui;
-use Valet\Facades\Node;
-use Valet\Facades\Snapshot;
-use Valet\Facades\Api;
-use Valet\Facades\Repl;
-use Valet\Facades\Sqlite;
-use Valet\Facades\Cache;
-use Valet\Facades\CloneProject;
-use Valet\Facades\ShellHook;
-use Valet\Facades\Tune;
-use Valet\Facades\Bench;
 
 /**
  * Load correct autoloader depending on install location.
@@ -210,6 +211,35 @@ if (is_dir(VALET_HOME_PATH)) {
             );
         }
 
+        // Sites sleep status table.
+        $siteSleepRows = SiteSleep::statusRows();
+        if (!empty($siteSleepRows)) {
+            $sleepRows = array_map(function (array $row) {
+                $poolRam = null;
+                if ($row['isolatedVersion'] !== null) {
+                    $poolRam = ServiceMemory::fpmPoolRamKb($row['isolatedVersion']);
+                }
+                $poolRamDisplay = $poolRam !== null ? ServiceMemory::human($poolRam) : '—';
+                $shareDisplay = $row['poolShared'] && $poolRam !== null
+                    ? '~' . ServiceMemory::human((int) ($poolRam / max(1, Site::countSites())))
+                    : '—';
+
+                return [
+                    $row['site'],
+                    $row['url'],
+                    $row['asleep'] ? 'yes' : 'no',
+                    $row['isolatedVersion'] ?? 'global',
+                    $poolRamDisplay,
+                    $shareDisplay,
+                ];
+            }, $siteSleepRows);
+
+            Writer::table(
+                ['Site', 'URL', 'Asleep?', 'PHP Version', 'Pool RAM', 'Share (~Pool/N)'],
+                $sleepRows
+            );
+        }
+
         if ($json) {
             $data = [
                 'services' => ServiceRegistry::statusRows(),
@@ -223,6 +253,20 @@ if (is_dir(VALET_HOME_PATH)) {
                 'project' => $project,
                 'timestamp' => gmdate('c'),
                 'schema_version' => JsonSchema::VERSION,
+                'sites_sleep' => array_map(function (array $row) {
+                    $poolRam = null;
+                    if ($row['isolatedVersion'] !== null) {
+                        $poolRam = ServiceMemory::fpmPoolRamKb($row['isolatedVersion']);
+                    }
+                    return [
+                        'site' => $row['site'],
+                        'url' => $row['url'],
+                        'asleep' => $row['asleep'],
+                        'version' => $row['isolatedVersion'],
+                        'pool_ram_kb' => $poolRam,
+                        'pool_shared' => $row['poolShared'],
+                    ];
+                }, $siteSleepRows),
             ];
             Writer::info(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         }
@@ -601,6 +645,93 @@ if (is_dir(VALET_HOME_PATH)) {
 
         Writer::table(['URL', 'SSL', 'Path'], $links->all());
     })->descriptions('Display all of the registered Valet links');
+
+    /**
+     * Put a site to sleep (stops serving, optionally stops isolated PHP-FPM).
+     */
+    $app->command('sleep [site] [--all] [--services]', function ($site, $all, $services) {
+        if (!$all && $site === null) {
+            $site = ProjectContext::site() ?: basename(getcwd());
+        }
+
+        SiteSleep::sleep($site, (bool) $all, (bool) $services);
+
+        if ($all) {
+            Writer::info('All sites put to sleep.');
+        } else {
+            Writer::info("Site [$site] put to sleep.");
+        }
+    })->descriptions('Put a site (or all sites) to sleep', [
+        'site' => 'Site name (defaults to current directory)',
+        '--all' => 'Put all sites to sleep',
+        '--services' => 'Also stop isolated PHP-FPM if used by only this site (v1: warn only)',
+    ]);
+
+    /**
+     * Wake a site from sleep (restarts isolated PHP-FPM if applicable).
+     */
+    $app->command('wake [site] [--all]', function ($site, $all) {
+        if (!$all && $site === null) {
+            $site = ProjectContext::site() ?: basename(getcwd());
+        }
+
+        SiteSleep::wake($site, (bool) $all);
+
+        if ($all) {
+            Writer::info('All sites woken up.');
+        } else {
+            Writer::info("Site [$site] woken up.");
+        }
+    })->descriptions('Wake a site (or all sites) from sleep', [
+        'site' => 'Site name (defaults to current directory)',
+        '--all' => 'Wake all sites',
+    ]);
+
+    /**
+     * Configure idle timer for automatic site sleep.
+     */
+    $app->command('idle [--minutes=] [--enable] [--disable] [--status]', function ($minutes, $enable, $disable, $status) {
+        $idleConfig = Configuration::get('idle', []);
+        if (!is_array($idleConfig)) {
+            $idleConfig = [];
+        }
+
+        if ($status || (!$enable && !$disable && $minutes === null)) {
+            // Show status
+            $enabled = $idleConfig['enabled'] ?? false;
+            $configuredMinutes = $idleConfig['minutes'] ?? 30;
+            $lastTick = $idleConfig['last_tick'] ?? 'never';
+
+            Writer::table(
+                ['Enabled', 'Minutes', 'Last Tick'],
+                [[$enabled ? 'yes' : 'no', $configuredMinutes, $lastTick]]
+            );
+
+            return;
+        }
+
+        if ($enable) {
+            $idleConfig['enabled'] = true;
+            if ($minutes !== null) {
+                $idleConfig['minutes'] = (int) $minutes;
+            }
+            Configuration::set('idle', $idleConfig);
+            Writer::warn('Idle timer enabled in config. Systemd timer unit not yet implemented (v1).');
+        } elseif ($disable) {
+            $idleConfig['enabled'] = false;
+            Configuration::set('idle', $idleConfig);
+            Writer::info('Idle timer disabled.');
+        } elseif ($minutes !== null) {
+            $idleConfig['minutes'] = (int) $minutes;
+            Configuration::set('idle', $idleConfig);
+            Writer::info("Idle timer minutes updated to [$minutes].");
+        }
+    })->descriptions('Configure automatic site sleep (idle timer)', [
+        '--minutes' => 'Minutes of inactivity before sleep',
+        '--enable' => 'Enable idle timer (persists config only, no systemd timer yet)',
+        '--disable' => 'Disable idle timer',
+        '--status' => 'Show idle timer configuration',
+    ]);
 
     /**
      * Secure the given domain with a trusted TLS certificate.
@@ -1687,7 +1818,6 @@ if (is_dir(VALET_HOME_PATH)) {
     })->descriptions('Open the Valet dashboard', [
         '--open' => 'Open the dashboard in your browser',
     ]);
-
 
     /**
      * Opt in to privileged dashboard actions.
