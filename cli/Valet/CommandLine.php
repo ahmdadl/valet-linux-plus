@@ -47,12 +47,60 @@ class CommandLine
     }
 
     /**
+     * Run a command given as an argument vector, with data on stdin.
+     *
+     * Unlike run() this never goes through a shell, so the command and its
+     * arguments are seen by the operating system exactly as given. That
+     * matters when the command has to match a sudoers rule pinned to a fixed
+     * argument list.
+     *
+     * @param  array<int, string>  $command
+     * @return array{output: string, errors: string, exitCode: int}
+     */
+    public function runProcess(array $command, string $input = '', ?int $timeout = 300): array
+    {
+        $process = new Process($command);
+        $process->setInput($input);
+
+        $output = '';
+        $errors = '';
+
+        $process->setTimeout($timeout)->run(function ($type, $line) use (&$output, &$errors) {
+            if ($type === Process::ERR) {
+                $errors .= $line;
+            } else {
+                $output .= $line;
+            }
+        });
+
+        return [
+            'output' => $output,
+            'errors' => $errors,
+            'exitCode' => (int) $process->getExitCode(),
+        ];
+    }
+
+    /**
      * Run the given command.
      */
     private function runCommand(string $command, callable $onError = null, ?int $timeout = 300): string
     {
         $onError = $onError ?: function () {
         };
+
+        // Inside the dashboard helper, privileged commands are collected for the
+        // helper to run as root instead of being executed here.
+        if (DeferredPrivileged::enabled()) {
+            if (DeferredPrivileged::capture($command)) {
+                return '';
+            }
+
+            $withoutSudo = DeferredPrivileged::withoutSelfSudo($command);
+
+            if ($withoutSudo !== null) {
+                $command = $withoutSudo;
+            }
+        }
 
         $process = Process::fromShellCommandline($command);
 

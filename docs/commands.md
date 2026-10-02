@@ -105,6 +105,10 @@ All commands are invoked through the `valet` binary (e.g. `valet start`, `valet 
   - [logs](#logs)
   - [mail](#mail)
   - [dashboard](#dashboard)
+  - [dashboard:privileges](#dashboardprivileges)
+  - [dashboard:job](#dashboardjob)
+  - [dashboard:internal](#dashboardinternal)
+  - [dashboard:validate-commands](#dashboardvalidate-commands)
   - [backup](#backup)
   - [restore](#restore)
 
@@ -1538,6 +1542,10 @@ valet mail
 
 Print the URL of the Valet dashboard (served at `http://valet.<domain>`, also `http://dashboard.<domain>`). Pass `--open` to launch it in your browser.
 
+The dashboard can read everything from anywhere. It can only *change* things from the
+local machine, over POST, with a CSRF token. See [dashboard.md](dashboard.md) for the
+security model, the HTTP API and the full list of actions it exposes.
+
 ```bash
 valet dashboard [--open]
 ```
@@ -1552,6 +1560,83 @@ Examples:
 valet dashboard
 valet dashboard --open
 ```
+
+### dashboard:privileges
+
+Install, remove or inspect the privileged helper that lets the dashboard restart
+services, switch PHP versions, secure sites and trust the CA. Everything else on the
+dashboard works without it.
+
+`install` and `uninstall` must run as root. Installation writes a root-owned helper to
+`/usr/local/libexec/valet-dashboard-helper` and a `NOPASSWD` rule pinned to that exact
+path with an empty argument list to `/etc/sudoers.d/valet-dashboard`. The rule is
+validated with `visudo -c` before it is left in place.
+
+```bash
+valet dashboard:privileges [action]
+```
+
+| Argument | Description |
+| --- | --- |
+| `action` | `install` (default), `uninstall` or `status`. |
+
+Examples:
+
+```bash
+sudo valet dashboard:privileges install
+valet dashboard:privileges status
+sudo valet dashboard:privileges uninstall
+```
+
+### dashboard:job
+
+Run one queued background dashboard job. This is invoked automatically by the
+dashboard when you start something slow (a database import, a snapshot, a backup); you
+only need it directly when a job is stuck and you want to see the error.
+
+```bash
+valet dashboard:job id
+```
+
+| Argument | Description |
+| --- | --- |
+| `id` | The job id, as handed to the browser. |
+
+Exits `0` on success and `1` on failure. The output is appended to
+`~/.config/valet/dashboard-jobs/<id>.log`.
+
+### dashboard:internal
+
+Perform one root-tier dashboard action on behalf of the privileged helper, with
+privileged commands deferred rather than run. Refused unless the helper itself started
+the process, so it cannot be used from a terminal to gain root. Not intended for
+direct use.
+
+```bash
+valet dashboard:internal action [--params=]
+```
+
+| Argument | Description |
+| --- | --- |
+| `action` | The dashboard action slug. |
+
+| Option | Description |
+| --- | --- |
+| `--params=` | base64-encoded JSON parameters. |
+
+### dashboard:validate-commands
+
+Re-check a recorded command list against the allowlist before the privileged helper
+runs any of it. Prints `{"ok":bool,"allowed":[],"denied":[]}` and exits `1` if any
+command is not permitted. Invoked by the helper; not intended for direct use.
+
+```bash
+valet dashboard:validate-commands file
+```
+
+| Argument | Description |
+| --- | --- |
+| `file` | Path to the recorded command list. |
 
 ### backup
 

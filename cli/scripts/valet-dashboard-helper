@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+#
+# Valet dashboard privileged helper.
+#
+# Installed root-owned at /usr/local/libexec/valet-dashboard-helper by
+# `sudo valet dashboard:privileges install`, and the only thing the NOPASSWD
+# sudoers rule allows to run as root.
+#
+# It takes no arguments at all - the sudoers rule pins it to an empty argument
+# list, so `sudo -n /usr/local/libexec/valet-dashboard-helper` is the only
+# invocation that matches. The work arrives as JSON on stdin.
+#
+# What it does with that work is deliberately dumb:
+#
+#   1. Run the requested Valet action as the unprivileged install user, with
+#      VALET_DASHBOARD_DEFERRED pointing at a file only this script can create.
+#      Valet appends the privileged commands it *wants* to run to that file
+#      instead of running them.
+#   2. Ask Valet, in a separate unprivileged process, whether every one of those
+#      recorded commands is on the allowlist. If any is not, refuse the whole
+#      request.
+#   3. Run the approved commands, as root, with the leading `sudo` removed.
+#
+# The helper has no idea what "restart nginx" or "secure a site" means. That
+# knowledge lives in Valet, in exactly one place, which is why the dashboard and
+# the terminal cannot drift apart.
+
+set -uo pipefail
+
+readonly VALET_ENTRY='@@VALET_ENTRY@@'
+readonly VALET_PHP='@@VALET_PHP@@'
+readonly VALET_USER='@@VALET_USER@@'
+readonly RUN_DIR='/run/valet-dashboard'
+readonly MAX_REQUEST_BYTES=65536
+
+# Every reply leaves on stdout as a single JSON object, and nothing else is ever
+# written there. Diagnostics go to stderr.
+reply() {
+    printf '{"ok":false,"message":"%s","data":{}}\n' "$(printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+    exit 0
+}
+
+note() {
+    printf 'valet-dashboard-helper: %s\n' "$1" >&2
+}
+
+[ "$#" -eq 0 ] || reply 'The dashboard helper takes no arguments.'
+
+[ "$(id -u)" = '0' ] || reply 'The dashboard helper must run as root.'
+
+[ -f "$VALET_ENTRY" ] || reply 'Valet could not be found at its installed location.'
+[ -x "$VALET_PHP" ] || reply 'No usable PHP CLI binary was recorded at install time.'
+
+# The request is small and arrives in one piece: anything larger is not something
+# the dashboard produced.
+request="$(head -c "$MAX_REQUEST_BYTES")"
+[ -n "$request" ] || reply 'The dashboard helper received no request.'
+
+printf '%s' "$request" | grep -q '"action"' || reply 'The dashboard helper request was malformed.'
+
+action="$(printf '%s' "$request" | sed -n 's/.*"action"[[:space:]]*:[[:space:]]*"\([a-z][a-z0-9]*\(\.[a-z0-9]*\)*\)".*/\1/p' | head -n 1)"
+[ -n "$action" ] || reply 'The dashboard helper request named no action.'
+
+# Extract the params object with PHP rather than sed: JSON escapes mean a shell
+# parser would eventually get this wrong. Base64 on the child's command line keeps
+# it a single argument whatever it contains.
+params_b64="$(
+    printf '%s' "$request" | "$VALET_PHP" -r '
+        $raw = stream_get_contents(STDIN);
+        $data = json_decode($raw, true);
+        if (!is_array($data)) { exit(1); }
+        $params = $data["params"] ?? [];
+        if (!is_array($params)) { $params = []; }
+        echo base64_encode(json_encode($params));
+    ' 2>/dev/null
+)"
+[ -n "$params_b64" ] || params_b64="$(printf '%s' '{}' | base64 | tr -d '\n')"
+
+# --- the unprivileged phase -------------------------------------------------
+
+mkdir -p "$RUN_DIR" && chmod 0711 "$RUN_DIR" || reply 'Could not create the helper run directory.'
+
+deferred="$(mktemp "$RUN_DIR/deferred-XXXXXXXX")" || reply 'Could not create a deferred-command file.'
+chown "$VALET_USER" "$deferred" && chmod 0600 "$deferred" || reply 'Could not prepare the deferred-command file.'
+
+log="$(mktemp "$RUN_DIR/log-XXXXXXXX")" || reply 'Could not create a helper log file.'
+result="$(mktemp "$RUN_DIR/result-XXXXXXXX")" || reply 'Could not create a helper result file.'
+chmod 0644 "$result" || true
+
+cleanup() {
+    rm -f "$deferred" "$log" "$result"
+}
+trap cleanup EXIT
+
+runuser -u "$VALET_USER" -- env \
+    VALET_DASHBOARD_DEFERRED="$deferred" \
+    VALET_DASHBOARD_RESULT="$result" \
+    "$VALET_PHP" "$VALET_ENTRY" dashboard:internal "$action" --params="$params_b64" \
+    </dev/null >>"$log" 2>&1
+phase_status=$?
+
+if [ "$phase_status" -ne 0 ]; then
+    note "the action phase failed; see $log"
+    tail -n 20 "$log" >&2 2>/dev/null || true
+    reply "The dashboard action did not complete. See the dashboard activity log."
+fi
+
+# --- validation -------------------------------------------------------------
+
+# Re-check every recorded command through Valet's own allowlist. The helper
+# refuses the entire request if so much as one command is not permitted, so a
+# half-applied change is not a possible outcome.
+if ! validation="$("$VALET_PHP" "$VALET_ENTRY" dashboard:validate-commands "$deferred" 2>/dev/null)"; then
+    note 'refusing unapproved commands:'
+    printf '%s\n' "$validation" >&2
+    reply 'Refused: the request tried to run a command outside the approved list.'
+fi
+
+# --- the privileged phase ---------------------------------------------------
+
+commands="$(
+    printf '%s' "$validation" | "$VALET_PHP" -r '
+        $data = json_decode(stream_get_contents(STDIN), true);
+        foreach (($data["allowed"] ?? []) as $command) {
+            echo $command, "\x1f";
+        }
+    '
+)"
+
+failure=''
+while IFS= read -r -d $'\x1f' command; do
+    [ -n "$command" ] || continue
+
+    # /bin/sh with no globbing, no builtins and no functions: the command is
+    # executed exactly as Valet spelled it, not re-interpreted.
+    if ! /bin/sh -c "$command" >>"$log" 2>&1; then
+        failure="$command"
+        note "failed: $command"
+    fi
+done <<< "$commands"
+
+if [ -n "$failure" ]; then
+    reply "A privileged command failed: $failure"
+fi
+
+# --- reply ------------------------------------------------------------------
+
+if [ -s "$result" ]; then
+    cat "$result"
+    exit 0
+fi
+
+reply 'The dashboard action produced no result.'

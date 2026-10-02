@@ -70,7 +70,18 @@ Valet *Linux+* ships with a large command set. The complete, detailed reference 
 | **Project DX** | `clone`, `init`, `env`, `profile:*`, `cache:*`, `database` |
 | **IDE helpers** | `code`, `ps`, `subl`, `open` |
 | **Sharing** | `share`, `fetch-share-url`, `ngrok-auth` |
-| **Diagnostics** | `diagnose`, `doctor`, `health`, `xdebug`, `log`, `logs`, `mail`, `dashboard`, `backup`, `restore` |
+| **Diagnostics** | `diagnose`, `doctor`, `health`, `xdebug`, `log`, `logs`, `mail`, `dashboard`, `dashboard:privileges`, `backup`, `restore` |
+
+### Dashboard
+
+`valet dashboard` serves a web UI at `http://valet.<domain>`. It is read-only from
+anywhere, and can also *change* things — link and unlink sites, create and drop
+databases, import and export, snapshots, backups, clear caches, and, with an opt-in
+privileged helper, restart services, secure sites and switch PHP versions.
+
+Mutations are accepted only from the local machine, over POST, with a double-submit
+CSRF token and an echoed confirmation value; everything else is logged to
+`~/.config/valet/Log/dashboard-audit.log`. See [docs/dashboard.md](docs/dashboard.md).
 
 ## Changelog
 
@@ -87,7 +98,7 @@ This fork is based on [`valet-linux-plus/valet-linux-plus`](https://github.com/v
 - **Logs / Mail / Status** &mdash; service log tailing, Mailpit UI launcher, and a unified status view.
 - **Backup / Restore** &mdash; archive and recover the full Valet home directory, optionally with database dumps.
 - **Configurable Services** &mdash; register custom services (e.g. MinIO) via `config.json` templates and manage their lifecycle.
-- **Dashboard** &mdash; a web UI served at `valet.<domain>` for at-a-glance environment info.
+- **Dashboard** &mdash; a web UI served at `valet.<domain>` that reads from anywhere and, from the local machine only, controls sites, databases, services, PHP versions, logs, diagnostics, snapshots and backups. Privileged work goes through an opt-in root-owned helper rather than a passwordless shell.
 - **Security / architecture hardening** &mdash; SQL injection and command-injection fixes, PackageManager/ServiceManager abstractions, a hardened `server.php`, and PHPStan level 9 across the codebase.
 
 ## Credits

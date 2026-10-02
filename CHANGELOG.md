@@ -6,12 +6,25 @@ All notable changes to this project are documented in this file. The format is b
 
 ### Added
 
+- **Controllable dashboard** — `valet.<domain>` can now change things, not just show them. New tabbed UI for sites, databases, PHP & Node, backups & certificates, logs & diagnostics, background activity and settings, with per-row actions on the site table.
+- **55 curated dashboard actions** behind one POST endpoint (`/api/actions/<slug>`) with a fixed registry: link/unlink/park/forget, MySQL and PostgreSQL create/drop/reset/import/export, snapshots, backups, profiles, caches, addons, Node, service start/stop/restart, secure/unsecure/proxy/unproxy, isolate/unisolate, TLD and port changes, CA trust, certificate renewal, PHP version switching and xdebug. Arbitrary `php`/`composer`/`tinker` execution, sharing, install/uninstall/update, `service:add`/`service:remove`, `tune`, `clone` and `bench` are deliberately excluded.
+- **Opt-in privileged helper** — `sudo valet dashboard:privileges install` writes a root-owned helper to `/usr/local/libexec/valet-dashboard-helper` plus a `NOPASSWD` sudoers rule pinned to that exact path with an empty argument list (validated with `visudo -c` before it is left in place). `valet dashboard:privileges status|uninstall` manage it. Without it the dashboard stays read-only and says so.
+- **Background jobs** — imports, exports, snapshots and backups run in detached CLI processes and are polled via `/api/jobs/<id>`, so php-fpm's execution timeout no longer kills them. State lives in `~/.config/valet/dashboard-jobs/`.
+- **Audit log** — every mutating dashboard action appends a redacted JSON line to `~/.config/valet/Log/dashboard-audit.log`.
+- New commands: `dashboard:privileges`, `dashboard:job`, `dashboard:internal`, `dashboard:validate-commands`.
+- `docs/dashboard.md` — security model, helper design, HTTP API and the full action catalog.
 - Always-on Adminer at `https://database.valet.<domain>` (installed with Valet like Mailpit); `valet database` shows URL and plugin paths.
 - Adminer plugins: drop files into `~/.config/valet/database/plugins` and enable them in `plugins/enabled.php`.
 
 ### Changed
 
 - Adminer is built-in (no longer opt-in-only via addon); `addon:enable adminer` still refreshes the install.
+
+### Security
+
+- **Removed** the CSRF-able `GET /?valet_action=restart&confirm=1&service=…` dashboard route. Dashboard mutations are now POST-only and require a loopback address, a same-origin `Origin`/`Referer`, a matching double-submit CSRF cookie plus `X-Valet-CSRF` header, and a server-checked confirmation that echoes the exact value being destroyed.
+- The privileged helper never executes user-supplied shell text. It records the privileged commands Valet *asks* for, re-validates every one of them against a single allowlist, and aborts the entire request if any command is not on it. Valet code itself always runs as the unprivileged install user.
+- Read-only service queries (`systemctl is-enabled`, `is-active`, `status`) are explicitly excluded from the privileged allowlist so they run as the user; deferring them would have inverted Valet's own enable/disable decisions.
 
 ### Added
 

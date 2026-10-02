@@ -75,7 +75,26 @@ class Dashboard
             'database_url'  => $this->safeDatabaseUrl($domain),
             'nginx_sites'   => $this->gatherNginxSites(),
             'valet_version' => $this->gatherValetVersion(),
+            'privileges'    => $this->privilegeStatus(),
+            'php_switch'    => $this->safePhpVersions(),
         ];
+    }
+
+    /**
+     * Whether root-tier dashboard actions are currently available.
+     *
+     * The UI uses this to decide between offering an action and telling the
+     * user how to enable it, so it must never throw.
+     *
+     * @return array<string, mixed>
+     */
+    private function privilegeStatus(): array
+    {
+        try {
+            return \Valet\Facades\DashboardPrivilege::status();
+        } catch (\Throwable $e) {
+            return ['enabled' => false, 'helper_installed' => false, 'sudoers_installed' => false];
+        }
     }
 
     private function safeDatabaseUrl(string $domain): string
@@ -97,29 +116,61 @@ class Dashboard
      */
     public function render(): string
     {
-        $data = $this->data();
-        $json = json_encode($data) ?: '{}';
-
         $templatePath = VALET_ROOT_PATH . '/cli/templates/dashboard.html';
 
         if ($this->files->exists($templatePath)) {
-            $template = $this->files->get($templatePath);
-
-            if (is_string($template)) {
-                /** @var array<int, array<string, mixed>> $sites */
-                $sites = $data['sites'];
-
-                $template = str_replace('{{VALET_DATA_JSON}}', $json, $template);
-                $template = str_replace('{{VALET_SITES_ROWS}}', $this->renderSitesRows($sites), $template);
-                return str_replace(
-                    'window.__VALET_DATA__',
-                    'window.__VALET_DATA__ = ' . $json,
-                    $template
-                );
-            }
+            return $this->renderTemplate((string) $this->files->get($templatePath));
         }
 
-        return $json;
+        return json_encode($this->data()) ?: '{}';
+    }
+
+    /**
+     * Inject the dashboard payload into a template.
+     *
+     * The payload is JSON-encoded and handed to the page inside a script block.
+     * JSON_HEX_TAG closes the door on a site name that contains `</script>`,
+     * and json_encode only fails outright on invalid UTF-8, which we fall back
+     * to a minimal payload for.
+     */
+    public function renderTemplate(string $template): string
+    {
+        $json = json_encode($this->data(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES);
+
+        if ($json === false) {
+            $json = '{}';
+        }
+
+        /** @var array<int, array<string, mixed>> $sites */
+        $sites = $this->sitesForTemplate();
+
+        return str_replace(
+            [
+                '{{VALET_DATA_JSON}}',
+                '{{VALET_SITES_ROWS}}',
+                'window.__VALET_DATA__',
+            ],
+            [
+                $json,
+                $this->renderSitesRows($sites),
+                'window.__VALET_DATA__ = ' . $json,
+            ],
+            $template
+        );
+    }
+
+    /**
+     * The site rows used for the no-JavaScript fallback table.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function sitesForTemplate(): array
+    {
+        try {
+            return $this->gatherSites($this->safeDomain());
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
@@ -421,28 +472,6 @@ class Dashboard
             }, $results);
         } catch (\Throwable $e) {
             return [];
-        }
-    }
-
-    /**
-     * Restart a known service after UI confirmation (mutating dashboard action).
-     *
-     * @return array{ok: bool, message: string}
-     */
-    public function restartService(string $service): array
-    {
-        $service = strtolower(trim($service));
-        $allowed = ['nginx', 'php', 'mailpit', 'mysql', 'redis', 'dnsmasq'];
-        if (!in_array($service, $allowed, true)) {
-            return ['ok' => false, 'message' => 'Service not allowed: ' . $service];
-        }
-
-        try {
-            \Valet\Facades\ServiceRegistry::restart([$service]);
-
-            return ['ok' => true, 'message' => sprintf('Restarted %s', $service)];
-        } catch (\Throwable $e) {
-            return ['ok' => false, 'message' => $e->getMessage()];
         }
     }
 

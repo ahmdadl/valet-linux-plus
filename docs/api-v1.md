@@ -60,3 +60,17 @@ JSON Schema files live in [`docs/schemas/v1/`](schemas/v1/).
 
 `valet schema` documents CLI command output shapes (`diagnose`, `status`, `env`, `health`).  
 `valet api` is the stable aggregation surface for tooling; prefer it for new integrations.
+
+## Not part of v1
+
+`valet api` is a read-only, loopback-agnostic surface. The dashboard has its own HTTP
+API at `http://valet.<domain>/api/*`, which *can* change things and is therefore
+deliberately excluded from this stable contract:
+
+- it is only served when `server.php` is installed (that is, after `valet install`);
+- mutations are refused unless the request comes from the loopback interface, carries a
+  matching CSRF cookie and `X-Valet-CSRF` header, and echoes a confirmation value;
+- it does not use the envelope above, and its action surface changes with the dashboard.
+
+Use `valet api` for tooling, and `valet <command>` for scripts that need to change
+something. See [`docs/dashboard.md`](dashboard.md) for the dashboard's own contract.

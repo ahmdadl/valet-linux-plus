@@ -127,43 +127,32 @@ $__valetDashboardHost = preg_replace('/^www\./', '', $__valetDashboardHost);
 $__valetDashboardDomain = $valetConfig['domain'] ?? 'test';
 $__valetDashboardHosts = ['valet.' . $__valetDashboardDomain, 'dashboard.' . $__valetDashboardDomain];
 if (in_array($__valetDashboardHost, $__valetDashboardHosts, true)) {
-    // Mutating dashboard API (requires explicit confirm=1 from the UI).
-    $__valetAction = $_GET['valet_action'] ?? null;
-    if ($__valetAction === 'restart' && ($_GET['confirm'] ?? '') === '1') {
-        header('Content-Type: application/json');
-        try {
-            $service = is_string($_GET['service'] ?? null) ? $_GET['service'] : '';
-            if (class_exists(\Illuminate\Container\Container::class) && \Illuminate\Container\Container::getInstance()) {
-                $dashboard = \Illuminate\Container\Container::getInstance()->make(\Valet\Dashboard::class);
-                echo json_encode($dashboard->restartService($service));
-                exit;
-            }
-        } catch (Throwable $e) {
-            echo json_encode(['ok' => false, 'message' => $e->getMessage()]);
-            exit;
+    // Everything below a dashboard host goes through DashboardServer, which
+    // owns the CSRF cookie, the /api endpoints and the page itself. The old
+    // GET ?valet_action=restart route is gone: it could be triggered by any
+    // page the browser happened to visit.
+    try {
+        if (!class_exists(\Illuminate\Container\Container::class)) {
+            throw new RuntimeException('Container unavailable');
         }
-        echo json_encode(['ok' => false, 'message' => 'Dashboard unavailable']);
-        exit;
-    }
 
-    try {
-        if (class_exists(\Illuminate\Container\Container::class) && \Illuminate\Container\Container::getInstance()) {
-            $dashboard = \Illuminate\Container\Container::getInstance()->make(\Valet\Dashboard::class);
-            echo $dashboard->render();
+        $dashboardServer = \Illuminate\Container\Container::getInstance()->make(\Valet\DashboardServer::class);
+
+        $dashboardServer->handle(
+            strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')),
+            (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/')
+        );
+        exit;
+    } catch (Throwable $e) {
+        // The container could not give us a dashboard. Fall through to the
+        // static template so the page still loads, read-only and empty.
+        $fallback = @file_get_contents(__DIR__ . '/cli/templates/dashboard.html');
+        if ($fallback !== false) {
+            echo $fallback;
             exit;
         }
-    } catch (Throwable $e) {
-    }
-    try {
-        if (class_exists(\Valet\Facades\Dashboard::class)) {
-            echo \Valet\Facades\Dashboard::render();
-            exit;
-        }
-    } catch (Throwable $e) {
-    }
-    $fallback = @file_get_contents(__DIR__ . '/cli/templates/dashboard.html');
-    if ($fallback !== false) {
-        echo $fallback;
+        http_response_code(500);
+        echo 'Dashboard unavailable';
         exit;
     }
 }

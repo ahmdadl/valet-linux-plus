@@ -120,11 +120,15 @@ function user(): string
         return $_SERVER['USER'] ?? 'root';
     }
 
-    if (!isset($_SERVER['SUDO_USER'])) {
+    if (isset($_SERVER['SUDO_USER']) && $_SERVER['SUDO_USER'] !== '') {
+        return $_SERVER['SUDO_USER'];
+    }
+
+    if (isset($_SERVER['USER']) && $_SERVER['USER'] !== '') {
         return $_SERVER['USER'];
     }
 
-    return $_SERVER['SUDO_USER'];
+    return valet_home_user();
 }
 
 /**
@@ -133,11 +137,40 @@ function user(): string
  */
 function group()
 {
-    if (!isset($_SERVER['SUDO_USER'])) {
+    if (isset($_SERVER['SUDO_USER']) && $_SERVER['SUDO_USER'] !== '') {
+        return exec('id -gn '.escapeshellarg($_SERVER['SUDO_USER']));
+    }
+
+    if (isset($_SERVER['USER']) && $_SERVER['USER'] !== '') {
         return exec('id -gn '.escapeshellarg($_SERVER['USER']));
     }
 
-    return exec('id -gn '.escapeshellarg($_SERVER['SUDO_USER']));
+    return exec('id -gn '.escapeshellarg(valet_home_user()));
+}
+
+/**
+ * Determine the account that owns the Valet home directory.
+ *
+ * php-fpm does not populate USER or SUDO_USER, but the dashboard is always
+ * served on behalf of the account that installed Valet, and that account owns
+ * VALET_HOME_PATH. Falling back to it keeps user() usable from a web request
+ * instead of returning an undefined index.
+ */
+function valet_home_user(): string
+{
+    if (!defined('VALET_HOME_PATH')) {
+        return 'root';
+    }
+
+    if (function_exists('posix_getpwuid') && file_exists(VALET_HOME_PATH)) {
+        $info = @posix_getpwuid((int) @fileowner(VALET_HOME_PATH));
+
+        if (is_array($info) && $info['name'] !== '') {
+            return $info['name'];
+        }
+    }
+
+    return 'root';
 }
 
 /**

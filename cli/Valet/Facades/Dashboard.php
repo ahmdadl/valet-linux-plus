@@ -5,9 +5,9 @@ namespace Valet\Facades;
 /**
  * Class Dashboard.
  *
- * @method static array  data()
+ * @method static array<string, mixed> data()
  * @method static string render()
- * @method static array  restartService(string $service)
+ * @method static string renderTemplate(string $template)
  */
 class Dashboard extends Facade
 {

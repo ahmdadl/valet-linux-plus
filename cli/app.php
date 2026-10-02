@@ -7,6 +7,9 @@ use Valet\Drivers\ValetDriver;
 use Valet\Facades\Backup;
 use Valet\Facades\Configuration;
 use Valet\Facades\Dashboard;
+use Valet\Facades\DashboardApi as DashboardApiFacade;
+use Valet\Facades\DashboardJob as DashboardJobFacade;
+use Valet\Facades\DashboardPrivilege as DashboardPrivilegeFacade;
 use Valet\Facades\DevTools;
 use Valet\Facades\Diagnose;
 use Valet\Facades\DnsMasq;
@@ -1469,7 +1472,7 @@ if (is_dir(VALET_HOME_PATH)) {
      */
     $app->command('health [--json]', function ($json) {
         $results = Health::checkAll();
-        $healthy = array_reduce($results, fn($carry, $r) => $carry && $r['healthy'], true);
+        $healthy = array_reduce($results, fn ($carry, $r) => $carry && $r['healthy'], true);
 
         if ($json) {
             Writer::info(json_encode([
@@ -1683,6 +1686,167 @@ if (is_dir(VALET_HOME_PATH)) {
         Writer::info('Run with --open to launch in your browser.');
     })->descriptions('Open the Valet dashboard', [
         '--open' => 'Open the dashboard in your browser',
+    ]);
+
+
+    /**
+     * Opt in to privileged dashboard actions.
+     *
+     * The dashboard runs under php-fpm with no terminal, so it cannot ask for a
+     * sudo password. This installs a small root-owned helper plus a pinned
+     * sudoers rule so the dashboard can restart services, switch PHP versions
+     * and secure sites without a prompt. Nothing about the helper is
+     * destructive to undo: `uninstall` removes both files.
+     */
+    $app->command('dashboard:privileges [action]', function ($action) {
+        $action = is_string($action) && $action !== '' ? strtolower($action) : 'install';
+
+        if ($action === 'status') {
+            $status = DashboardPrivilegeFacade::status();
+
+            Writer::info($status['enabled'] ? 'Dashboard privileges: enabled' : 'Dashboard privileges: disabled');
+            Writer::twoColumnDetail('Helper', \Valet\DashboardPrivilege::HELPER_PATH . ' (' . ($status['helper_installed'] ? 'installed' : 'missing') . ')');
+            Writer::twoColumnDetail('Sudoers', \Valet\DashboardPrivilege::SUDOERS_PATH . ' (' . ($status['sudoers_installed'] ? 'installed' : 'missing') . ')');
+            Writer::twoColumnDetail('Granted users', implode(', ', $status['granted_users']));
+            Writer::twoColumnDetail('Privileged actions', implode(', ', $status['verbs']));
+            return;
+        }
+
+        if (!in_array($action, ['install', 'uninstall'], true)) {
+            Writer::error('Unknown action: ' . $action . '. Use install, uninstall or status.');
+            return;
+        }
+
+        $result = $action === 'install' ? DashboardPrivilegeFacade::install() : DashboardPrivilegeFacade::remove();
+
+        if (!$result['ok']) {
+            Writer::error($result['message']);
+            return;
+        }
+
+        Writer::info($result['message']);
+        Writer::twoColumnDetail('Helper', \Valet\DashboardPrivilege::HELPER_PATH);
+        Writer::twoColumnDetail('Sudoers', \Valet\DashboardPrivilege::SUDOERS_PATH);
+
+        if ($action === 'install') {
+            Writer::bulletList([
+                'The dashboard can now restart services, switch PHP and secure sites.',
+                'Mutations still only work from this machine, over POST, with a CSRF token.',
+                'Run again with \'uninstall\' to remove both files.',
+            ]);
+        }
+    })->descriptions('Install or remove the dashboard privileged helper', [
+        'action' => 'install, uninstall or status',
+    ]);
+
+    /**
+     * Run a single background dashboard job.
+     *
+     * Invoked by DashboardJob when the browser asks for something slow (a
+     * database import, a snapshot, a backup). The job file is the only input
+     * and it is written by the dashboard itself, so the id is all we need.
+     */
+    $app->command('dashboard:job id', function ($id) {
+        $id = (string) $id;
+        $job = DashboardJobFacade::find($id);
+
+        if ($job === null) {
+            Writer::error('Unknown job: ' . $id);
+            return 1;
+        }
+
+        if (($job['status'] ?? '') !== \Valet\DashboardJob::STATUS_QUEUED) {
+            Writer::error('Job ' . $id . ' is ' . (is_string($job['status'] ?? null) ? $job['status'] : 'unknown') . ', not queued.');
+            return 1;
+        }
+
+        DashboardJobFacade::markRunning($id);
+
+        try {
+            $result = DashboardApiFacade::execute(
+                is_string($job['slug'] ?? null) ? $job['slug'] : '',
+                is_array($job['params'] ?? null) ? $job['params'] : []
+            );
+            DashboardJobFacade::finish($id, $result['ok'], $result['message'], $result['data']);
+
+            return $result['ok'] ? 0 : 1;
+        } catch (Throwable $e) {
+            DashboardJobFacade::finish($id, false, $e->getMessage());
+
+            return 1;
+        }
+    })->descriptions('Run a queued dashboard background job', [
+        'id' => 'The job id, as handed to the browser',
+    ]);
+
+    /**
+     * The helper's only way into Valet.
+     *
+     * Runs a root-tier action as the unprivileged install user with privileged
+     * commands deferred to the helper. Refused unless the helper itself started
+     * this process, so it cannot be used from a terminal to gain root.
+     */
+    $app->command('dashboard:internal action [--params=]', function ($action, $params) {
+        if (!\Valet\DeferredPrivileged::enabled()) {
+            Writer::error('This command may only be run by the dashboard helper.');
+            return 1;
+        }
+
+        $decoded = json_decode((string) base64_decode((string) $params, true), true);
+
+        if (!is_array($decoded)) {
+            $decoded = [];
+        }
+
+        try {
+            $result = DashboardApiFacade::performPrivileged((string) $action, $decoded);
+        } catch (Throwable $e) {
+            $result = ['ok' => false, 'message' => $e->getMessage(), 'data' => []];
+        }
+
+        \Valet\DeferredPrivileged::writeResult([
+            'ok' => $result['ok'],
+            'message' => $result['message'],
+            'data' => $result['data'],
+        ]);
+
+        return $result['ok'] ? 0 : 1;
+    })->descriptions('Perform a dashboard action on behalf of the privileged helper', [
+        'action' => 'The dashboard action slug',
+        '--params' => 'base64 encoded JSON parameters',
+    ]);
+
+    /**
+     * Re-check a recorded command list before the helper runs any of it.
+     *
+     * The helper runs this as the unprivileged user and refuses the whole
+     * request if it says no. It is the same allowlist the capture path used, so
+     * a bug in one cannot widen the other.
+     */
+    $app->command('dashboard:validate-commands file', function ($file) {
+        $entries = \Valet\DeferredPrivileged::read((string) $file);
+        $allowed = [];
+        $denied = [];
+
+        foreach ($entries as $entry) {
+            $verdict = \Valet\DeferredPrivileged::isAllowed($entry['command']);
+
+            if ($verdict) {
+                $allowed[] = \Valet\DeferredPrivileged::withoutSudo($entry['command']);
+            } else {
+                $denied[] = $entry['command'];
+            }
+        }
+
+        echo json_encode([
+            'ok' => $denied === [],
+            'allowed' => $allowed,
+            'denied' => $denied,
+        ], JSON_UNESCAPED_SLASHES);
+
+        return $denied === [] ? 0 : 1;
+    })->descriptions('Validate commands recorded for the dashboard helper', [
+        'file' => 'Path to the recorded command list',
     ]);
 }
 

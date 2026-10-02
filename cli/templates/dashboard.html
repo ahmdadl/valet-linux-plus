@@ -317,6 +317,367 @@
   footer.foot{margin-top:26px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--text-faint); font-weight:500; padding:0 2px}
   footer.foot a{color:var(--text-muted); text-decoration:none; border-bottom:1px dashed var(--border-strong)}
   footer.foot a:hover{color:var(--text)}
+
+  /* ---------------------------------------------------------------- actions */
+  .banner{
+    display:flex; align-items:flex-start; gap:12px; margin-top:18px; padding:14px 16px;
+    border-radius:var(--radius-lg); border:1px solid var(--border); background:var(--bg-card);
+    font-size:13px; line-height:1.5; color:var(--text-muted);
+  }
+  .banner--warn{border-color:var(--accent-border); background:var(--accent-soft)}
+  .banner-ill{
+    flex:0 0 auto; width:28px; height:28px; display:grid; place-items:center; border-radius:999px;
+    background:var(--accent); color:#fff; font-weight:800; font-size:15px;
+  }
+  .banner--warn .banner-ill{background:var(--text-muted)}
+  .banner b{color:var(--text)}
+  .banner code{font-family:var(--mono); background:var(--bg-muted); padding:1px 5px; border-radius:5px; font-size:12px}
+
+  .btn{
+    appearance:none; border:1px solid var(--border-strong); background:var(--bg-card); color:var(--text);
+    font:inherit; font-size:12px; font-weight:600; padding:5px 10px; border-radius:var(--radius-md);
+    cursor:pointer; transition:border-color .12s, background .12s, color .12s;
+  }
+  .btn:hover{border-color:var(--accent); color:var(--accent)}
+  .btn:disabled{opacity:.45; cursor:not-allowed; border-color:var(--border-strong); color:var(--text-faint)}
+  .btn--primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  .btn--primary:hover{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  .btn--ghost{border-color:transparent; background:transparent; color:var(--text-muted)}
+  .btn--ghost:hover{background:var(--bg-muted); color:var(--accent); border-color:transparent}
+  .btn--danger:hover{border-color:var(--accent); color:var(--accent)}
+  .btn--sm{padding:3px 8px; font-size:11px}
+
+  .actions-cell{white-space:nowrap; text-align:right}
+  .actions-cell .btn + .btn{margin-left:4px}
+  .svc-actions{margin-left:auto; display:flex; gap:4px; opacity:0; transition:opacity .12s}
+  .svc:hover .svc-actions, .svc:focus-within .svc-actions{opacity:1}
+  @media (max-width:900px){ .svc-actions{opacity:1} }
+
+  /* ------------------------------------------------------------------ tabs */
+  .tabs{display:flex; gap:4px; flex-wrap:wrap; margin-top:22px; border-bottom:1px solid var(--border)}
+  .tab{
+    appearance:none; border:0; background:transparent; font:inherit; font-size:13px; font-weight:600;
+    color:var(--text-muted); padding:9px 13px; cursor:pointer; border-bottom:2px solid transparent;
+    margin-bottom:-1px; border-radius:0;
+  }
+  .tab:hover{color:var(--text)}
+  .tab[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+  .tabpanel{padding-top:16px}
+  .tabpanel[hidden]{display:none}
+
+  .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px}
+  .toolbar .search-wrap{flex:1 1 220px; max-width:340px}
+  .toolbar select, .toolbar input[type=text]{
+    appearance:none; font:inherit; font-size:12px; font-weight:600; color:var(--text);
+    background:var(--bg-input); border:1px solid var(--border-strong); border-radius:var(--radius-md);
+    padding:7px 10px; min-width:150px;
+  }
+  .toolbar select:focus, .toolbar input:focus{outline:2px solid var(--accent-border); outline-offset:0}
+  .toolbar-spacer{flex:1 1 auto}
+
+  .list{display:flex; flex-direction:column; gap:6px}
+  .list-row{
+    display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:var(--radius-md);
+    border:1px solid var(--border); background:var(--bg-card); font-size:13px; flex-wrap:wrap;
+  }
+  .list-row .grow{flex:1 1 auto; min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .list-row .mono{font-size:12px}
+  .list-row.is-busy{opacity:.55}
+  .list-empty{font-size:13px; color:var(--text-faint); padding:10px 2px}
+
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:13px}
+  .kv dt{color:var(--text-muted); font-weight:600}
+  .kv dd{margin:0; font-family:var(--mono); font-size:12px; overflow-wrap:anywhere}
+
+  /* ----------------------------------------------------------------- modal */
+  .scrim{
+    position:fixed; inset:0; background:rgba(15,15,12,.55); z-index:100; display:none;
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .scrim.is-open{display:flex}
+  .modal{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl);
+    box-shadow:var(--shadow-hover); width:100%; max-width:480px; max-height:86vh; overflow:auto;
+    padding:20px;
+  }
+  .modal-head{display:flex; align-items:flex-start; gap:12px; margin-bottom:12px}
+  .modal-title{font-size:16px; font-weight:700; margin:0}
+  .modal-sub{font-size:12px; color:var(--text-muted); margin:2px 0 0}
+  .modal-body{font-size:13px; line-height:1.55; color:var(--text-muted)}
+  .modal-body p{margin:0 0 10px}
+  .modal-echo{
+    display:block; font-family:var(--mono); font-size:13px; font-weight:700; color:var(--text);
+    background:var(--bg-muted); border:1px solid var(--border-strong); border-radius:var(--radius-md);
+    padding:8px 10px; margin:8px 0 12px; overflow-wrap:anywhere;
+  }
+  .field{margin-bottom:12px}
+  .field label{display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:5px}
+  .field input[type=text], .field select, .field textarea{
+    width:100%; font:inherit; font-size:13px; color:var(--text); background:var(--bg-input);
+    border:1px solid var(--border-strong); border-radius:var(--radius-md); padding:8px 10px;
+  }
+  .field .hint{margin-top:4px}
+  .field--check{display:flex; align-items:center; gap:8px; font-size:13px}
+  .field--check label{margin:0; font-weight:600; color:var(--text)}
+  .modal-foot{display:flex; justify-content:flex-end; gap:8px; margin-top:16px}
+  .modal-error{display:none; margin-top:10px; font-size:12px; font-weight:600; color:var(--accent)}
+  .modal-error.show{display:block}
+
+  /* -------------------------------------------------------------- log pane */
+  .log{
+    font-family:var(--mono); font-size:12px; line-height:1.6; background:var(--bg-muted);
+    border:1px solid var(--border); border-radius:var(--radius-md); padding:12px;
+    max-height:46vh; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--text-muted);
+  }
+  .log:empty::after{content:'No output.'; color:var(--text-faint)}
+
+  /* ------------------------------------------------------------------ jobs */
+  .jobs{display:flex; flex-direction:column; gap:6px}
+  .job{display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:var(--radius-md);
+    border:1px solid var(--border); background:var(--bg-card); font-size:13px; flex-wrap:wrap}
+  .job .grow{flex:1 1 auto; min-width:0; font-weight:600}
+  .job .mono{font-size:11px; color:var(--text-faint)}
+  .job--running{border-color:var(--accent-border)}
+  .job--failed{border-color:var(--accent-border); background:var(--accent-soft)}
+  .job-status{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--text-faint)}
+  .job--done .job-status{color:#1a7f4b}
+  .job--failed .job-status{color:var(--accent)}
+  .job--running .job-status{color:var(--accent)}
+
+  /* ------------------------------------------------------ interaction polish */
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:5px}
+  .btn:active{transform:translateY(1px)}
+  .btn[aria-busy="true"]{position:relative; color:transparent !important; pointer-events:none}
+  .btn[aria-busy="true"]::after{
+    content:''; position:absolute; inset:0; margin:auto; width:11px; height:11px; border-radius:999px;
+    border:2px solid currentColor; border-top-color:transparent; color:#fff;
+    animation:valet-spin .6s linear infinite;
+  }
+  .btn--primary[aria-busy="true"]::after{color:#fff}
+  @keyframes valet-spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition-duration:.01ms !important; animation-duration:.01ms !important}
+  }
+
+  .table-wrap thead th{position:sticky; top:0; z-index:3; background:var(--bg-card)}
+  .table-wrap thead th::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:1px; background:var(--border);
+  }
+  tbody tr{transition:background .12s}
+  tbody tr:hover{background:var(--bg-muted)}
+  .row-actions{opacity:.25; transition:opacity .12s}
+  tr:hover .row-actions, tr:focus-within .row-actions{opacity:1}
+  @media (max-width:760px){ .row-actions{opacity:1} }
+
+  /* --------------------------------------------------------------- dropdown */
+  .menu{position:relative; display:inline-block}
+  .menu-btn{
+    appearance:none; font:inherit; font-size:11px; font-weight:700; color:var(--text-muted);
+    background:var(--bg-card); border:1px solid var(--border-strong); border-radius:var(--radius-md);
+    padding:3px 8px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+  }
+  .menu-btn:hover{border-color:var(--accent); color:var(--accent)}
+  .menu-btn::after{content:'▾'; font-size:9px; opacity:.6}
+  .menu-btn[aria-expanded="true"]{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+  .menu-list{
+    position:absolute; right:0; top:calc(100% + 5px); z-index:40; min-width:196px; max-height:60vh; overflow:auto;
+    background:var(--bg-card); border:1px solid var(--border-strong); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-hover); padding:5px; display:none; flex-direction:column; gap:1px;
+  }
+  .menu-list.is-open{display:flex}
+  .menu-item{
+    appearance:none; border:0; background:transparent; font:inherit; font-size:12px; font-weight:600;
+    color:var(--text); text-align:left; padding:7px 9px; border-radius:7px; cursor:pointer;
+    display:flex; align-items:center; gap:8px; width:100%; white-space:nowrap;
+  }
+  .menu-item:hover{background:var(--bg-muted); color:var(--accent)}
+  .menu-item--danger{color:var(--accent)}
+  .menu-item[disabled]{opacity:.4; cursor:not-allowed}
+  .menu-item[disabled]:hover{background:transparent; color:var(--text)}
+  .menu-item .mi-tag{
+    margin-left:auto; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--text-faint); border:1px solid var(--border-strong); border-radius:999px; padding:0 5px;
+  }
+  .menu-item--danger .mi-tag{color:var(--accent); border-color:var(--accent-border)}
+  .menu-sep{height:1px; background:var(--border); margin:4px 2px}
+  .menu-label{
+    font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.07em;
+    color:var(--text-faint); padding:6px 9px 3px;
+  }
+
+  /* ------------------------------------------------------------------ bits */
+  .tag{
+    display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.05em; border-radius:999px; padding:2px 8px;
+    border:1px solid var(--border-strong); color:var(--text-muted); background:var(--bg-muted);
+  }
+  .tag--ok{color:#1a7f4b; border-color:rgba(26,127,75,.35); background:rgba(26,127,75,.09)}
+  .tag--off{color:var(--text-faint)}
+  .tag--warn{color:var(--accent); border-color:var(--accent-border); background:var(--accent-soft)}
+  .metric{font-family:var(--mono); font-size:11px; color:var(--text-faint); white-space:nowrap}
+  .dotrow{display:inline-flex; align-items:center; gap:6px}
+  .sub{font-size:11px; color:var(--text-faint); font-weight:600}
+
+  .grid-2{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:12px; align-items:start}
+  .grid-2 > .panel{margin-top:0 !important}
+  @media (max-width:700px){ .grid-2{grid-template-columns:1fr} }
+
+  .danger-zone{border-color:var(--accent-border)}
+  .danger-zone .toolbar strong{color:var(--accent)}
+
+  .skel{
+    height:12px; border-radius:6px; margin:8px 0;
+    background:linear-gradient(90deg,var(--bg-muted) 25%,var(--border) 37%,var(--bg-muted) 63%);
+    background-size:400% 100%; animation:valet-shimmer 1.3s ease infinite;
+  }
+  @keyframes valet-shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+
+  /* ================================================================ motion */
+  :root{
+    --ease:cubic-bezier(.2,.7,.3,1);
+    --ease-out:cubic-bezier(.16,1,.3,1);
+    --spring:cubic-bezier(.34,1.4,.5,1);
+    --d1:.12s; --d2:.24s; --d3:.42s; --d4:.68s;
+  }
+
+  /* staggered page reveal */
+  .wrap > *{animation:valet-rise var(--d4) var(--ease-out) backwards}
+  .wrap > *:nth-child(1){animation-delay:.02s}
+  .wrap > *:nth-child(2){animation-delay:.07s}
+  .wrap > *:nth-child(3){animation-delay:.12s}
+  .wrap > *:nth-child(4){animation-delay:.17s}
+  .wrap > *:nth-child(5){animation-delay:.22s}
+  .wrap > *:nth-child(6){animation-delay:.26s}
+  .wrap > *:nth-child(n+7){animation-delay:.3s}
+  @keyframes valet-rise{from{opacity:0; transform:translateY(14px)}to{opacity:1; transform:none}}
+
+  /* staggered children (JS sets --i on each rendered row/card) */
+  .stagger{animation:valet-pop var(--d3) var(--ease-out) backwards; animation-delay:calc(var(--i, 0) * 28ms)}
+  @keyframes valet-pop{from{opacity:0; transform:translateY(8px) scale(.985)}to{opacity:1; transform:none}}
+
+  /* value flash after a refresh */
+  @keyframes valet-flash{0%{background:var(--accent-soft); color:var(--accent)}100%{background:transparent}}
+  .is-flash{animation:valet-flash 1.1s var(--ease) 1; border-radius:8px}
+
+  /* live status pulse */
+  @keyframes valet-halo{
+    0%{transform:scale(.7); opacity:.55}
+    70%{transform:scale(2.1); opacity:0}
+    100%{transform:scale(2.1); opacity:0}
+  }
+  .dot--running::after{animation:valet-halo 2.4s var(--ease-out) infinite}
+  @keyframes valet-breathe{0%,100%{opacity:.35}50%{opacity:.9}}
+  .dot--unknown::after{animation:valet-breathe 1.6s ease-in-out infinite}
+
+  /* tab panels cross-fade */
+  .tabpanel{animation:valet-fade var(--d2) var(--ease-out)}
+  @keyframes valet-fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  /* modal spring entrance */
+  .scrim.is-open{animation:valet-scrim var(--d2) var(--ease) both}
+  @keyframes valet-scrim{from{opacity:0}to{opacity:1}}
+  .scrim.is-open .modal{animation:valet-modal var(--d3) var(--spring) both}
+  @keyframes valet-modal{from{opacity:0; transform:translateY(18px) scale(.94)}to{opacity:1; transform:none}}
+
+  /* dropdown: staggered items */
+  .menu-list.is-open{animation:valet-menu var(--d1) var(--ease-out) both}
+  @keyframes valet-menu{from{opacity:0; transform:translateY(-6px) scale(.97)}to{opacity:1; transform:none}}
+  .menu-list.is-open .menu-item, .menu-list.is-open .menu-label, .menu-list.is-open .menu-sep{
+    animation:valet-menui var(--d2) var(--ease-out) backwards;
+  }
+  .menu-list.is-open > :nth-child(1){animation-delay:.01s}
+  .menu-list.is-open > :nth-child(2){animation-delay:.025s}
+  .menu-list.is-open > :nth-child(3){animation-delay:.04s}
+  .menu-list.is-open > :nth-child(4){animation-delay:.055s}
+  .menu-list.is-open > :nth-child(5){animation-delay:.07s}
+  .menu-list.is-open > :nth-child(n+6){animation-delay:.085s}
+  @keyframes valet-menui{from{opacity:0; transform:translateX(-6px)}to{opacity:1; transform:none}}
+
+  /* toast spring */
+  .toast{transition:opacity var(--d2) var(--ease), transform var(--d2) var(--spring)}
+  .toast.show{animation:valet-toastin var(--d3) var(--spring) both}
+  @keyframes valet-toastin{from{opacity:0; transform:translateX(-50%) translateY(20px) scale(.9)}to{opacity:1; transform:translateX(-50%) translateY(0) scale(1)}}
+  .toast::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor; opacity:.55; flex:0 0 auto}
+  .toast--ok::before{background:#18a957; opacity:1}
+  .toast--error::before{background:var(--accent); opacity:1}
+  .toast--error{color:#fff; background:var(--accent)}
+  @media (prefers-color-scheme: dark){ .toast--error{background:var(--accent); color:#fff} }
+
+  /* press feedback */
+  .btn{position:relative; overflow:hidden}
+  .btn::after{
+    content:""; position:absolute; left:50%; top:50%; width:8px; height:8px; border-radius:50%;
+    background:currentColor; opacity:0; transform:translate(-50%,-50%) scale(0);
+  }
+  .btn:active::after{animation:valet-ripple .45s var(--ease-out) forwards}
+  @keyframes valet-ripple{to{opacity:.16; transform:translate(-50%,-50%) scale(26)}}
+
+  /* card hover glow */
+  .panel{transition:box-shadow var(--d2) var(--ease), border-color var(--d2) var(--ease)}
+  .panel:hover{box-shadow:var(--shadow-hover)}
+  .stat::after{
+    content:""; position:absolute; right:-30px; top:-30px; width:110px; height:110px; border-radius:50%;
+    background:radial-gradient(circle, var(--accent-soft), transparent 68%); opacity:0;
+    transition:opacity var(--d3) var(--ease); pointer-events:none;
+  }
+  .stat:hover::after{opacity:1}
+  .stat:hover{transform:translateY(-3px)}
+  .stat{transition:transform var(--d2) var(--ease), box-shadow var(--d2) var(--ease), border-color var(--d2) var(--ease)}
+
+  /* accent hairline under section heads */
+  .section-head h2{position:relative; padding-left:12px}
+  .section-head h2::before{
+    content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+    width:3px; height:15px; border-radius:2px; background:linear-gradient(var(--accent), var(--accent-2));
+  }
+
+  /* accent rail on hovered table rows */
+  tbody tr td:first-child{position:relative}
+  tbody tr td:first-child::before{
+    content:""; position:absolute; left:0; top:6px; bottom:6px; width:2px; border-radius:2px;
+    background:var(--accent); transform:scaleY(0); transform-origin:center;
+    transition:transform var(--d2) var(--ease);
+  }
+  tbody tr:hover td:first-child::before{transform:scaleY(1)}
+
+  /* log pane polish */
+  .log{
+    background:var(--bg-muted); border-color:var(--border); box-shadow:inset 0 1px 2px rgba(0,0,0,.03);
+    line-height:1.65; font-size:12px; tab-size:2;
+  }
+  .log:not(:empty){animation:valet-fade var(--d2) var(--ease-out)}
+
+  /* copy button morph */
+  .copy-btn{transition:color var(--d1) var(--ease), transform var(--d1) var(--spring)}
+  .copy-btn:active{transform:scale(.88)}
+  .cheat{transition:transform var(--d2) var(--ease), box-shadow var(--d2) var(--ease), border-color var(--d2) var(--ease)}
+  .cheat:hover{transform:translateY(-2px); box-shadow:var(--shadow-hover); border-color:var(--accent-border)}
+
+  /* filter pills */
+  .filter-btn{transition:background var(--d1) var(--ease), color var(--d1) var(--ease), border-color var(--d1) var(--ease), transform var(--d1) var(--spring)}
+  .filter-btn:active{transform:scale(.94)}
+
+  /* list rows reflow nicely when content swaps */
+  .list-row{transition:background var(--d1) var(--ease), border-color var(--d1) var(--ease)}
+  .list-row:hover{border-color:var(--border-strong); background:var(--bg-muted)}
+  .list-row .btn{opacity:0; transition:opacity var(--d1) var(--ease)}
+  .list-row:hover .btn, .list-row:focus-within .btn{opacity:1}
+  @media (hover:none){ .list-row .btn{opacity:1} }
+  .job .btn{opacity:1}
+
+  /* scrollbars */
+  .log::-webkit-scrollbar, .menu-list::-webkit-scrollbar, .table-wrap::-webkit-scrollbar{width:9px; height:9px}
+  .log::-webkit-scrollbar-thumb, .menu-list::-webkit-scrollbar-thumb, .table-wrap::-webkit-scrollbar-thumb{
+    background:var(--border-strong); border-radius:9px; border:2px solid transparent; background-clip:content-box;
+  }
+  .log::-webkit-scrollbar-thumb:hover, .table-wrap::-webkit-scrollbar-thumb:hover{background:var(--text-faint); background-clip:content-box}
+
+  /* safety: never leave content invisible */
+  @media print{ .wrap > *{animation:none !important; opacity:1 !important; transform:none !important} }
+  @media (prefers-reduced-motion:reduce){
+    .wrap > *, .stagger, .menu-list.is-open .menu-item, .scrim.is-open, .scrim.is-open .modal{animation:none !important; opacity:1 !important; transform:none !important}
+    .dot::after{animation:none !important}
+  }
 </style>
 </head>
 <body>
@@ -338,8 +699,20 @@
       <span class="badge badge--accent" id="hdr-domain" title="Configured TLD"><span class="badge-dot"></span> .test</span>
       <span class="badge" id="hdr-php"><span aria-hidden="true">◆</span> PHP <kbd id="hdr-php-ver">—</kbd></span>
       <span class="badge" id="hdr-port" title="Nginx ports">:80 / :443</span>
+      <button class="btn btn--ghost btn--sm" type="button" data-act="ui.refresh" id="refresh-btn">Refresh</button>
     </div>
   </header>
+
+  <!-- Shown until the privileged helper is installed. Everything on this page
+       still works without it; only the root-tier actions are unavailable. -->
+  <div class="banner banner--warn" id="privilege-banner" role="status" hidden>
+    <div class="banner-ill" aria-hidden="true">⚿</div>
+    <div>
+      <strong>Privileged actions are off.</strong>
+      <p>Restarting services, securing sites, switching PHP and trusting the CA need root. Everything else on this page works as-is.</p>
+      <code class="mono" id="privilege-command">sudo valet dashboard:privileges install</code>
+    </div>
+  </div>
 
   <!-- Stats -->
   <section aria-label="Overview stats">
@@ -372,10 +745,13 @@
     <div class="section-head">
       <h2>Services</h2>
       <p>Real-time status — never managed automatically, just observed.</p>
+      <span class="toolbar-spacer"></span>
+      <button class="btn btn--sm" type="button" data-act="services.list" data-read="services">Load details</button>
     </div>
     <div class="services-grid" id="services-grid" role="list">
       <!-- injected -->
     </div>
+    <div class="list" id="services-detail" style="margin-top:12px"></div>
   </section>
 
   <!-- Sites -->
@@ -406,6 +782,7 @@
               <th>Secure</th>
               <th>Isolated PHP</th>
               <th>Path</th>
+              <th style="text-align:right">Actions</th>
             </tr>
           </thead>
           <tbody id="sites-tbody">
@@ -439,6 +816,207 @@
     </div>
   </section>
 
+  <!-- Manage -->
+  <div class="tabs" role="tablist" aria-label="Manage">
+    <button class="tab" role="tab" id="tab-sites"    type="button" aria-controls="panel-sites"    aria-selected="false">Sites</button>
+    <button class="tab" role="tab" id="tab-dbs"      type="button" aria-controls="panel-dbs"      aria-selected="false">Databases</button>
+    <button class="tab" role="tab" id="tab-snapshots" type="button" aria-controls="panel-snapshots" aria-selected="false">Snapshots</button>
+    <button class="tab" role="tab" id="tab-php"      type="button" aria-controls="panel-php"      aria-selected="false">PHP &amp; Node</button>
+    <button class="tab" role="tab" id="tab-extras"   type="button" aria-controls="panel-extras"   aria-selected="false">Backups &amp; Certs</button>
+    <button class="tab" role="tab" id="tab-profiles" type="button" aria-controls="panel-profiles" aria-selected="false">Profiles</button>
+    <button class="tab" role="tab" id="tab-logs"     type="button" aria-controls="panel-logs"     aria-selected="false">Logs &amp; Diagnostics</button>
+    <button class="tab" role="tab" id="tab-jobs"     type="button" aria-controls="panel-jobs"     aria-selected="false">Activity</button>
+    <button class="tab" role="tab" id="tab-settings" type="button" aria-controls="panel-settings" aria-selected="false">Settings</button>
+  </div>
+
+  <section class="tabpanel" id="panel-sites" role="tabpanel" aria-labelledby="tab-sites" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <strong style="font-size:13px">Add a site</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn btn--primary" type="button" data-act="site.link">Link a directory</button>
+        <button class="btn" type="button" data-act="site.park">Park a directory</button>
+        <button class="btn" type="button" data-act="site.proxy">Proxy to a port</button>
+      </div>
+      <p class="hint" style="margin:0 0 10px">
+        <b>Link</b> serves one directory as a single site. <b>Park</b> serves every folder inside a directory.
+        <b>Proxy</b> hands a hostname to another service.
+      </p>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-dbs" role="tabpanel" aria-labelledby="tab-dbs" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <input id="db-filter" type="search" placeholder="Filter databases..." autocomplete="off" spellcheck="false" aria-label="Filter databases">
+        </div>
+        <select id="db-engine" aria-label="Database engine">
+          <option value="mysql">MySQL / MariaDB</option>
+          <option value="pg">PostgreSQL</option>
+        </select>
+        <span class="toolbar-spacer"></span>
+        <button class="btn btn--primary" type="button" data-dba="db.create">Create</button>
+        <button class="btn" type="button" data-dba="db.export">Export</button>
+        <button class="btn" type="button" data-dba="db.import">Import</button>
+      </div>
+      <div class="list" id="db-list"><div class="list-empty">Choose an engine to list its databases.</div></div>
+      <p class="hint" style="margin:10px 0 0">
+        Every action here follows the engine selected above. <b>Reset</b> drops and recreates the database empty,
+        <b>Import</b> replaces it, and both ask you to retype the database name first.
+      </p>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-snapshots" role="tabpanel" aria-labelledby="tab-snapshots" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+          <input id="snapshot-site" type="text" placeholder="Site name (blank = all)" autocomplete="off" spellcheck="false" aria-label="Filter snapshots by site">
+        </div>
+        <span class="toolbar-spacer"></span>
+        <button class="btn" type="button" data-act="snapshots.list" data-read="snapshots">List snapshots</button>
+        <button class="btn btn--primary" type="button" data-act="snapshot.create">Create snapshot</button>
+      </div>
+      <div class="list" id="snapshots-list"><div class="list-empty">Nothing has run yet.</div></div>
+      <p class="hint" style="margin:10px 0 0">
+        Snapshots bundle a site's directory. Creating or restoring one asks for the site directory to work in;
+        restoring overwrites every file in that directory.
+      </p>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-php" role="tabpanel" aria-labelledby="tab-php" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <strong style="font-size:13px">PHP</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn" type="button" data-act="xdebug.enable">Enable Xdebug</button>
+        <button class="btn" type="button" data-act="xdebug.disable">Disable Xdebug</button>
+      </div>
+      <div class="list" id="php-list"></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="toolbar">
+        <strong style="font-size:13px">Node</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn" type="button" data-act="node.use">Use a version</button>
+      </div>
+      <div class="list" id="node-list"></div>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-extras" role="tabpanel" aria-labelledby="tab-extras" hidden>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="toolbar">
+          <strong style="font-size:13px">Backups</strong>
+          <span class="toolbar-spacer"></span>
+          <button class="btn btn--primary btn--sm" type="button" data-act="backup.create">Create</button>
+        </div>
+        <div class="list" id="backups-list"></div>
+      </div>
+      <div class="panel">
+        <div class="toolbar">
+          <strong style="font-size:13px">Certificates</strong>
+          <span class="toolbar-spacer"></span>
+          <button class="btn btn--sm" type="button" data-act="trust.ca">Trust CA</button>
+          <button class="btn btn--sm" type="button" data-act="cert.renew">Renew</button>
+        </div>
+        <div class="list" id="certs-list"></div>
+      </div>
+      <div class="panel">
+        <div class="toolbar">
+          <strong style="font-size:13px">Add-ons</strong>
+          <span class="toolbar-spacer"></span>
+          <button class="btn btn--sm" type="button" data-act="cache.clear">Clear caches</button>
+        </div>
+        <div class="list" id="addons-list"></div>
+      </div>
+      <div class="panel">
+        <div class="toolbar">
+          <strong style="font-size:13px">Cache</strong>
+          <span class="toolbar-spacer"></span>
+          <button class="btn btn--sm" type="button" data-act="cache.status" data-read="cache">Measure</button>
+        </div>
+        <div class="list" id="cache-list"><div class="list-empty">Not measured yet.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-profiles" role="tabpanel" aria-labelledby="tab-profiles" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <strong style="font-size:13px">Profiles</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn btn--primary" type="button" data-act="profile.use">Use a profile</button>
+        <button class="btn" type="button" data-act="profiles.list" data-read="profiles">Refresh</button>
+      </div>
+      <div class="list" id="profiles-list"></div>
+      <p class="hint" style="margin:10px 0 0">
+        A profile captures your domain, ports and PHP version. <b>Use</b> applies it;
+        <b>Apply &amp; switch</b> also rewrites the live configuration and restarts services.
+      </p>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-logs" role="tabpanel" aria-labelledby="tab-logs" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <select id="log-service" aria-label="Log source"></select>
+        <input id="log-lines" type="text" inputmode="numeric" value="80" style="min-width:90px" aria-label="Lines to show">
+        <input id="log-grep" type="text" placeholder="filter text (optional)" autocomplete="off" spellcheck="false" aria-label="Filter lines">
+        <button class="btn btn--primary" type="button" data-act="logs.view" data-read="log">Load log</button>
+      </div>
+      <div class="log" id="log-output" aria-live="polite"></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="toolbar">
+        <strong style="font-size:13px">Diagnostics</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn" type="button" data-act="health.run" data-read="health">Health check</button>
+        <button class="btn" type="button" data-act="diagnose.run" data-read="diagnose">Full diagnosis</button>
+      </div>
+      <div class="list" id="diag-list"></div>
+      <div class="log" id="diag-output" style="max-height:30vh"></div>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-jobs" role="tabpanel" aria-labelledby="tab-jobs" hidden>
+    <div class="panel">
+      <div class="toolbar">
+        <strong style="font-size:13px">Background activity</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn" type="button" data-act="jobs.refresh" data-read="jobs">Refresh</button>
+      </div>
+      <div class="jobs" id="jobs-list"><div class="list-empty">Nothing has run yet.</div></div>
+      <div class="log" id="job-log" style="margin-top:10px; max-height:30vh"></div>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+    <div class="panel danger-zone">
+      <div class="toolbar">
+        <strong style="font-size:13px">Danger zone</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn btn--danger btn--sm" type="button" data-act="domain.set">Change TLD</button>
+        <button class="btn btn--danger btn--sm" type="button" data-act="port.set">Change ports</button>
+      </div>
+      <div class="list" id="settings-kv"></div>
+      <p class="hint" style="margin:10px 0 0">
+        Changing the TLD re-issues every secured certificate and restarts PHP and nginx.
+        Changing a port rewrites the nginx configuration and the secured-sites list.
+        Both ask you to retype the new value before they run.
+      </p>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="toolbar"><strong style="font-size:13px">Privileged actions</strong></div>
+      <div class="list" id="privileges-list"></div>
+    </div>
+  </section>
+
   <!-- Cheat sheet -->
   <section class="cheats" aria-label="Quick commands">
     <div class="cheats-head">
@@ -463,6 +1041,30 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite">Copied to clipboard</div>
 
+<!-- One dialog for every action: it collects the parameters the catalog declares,
+     shows the confirmation value the server will insist on, and reports failures. -->
+<div class="scrim" id="modal-scrim" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 class="modal-title" id="modal-title">Action</h2>
+        <p class="modal-sub" id="modal-sub"></p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p id="modal-desc"></p>
+      <div id="modal-fields"></div>
+      <code class="modal-echo" id="modal-echo" hidden></code>
+      <div class="log" id="modal-log" hidden></div>
+      <p class="modal-error" id="modal-error"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" type="button" id="modal-cancel">Cancel</button>
+      <button class="btn btn--primary" type="button" id="modal-confirm">Run</button>
+    </div>
+  </div>
+</div>
+
 <!-- Data injection points for Dashboard.php
      1) VALET_DATA_JSON inside JSON holder
      2) VALET_DATA placeholder (single occurrence) replaced with assignment
@@ -472,323 +1074,1224 @@
 <script>window.__VALET_DATA__;</script>
 
 <script>
-(function(){
-  const $ = (s, r=document)=> r.querySelector(s);
-  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
+(function () {
+  'use strict';
 
-  function getData(){
-    const W = window;
-    const KEY = '__VALET_DATA__';
-    // primary: window injected via placeholder
-    if(W[KEY] && typeof W[KEY] === 'object' && !Array.isArray(W[KEY])){
-      if(W[KEY].domain) return W[KEY];
-      if(typeof W[KEY] === 'string'){
-        try{ return JSON.parse(W[KEY]); }catch(e){}
-      }
+  // ---------------------------------------------------------------- helpers
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var state = {
+    data: null,
+    privileges: { enabled: false },
+    phpVersions: [],
+    isolationVersions: [],
+    catalog: {},
+    sites: [],
+    jobs: [],
+    jobTimer: null,
+    jobPollers: {},
+    tab: 'sites',
+    filter: 'all',
+    search: '',
+    dbEngine: 'mysql',
+    dbSearch: '',
+    logService: '',
+    siteSignature: null,
+    headerDone: false,
+    pending: 0
+  };
+
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function csrf() {
+    var match = document.cookie.match(/(?:^|;\s*)valet_csrf=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function bytes(value) {
+    var n = Number(value) || 0;
+    if (n < 1024) { return n + ' B'; }
+    if (n < 1048576) { return (n / 1024).toFixed(1) + ' KB'; }
+    if (n < 1073741824) { return (n / 1048576).toFixed(1) + ' MB'; }
+    return (n / 1073741824).toFixed(2) + ' GB';
+  }
+
+  function toast(message, kind) {
+    var el = $('#toast');
+    if (!el) { return; }
+    el.textContent = message;
+    el.className = 'toast show' + (kind ? ' toast--' + kind : '');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { el.className = 'toast'; }, 4200);
+  }
+
+  // ------------------------------------------------------------------ motion
+
+  var reduced = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
+
+  function countUp(el, target) {
+    if (!el) { return; }
+
+    var end = Number(target) || 0;
+
+    if (reduced.matches || end === 0) {
+      el.textContent = String(end);
+      return;
     }
-    // fallback: JSON script tag content
-    try{
-      const el = document.getElementById('valet-data-fallback');
-      if(el){
-        const txt = (el.textContent||'').trim();
-        if(txt && txt[0]==='{' && txt.length>4){
-          return JSON.parse(txt);
+
+    var start = null;
+    var span = 620;
+
+    function frame(now) {
+      if (start === null) { start = now; }
+
+      var t = Math.min(1, (now - start) / span);
+      var eased = 1 - Math.pow(1 - t, 3);
+
+      el.textContent = String(Math.round(end * eased));
+
+      if (t < 1 && !reduced.matches) { requestAnimationFrame(frame); }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  function flash(el) {
+    if (!el || reduced.matches) { return; }
+
+    el.classList.remove('is-flash');
+    void el.offsetWidth;
+    el.classList.add('is-flash');
+  }
+
+  /* Tag freshly injected rows with an index so CSS can stagger them in. */
+  function stagger(host) {
+    if (!host || reduced.matches) { return; }
+
+    Array.prototype.forEach.call(host.children, function (child, index) {
+      child.classList.add('stagger');
+      child.style.setProperty('--i', String(Math.min(index, 24)));
+    });
+  }
+
+  /* Swap a control into its spinner state. CSS keys off aria-busy. */
+  function busy(el, on) {
+    if (!el || !el.setAttribute) { return; }
+
+    if (on) {
+      el.setAttribute('aria-busy', 'true');
+    } else {
+      el.removeAttribute('aria-busy');
+    }
+  }
+
+  // ------------------------------------------------------------------- http
+
+  function api(path, options) {
+    options = options || {};
+
+    var headers = { 'Accept': 'application/json' };
+    var init = { method: options.method || 'GET', credentials: 'same-origin', headers: headers };
+
+    if (options.body) {
+      headers['Content-Type'] = 'application/json';
+      headers['X-Valet-CSRF'] = csrf();
+      init.body = JSON.stringify(options.body);
+    }
+
+    return fetch(path, init).then(function (response) {
+      return response.json().catch(function () {
+        return { ok: false, message: 'The dashboard returned an unreadable response (HTTP ' + response.status + ').' };
+      }).then(function (payload) {
+        return { status: response.status, payload: payload };
+      });
+    }).catch(function (error) {
+      return { status: 0, payload: { ok: false, message: String(error && error.message ? error.message : error) } };
+    });
+  }
+
+  // ------------------------------------------------------------------ modal
+
+  var modal = { slug: null, preset: null, fields: [], onConfirm: null, busy: false, trigger: null };
+
+  function setModalError(message) {
+    var el = $('#modal-error');
+    el.textContent = message || '';
+    el.classList.toggle('show', Boolean(message));
+  }
+
+  function closeModal() {
+    busy(modal.trigger, false);
+    modal.slug = null;
+    modal.onConfirm = null;
+    modal.busy = false;
+    modal.trigger = null;
+    var scrim = $('#modal-scrim');
+    if (scrim) { scrim.classList.remove('is-open'); }
+  }
+
+  function fieldMarkup(name, spec, value) {
+    var id = 'f-' + name;
+    var label = esc(spec.label || name);
+    var required = spec.required ? ' <span class="muted">*</span>' : '';
+
+    if (spec.type === 'bool') {
+      return '<label class="field field--check" for="' + id + '">' +
+        '<input type="checkbox" id="' + id + '" data-field="' + esc(name) + '"' + (value ? ' checked' : '') + '>' +
+        '<span>' + label + '</span></label>';
+    }
+
+    var options = '';
+    var choice = null;
+
+    if (spec.in && spec.in.length) {
+      choice = spec.in;
+    } else if (name === 'version') {
+      choice = (spec.required ? state.isolationVersions : state.isolationVersions).length
+        ? state.isolationVersions : state.phpVersions;
+    }
+
+    if (choice && choice.length) {
+      options = '<option value="">Choose…</option>';
+      choice.forEach(function (option) {
+        var selected = String(option) === String(value) ? ' selected' : '';
+        options += '<option value="' + esc(option) + '"' + selected + '>' + esc(option) + '</option>';
+      });
+
+      return '<div class="field"><label for="' + id + '">' + label + required + '</label>' +
+        '<select id="' + id + '" data-field="' + esc(name) + '">' + options + '</select></div>';
+    }
+
+    var inputType = spec.type === 'int' ? 'number' : 'text';
+    var placeholder = spec.type === 'path' ? '/absolute/path' : (spec.type === 'archive' ? 'archive.tar.gz' : 'value');
+
+    return '<div class="field"><label for="' + id + '">' + label + required + '</label>' +
+      '<input type="' + inputType + '" id="' + id + '" data-field="' + esc(name) + '" value="' + esc(value === null || value === undefined ? '' : value) + '" placeholder="' + esc(placeholder) + '"></div>';
+  }
+
+  function openAction(slug, preset, trigger) {
+    var def = state.catalog[slug];
+
+    if (!def) {
+      toast('Unknown action: ' + slug, 'error');
+      return;
+    }
+
+    preset = preset || {};
+    modal.slug = slug;
+    modal.preset = preset;
+    modal.busy = false;
+    modal.trigger = trigger || null;
+
+    var params = def.params || {};
+    var fields = Object.keys(params).map(function (name) {
+      var spec = params[name];
+      var value;
+
+      if (preset[name] !== undefined && preset[name] !== null) {
+        value = preset[name];
+      } else if (spec.default !== undefined && spec.default !== null) {
+        value = spec.default;
+      } else {
+        value = '';
+      }
+
+      return { name: name, spec: spec, value: value };
+    });
+
+    modal.fields = fields;
+
+    var description = def.tier === 'root'
+      ? 'This action needs the privileged helper. ' + (state.privileges.enabled ? 'It will run as root.' : 'It is not installed yet, so it will be refused.')
+      : 'Runs as your own user account.';
+
+    $('#modal-title').textContent = def.label || slug;
+    $('#modal-sub').textContent = slug;
+    $('#modal-desc').textContent = description;
+    $('#modal-fields').innerHTML = fields.length
+      ? fields.map(function (field) { return fieldMarkup(field.name, field.spec, field.value); }).join('')
+      : '<p class="hint">This action takes no parameters.</p>';
+
+    var echo = $('#modal-echo');
+    if (def.confirm) {
+      var text = def.confirm === true ? '1' : (preset[def.confirm] !== undefined ? preset[def.confirm] : '<the value above>');
+      echo.hidden = false;
+      echo.textContent = 'type: ' + text;
+      modal.echoValue = text;
+    } else {
+      echo.hidden = true;
+      modal.echoValue = null;
+    }
+
+    $('#modal-log').hidden = true;
+    setModalError('');
+    $('#modal-confirm').textContent = def.confirm ? (def.destructive ? 'Yes, do it' : 'Confirm') : 'Run';
+    $('#modal-confirm').className = 'btn ' + (def.destructive ? 'btn--danger' : 'btn--primary');
+
+    $('#modal-scrim').classList.add('is-open');
+    var first = $('#modal-fields [data-field]');
+    if (first) { first.focus(); }
+  }
+
+  function collectFields() {
+    var values = {};
+
+    modal.fields.forEach(function (field) {
+      var input = $('[data-field="' + field.name + '"]', $('#modal-fields'));
+
+      if (!input) { return; }
+
+      if (field.spec.type === 'bool') {
+        values[field.name] = input.checked;
+      } else if (field.spec.type === 'int') {
+        if (input.value !== '') { values[field.name] = parseInt(input.value, 10); }
+      } else {
+        if (input.value !== '') { values[field.name] = input.value; }
+      }
+    });
+
+    return values;
+  }
+
+  function missingFields(values) {
+    var missing = [];
+
+    modal.fields.forEach(function (field) {
+      if (!field.spec.required) { return; }
+      var value = values[field.name];
+      if (value === undefined || value === null || value === '' || value === false) {
+        missing.push(field.spec.label || field.name);
+      }
+    });
+
+    return missing;
+  }
+
+  function submitModal() {
+    if (modal.busy || !modal.slug) { return; }
+
+    var slug = modal.slug;
+    var def = state.catalog[slug];
+    var values = collectFields();
+    var missing = missingFields(values);
+
+    if (missing.length) {
+      setModalError('Still needed: ' + missing.join(', ') + '.');
+      return;
+    }
+
+    if (def.confirm) {
+      values.confirm = def.confirm === true ? '1' : values[def.confirm] !== undefined ? values[def.confirm] : modal.echoValue;
+    }
+
+    modal.busy = true;
+    $('#modal-confirm').disabled = true;
+    busy(modal.trigger, true);
+    busy($('#modal-confirm'), true);
+    setModalError('Working…');
+
+    api('/api/actions/' + encodeURIComponent(slug), { method: 'POST', body: values }).then(function (result) {
+      modal.busy = false;
+      $('#modal-confirm').disabled = false;
+      busy($('#modal-confirm'), false);
+      var payload = result.payload;
+
+      if (!payload.ok) {
+        setModalError(payload.message || 'The action failed.');
+        return;
+      }
+
+      var log = $('#modal-log');
+      log.hidden = false;
+      log.textContent = payload.message || '';
+
+      if (payload.job) {
+        watchJob(payload.job);
+        setModalError('');
+        busy(modal.trigger, false);
+        toast(payload.message || 'Started.', 'ok');
+        setTimeout(function () { closeModal(); }, 900);
+      } else {
+        toast(payload.message || 'Done.', 'ok');
+        closeModal();
+        refresh();
+      }
+    });
+  }
+
+  // ------------------------------------------------------------------ jobs
+
+  function watchJob(id) {
+    if (!id || state.jobPollers[id]) { return; }
+
+    state.jobPollers[id] = setInterval(function () {
+      api('/api/jobs/' + encodeURIComponent(id)).then(function (result) {
+        var job = result.payload && result.payload.data ? result.payload.data.job : null;
+
+        if (!job) { return; }
+
+        if (job.status === 'done' || job.status === 'failed' || job.status === 'cancelled') {
+          clearInterval(state.jobPollers[id]);
+          delete state.jobPollers[id];
+          refresh();
+          toast(job.message || ('Job ' + job.status + '.'), job.status === 'done' ? 'ok' : 'error');
         }
-      }
-    }catch(e){}
-    // last fallback: no data -> demo/empty graceful
-    return null;
+      });
+    }, 1200);
   }
 
-  let data = getData();
-  // If opened directly as file:// without PHP injection, provide graceful empty demo
-  if(!data){
-    data = {
-      domain:'test',
-      port:80,
-      https_port:443,
-      php_version:'',
-      php_versions:[],
-      paths:[],
-      sites:[],
-      counts:{parked:0, linked:0, proxied:0, secured:0, isolated:0, total:0},
-      services:[
-        {name:'nginx', installed:false, status:'unknown'},
-        {name:'php-fpm', installed:false, status:'unknown'},
-        {name:'mailpit', installed:false, status:'unknown'},
-        {name:'mysql', installed:false, status:'unknown'},
-        {name:'redis', installed:false, status:'unknown'},
-        {name:'postgres', installed:false, status:'unknown'}
-      ],
-      health:[],
-      mail_url:'https://mails.test',
-      database_url:'https://database.valet.test',
-      valet_version:'unknown',
-      nginx_sites:0
-    };
-    // show hint that data missing is OK
-    const foot = document.getElementById('foot-meta');
-    if(foot) foot.textContent = 'Preview mode — live data appears when served via Valet';
-  }
+  function renderJobs() {
+    var host = $('#jobs-list');
 
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, m=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
+    if (!host) { return; }
 
-  // header
-  const domain = data.domain || 'test';
-  $('#hdr-domain').innerHTML = '<span class="badge-dot"></span> .'+ escapeHtml(domain);
-  const ver = data.valet_version && data.valet_version !== 'unknown' ? 'v'+data.valet_version : 'v dev';
-  $('#hdr-version').textContent = ver;
-  const phpVer = data.php_version || '—';
-  $('#hdr-php-ver').textContent = phpVer;
-  const port = data.port || 80;
-  const httpsPort = data.https_port || 443;
-  const portLabel = (port===80 && httpsPort===443) ? ':80 / :443' : ':'+port+' / :'+httpsPort;
-  $('#hdr-port').textContent = portLabel;
-  const footMeta = $('#foot-meta');
-  if(footMeta && data.valet_version){
-    const n = data.nginx_sites ?? '—';
-    footMeta.textContent = 'nginx sites: '+n+' · PHP '+phpVer+' · '+domain;
-  }
-
-  // stats
-  const c = data.counts || {};
-  $('#stat-total').textContent = (c.total ?? (data.sites||[]).length ?? 0);
-  $('#stat-secured').textContent = (c.secured ?? 0);
-  $('#stat-proxied').textContent = (c.proxied ?? 0);
-  $('#stat-paths').textContent = (data.paths||[]).length;
-  const totalMeta = $('#stat-total-meta');
-  if(totalMeta) totalMeta.textContent = (c.parked||0)+' parked · '+(c.linked||0)+' linked · '+(c.proxied||0)+' proxied';
-  const pathsMeta = $('#stat-paths-meta');
-  if(pathsMeta){
-    const p = data.paths||[];
-    pathsMeta.textContent = p.length ? p[0].split('/').slice(-2).join('/') + (p.length>1 ? ' +'+(p.length-1)+' more' : '') : 'No paths configured';
-    pathsMeta.title = p.join('\n');
-  }
-  const securedMeta = $('#stat-secured-meta');
-  if(securedMeta && c.total){
-    const pct = c.total ? Math.round((c.secured/c.total)*100) : 0;
-    securedMeta.textContent = pct ? pct+'% of sites · HTTPS' : 'No secured sites yet';
-  }
-
-  // services
-  const grid = $('#services-grid');
-  const services = Array.isArray(data.services) ? data.services : [];
-  const healthMap = {};
-  (Array.isArray(data.health) ? data.health : []).forEach(h=>{
-    if(h && h.service) healthMap[String(h.service).toLowerCase()] = h;
-  });
-  grid.innerHTML = services.map(s=>{
-    const name = s.name||'';
-    const status = (s.status||'unknown').toLowerCase();
-    const dotClass = status==='running' ? 'dot--running' : status==='stopped' ? 'dot--stopped' : 'dot--unknown';
-    const installed = !!s.installed;
-    const statusLabel = status==='running' ? 'running' : status==='stopped' ? 'stopped' : 'unknown';
-    const base = name.replace(/-fpm$/,'');
-    const health = healthMap[base] || healthMap[name.toLowerCase()];
-    const healthLabel = health ? (health.healthy ? 'healthy' : 'unhealthy') : '';
-    const restartName = ['nginx','mailpit','mysql','redis','dnsmasq'].includes(base) ? base : (name.includes('php') ? 'php' : '');
-    const restartBtn = restartName
-      ? `<button type="button" class="copy-btn svc-restart" data-restart="${escapeHtml(restartName)}" title="Restart ${escapeHtml(restartName)}" style="margin-left:auto">restart</button>`
-      : '';
-    return `<div class="svc" role="listitem">
-      <div class="svc-top"><span class="dot ${dotClass}" aria-hidden="true"></span><span class="svc-name">${escapeHtml(name)}</span>${restartBtn}</div>
-      <div class="svc-sub"><span class="svc-status">${escapeHtml(statusLabel)}</span> <span class="pill-installed ${installed?'is-yes':''}">${installed?'installed':'not installed'}</span>${healthLabel?` <span class="pill-installed ${health.healthy?'is-yes':''}">${escapeHtml(healthLabel)}</span>`:''}</div>
-    </div>`;
-  }).join('') || `<div style="grid-column:1/-1; padding:16px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:12px; text-align:center">No service data</div>`;
-
-  // Mailpit / Adminer quick open
-  if(data.mail_url){
-    const hdr = document.querySelector('header .hdr-right') || document.querySelector('header');
-    if(hdr && !document.getElementById('open-mailpit')){
-      const a = document.createElement('a');
-      a.id = 'open-mailpit';
-      a.href = data.mail_url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = 'Open Mailpit';
-      a.style.cssText = 'margin-left:12px;font-size:12px;font-weight:600;color:var(--accent,#2563eb)';
-      hdr.appendChild(a);
-    }
-  }
-  if(data.database_url){
-    const hdr = document.querySelector('header .hdr-right') || document.querySelector('header');
-    if(hdr && !document.getElementById('open-database')){
-      const a = document.createElement('a');
-      a.id = 'open-database';
-      a.href = data.database_url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = 'Open Database';
-      a.style.cssText = 'margin-left:12px;font-size:12px;font-weight:600;color:var(--accent,#2563eb)';
-      hdr.appendChild(a);
-    }
-  }
-
-  document.addEventListener('click', async (ev)=>{
-    const btn = ev.target.closest('[data-restart]');
-    if(!btn) return;
-    const service = btn.getAttribute('data-restart');
-    if(!service) return;
-    if(!confirm('Restart service “'+service+'”?')) return;
-    btn.disabled = true;
-    try{
-      const res = await fetch('?valet_action=restart&confirm=1&service='+encodeURIComponent(service), {headers:{'Accept':'application/json'}});
-      const json = await res.json();
-      alert(json.message || (json.ok ? 'Restarted' : 'Failed'));
-    }catch(e){
-      alert('Restart request failed');
-    }
-    btn.disabled = false;
-  });
-
-  // sites
-  const sites = Array.isArray(data.sites) ? data.sites.slice() : [];
-  const tbody = $('#sites-tbody');
-  const cards = $('#sites-cards');
-  const empty = $('#empty-state');
-  const siteCount = $('#site-count');
-  let activeFilter = 'all';
-  let query = '';
-
-  function pillClass(type){
-    if(type==='proxy') return 'pill--proxy';
-    if(type==='linked') return 'pill--linked';
-    return 'pill--parked';
-  }
-  function render(){
-    const filtered = sites.filter(s=>{
-      const name = (s.name||'').toLowerCase();
-      const matchesQuery = !query || name.includes(query);
-      if(!matchesQuery) return false;
-      if(activeFilter==='all') return true;
-      if(activeFilter==='secured') return !!s.secured;
-      return (s.type||'')===activeFilter;
-    });
-    siteCount.textContent = filtered.length + (filtered.length===1 ? ' site' : ' sites') + (query||activeFilter!=='all' ? ' · filtered' : '');
-
-    if(sites.length===0){
-      tbody.innerHTML = '';
-      cards.innerHTML = '';
-      empty.hidden = false;
+    if (!state.jobs.length) {
+      host.innerHTML = '<div class="list-empty">No background jobs yet. Imports, exports, snapshots and backups run here.</div>';
       return;
     }
-    if(filtered.length===0){
-      tbody.innerHTML = `<tr><td colspan="6" style="padding:28px 16px; text-align:center; color:var(--text-muted); font-weight:600">No sites match “${escapeHtml(query)}”</td></tr>`;
-      cards.innerHTML = `<div style="padding:18px; text-align:center; color:var(--text-muted); font-size:13px; font-weight:600">No matches</div>`;
-      empty.hidden = true;
+
+    host.innerHTML = state.jobs.map(function (job) {
+      var status = String(job.status || 'queued');
+      return '<div class="job job--' + esc(status) + '" data-job="' + esc(job.id) + '">' +
+        '<div><strong>' + esc(job.slug) + '</strong>' +
+        '<div class="muted">' + esc(job.message || '') + ' · ' + esc(job.started_at || '') + '</div></div>' +
+        '<span class="job-status">' + esc(status) + '</span></div>';
+    }).join('');
+
+    stagger(host);
+
+    var first = state.jobs[0];
+    var output = $('#job-log');
+
+    if (output && first) {
+      api('/api/jobs/' + encodeURIComponent(first.id)).then(function (result) {
+        var job = result.payload && result.payload.data ? result.payload.data.job : null;
+        output.textContent = job && job.log ? job.log : 'No output was captured for this job.';
+      });
+    }
+  }
+
+  // ------------------------------------------------------------ read actions
+  //
+  // Read actions never open the confirm modal: there is nothing to confirm, so
+  // they post straight away and paint their result into a panel.
+
+  var READERS = {
+    log: function (data, values) {
+      var lines = data.lines || [];
+      var output = $('#log-output');
+
+      if (!lines.length) {
+        output.textContent = 'Nothing matched. ' + (values.grep ? 'Try a different filter.' : 'The log is empty.');
+        return;
+      }
+
+      output.textContent = lines.join('\n');
+    },
+
+    health: function (data) {
+      var rows = data.health || [];
+
+      $('#diag-list').innerHTML = rows.map(function (row) {
+        return '<div class="list-row"><span class="grow">' + esc(row.service) + '</span>' +
+          '<span class="muted">' + esc(row.latency_ms) + ' ms</span>' +
+          '<span class="pill">' + (row.healthy ? 'healthy' : esc(row.message || 'unhealthy')) + '</span></div>';
+      }).join('');
+
+      stagger($('#diag-list'));
+
+      $('#diag-output').textContent = '';
+    },
+
+    diagnose: function (data) {
+      $('#diag-output').textContent = JSON.stringify(data.diagnose || {}, null, 2);
+    },
+
+    jobs: function () {
+      TABS.jobs();
+    },
+
+    services: function (data) {
+      renderServiceDetails(data.services || []);
+      toast((data.services || []).length + ' services inspected.', 'ok');
+    },
+
+    cache: function (data) {
+      var rows = data.cache || {};
+      var keys = Object.keys(rows);
+
+      list($('#cache-list'), keys.length ? keys.map(function (key) {
+        var entry = rows[key] || {};
+        return '<div class="list-row"><span class="grow">' + esc(key) + '</span>' +
+          '<span class="metric">' + esc(entry.human || entry.bytes || '') + '</span>' +
+          '<span class="metric">' + esc(entry.entries !== undefined ? entry.entries + ' entries' : '') + '</span>' +
+          '<span class="metric mono">' + esc(entry.path || '') + '</span></div>';
+      }) : [], 'No cache directories found.');
+    },
+
+    snapshots: function (data, values) {
+      renderSnapshots(data.snapshots || [], values.site);
+    },
+
+    profiles: function (data) {
+      renderProfiles(data.profiles || []);
+    }
+  };
+
+  function read(slug, kind, values, trigger) {
+    busy(trigger, true);
+
+    api('/api/actions/' + encodeURIComponent(slug), { method: 'POST', body: values || {} }).then(function (result) {
+      busy(trigger, false);
+      var payload = result.payload;
+
+      if (!payload.ok) {
+        toast(payload.message || 'The read failed.', 'error');
+        return;
+      }
+
+      var reader = READERS[kind];
+
+      if (reader) { reader(payload.data || {}, values || {}); }
+    });
+  }
+
+  // ---------------------------------------------------------------- actions
+
+  function run(slug, preset, kind, trigger) {
+    if (slug === 'ui.refresh') {
+      busy(trigger || $('#refresh-btn'), true);
+      refresh();
+      toast('Reloaded.', 'ok');
       return;
     }
-    empty.hidden = true;
 
-    // table rows
-    tbody.innerHTML = filtered.map(s=>{
-      const type = s.type||'parked';
-      const secured = !!s.secured;
-      const isolated = s.isolated ? String(s.isolated) : '—';
-      const url = s.url || `http://${s.name}.${domain}`;
-      const path = s.path || '—';
-      const initial = (s.name||'?')[0];
-      return `<tr>
-        <td><span class="site-name"><span class="avatar">${escapeHtml(initial)}</span> ${escapeHtml(s.name)}</span></td>
-        <td><span class="pill ${pillClass(type)}">${escapeHtml(type)}</span></td>
-        <td><a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)} <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8L8 4"/><path d="M5 4h3v3"/></svg></a></td>
-        <td>${secured ? '<span class="icon-lock" title="Secured">🔒</span>' : '<span class="muted">—</span>'}</td>
-        <td>${isolated==='—' ? '<span class="muted">—</span>' : '<code style="font-family:ui-monospace,monospace; font-size:12px; background:var(--bg-muted); border:1px solid var(--border); padding:2px 6px; border-radius:6px">'+escapeHtml(isolated)+'</code>'}</td>
-        <td><div class="path-cell"><span class="path-text" title="${escapeHtml(path)}">${escapeHtml(path)}</span><button class="copy-btn" type="button" data-copy-path="${escapeHtml(path)}" aria-label="Copy path for ${escapeHtml(s.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="10" height="10" rx="2"></rect><path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path></svg></button></div></td>
-      </tr>`;
+    if (kind && READERS[kind]) {
+      read(slug, kind, preset || {}, trigger);
+      return;
+    }
+
+    var def = state.catalog[slug];
+
+    if (!def) {
+      toast('Unknown action: ' + slug, 'error');
+      return;
+    }
+
+    if (def.tier === 'root' && !state.privileges.enabled) {
+      toast('Privileged actions are off. Run: sudo valet dashboard:privileges install', 'error');
+      return;
+    }
+
+    openAction(slug, preset, trigger);
+  }
+
+  // --------------------------------------------------------------- rendering
+
+  function pillClass(type) {
+    return 'pill--' + (type === 'linked' ? 'linked' : (type === 'proxy' ? 'proxy' : 'parked'));
+  }
+
+  function closeMenus() {
+    $$('.menu-list.is-open').forEach(function (list) { list.classList.remove('is-open'); });
+    $$('[data-menu-toggle][aria-expanded="true"]').forEach(function (toggle) {
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function engineSlug(slug) {
+    return state.dbEngine === 'pg' ? slug.replace(/^db\./, 'pg.') : slug;
+  }
+
+  function visibleSites() {
+    var search = state.search.toLowerCase();
+
+    return state.sites.filter(function (site) {
+      if (state.filter === 'secured' && !site.secured) { return false; }
+      if (['parked', 'linked', 'proxy'].indexOf(state.filter) !== -1 && site.type !== state.filter) { return false; }
+
+      if (!search) { return true; }
+
+      return [site.name, site.type, site.url, site.path, site.isolated]
+        .join(' ').toLowerCase().indexOf(search) !== -1;
+    });
+  }
+
+  function siteActions(site) {
+    var privileged = state.privileges.enabled;
+    var preset = { name: site.name };
+    var groups = [];
+
+    groups.push({ label: 'Serving', items: [
+      { slug: site.secured ? 'site.unsecure' : 'site.secure', label: site.secured ? 'Remove HTTPS' : 'Enable HTTPS', preset: preset, tag: 'root' },
+      { slug: 'site.proxy', label: 'Proxy to a host…', preset: preset, tag: 'root' }
+    ]});
+
+    if (site.type === 'proxy') {
+      groups.push({ items: [
+        { slug: 'site.unproxy', label: 'Stop proxying', preset: preset, tag: 'root', danger: true }
+      ]});
+    }
+
+    groups.push({ label: 'PHP isolation', items: [
+      { slug: 'site.isolate', label: site.isolated ? 'Change isolated PHP…' : 'Isolate PHP version…', preset: { name: site.name, version: site.isolated || '' }, tag: 'root' },
+      { slug: 'site.unisolate', label: 'Stop isolating', preset: preset, tag: 'root', danger: true, disabled: !site.isolated }
+    ]});
+
+    groups.push({ label: 'Files', items: [
+      { slug: 'site.unlink', label: 'Unlink site', preset: preset, danger: true, disabled: site.type === 'parked' },
+      { slug: 'site.forget', label: 'Forget from Valet', preset: { path: site.path }, danger: true, disabled: !site.path }
+    ]});
+
+    groups.push({ label: 'Backup', items: [
+      { slug: 'snapshot.create', label: 'Create snapshot…', preset: { path: site.path, name: site.name } },
+      { slug: 'backup.create', label: 'Create full backup…', preset: {} }
+    ]});
+
+    var buttons = groups.map(function (group) {
+      var rows = group.items.filter(function (item) {
+        return item.tag !== 'root' || privileged;
+      }).map(function (item) {
+        return '<button class="menu-item' + (item.danger ? ' menu-item--danger' : '') + '" type="button"' +
+          (item.disabled ? ' disabled' : '') +
+          ' data-act="' + esc(item.slug) + '" data-preset=\'' + esc(JSON.stringify(item.preset || {})) + '\'>' +
+          esc(item.label) + '</button>';
+      }).join('');
+
+      if (!rows) { return ''; }
+
+      return (group.label ? '<span class="menu-label">' + esc(group.label) + '</span>' : '') + rows;
+    }).join('<span class="menu-sep"></span>');
+
+    return '<div class="menu"><button class="menu-btn" type="button" aria-haspopup="true" aria-expanded="false" ' +
+      'data-menu-toggle>Actions<span class="sr-only"> for ' + esc(site.name) + '</span></button>' +
+      '<div class="menu-list" role="menu">' + buttons + '</div></div>';
+  }
+
+  function renderSites() {
+    var rows = visibleSites();
+    var tbody = $('#sites-tbody');
+    var first = true;
+
+    $('#site-count').textContent = rows.length;
+
+    if (tbody) {
+      tbody.innerHTML = rows.map(function (site) {
+        return '<tr>' +
+          '<td><div class="site-name"><span class="avatar">' + esc((site.name || '?').charAt(0).toUpperCase()) + '</span><span>' + esc(site.name) + '</span></div></td>' +
+          '<td><span class="pill ' + pillClass(site.type) + '">' + esc(site.type) + '</span></td>' +
+          '<td><a class="url-link" href="' + esc(site.url) + '">' + esc(site.url) + '</a></td>' +
+          '<td>' + (site.secured ? '<span class="icon-lock" title="Secure">🔒</span>' : '<span class="muted">–</span>') + '</td>' +
+          '<td>' + (site.isolated ? '<span class="mono">' + esc(site.isolated) + '</span>' : '<span class="muted">–</span>') + '</td>' +
+          '<td><div class="path-cell"><span class="path-text mono">' + esc(site.path) + '</span></div></td>' +
+          '<td><div class="actions-cell row-actions">' + siteActions(site) + '</div></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    var cards = $('#sites-cards');
+
+    if (cards) {
+      cards.innerHTML = rows.map(function (site) {
+        return '<article class="site-card"><div class="site-card-head"><strong>' + esc(site.name) + '</strong>' +
+          '<span class="pill ' + pillClass(site.type) + '">' + esc(site.type) + '</span></div>' +
+          '<div class="muted mono">' + esc(site.path) + '</div>' +
+          '<div class="site-card-foot">' + siteActions(site) + '</div></article>';
+      }).join('');
+    }
+
+    var empty = $('#empty-state');
+    if (empty) { empty.hidden = rows.length > 0; }
+
+    /* Only animate when the visible set actually changed, so typing in the
+       filter box reorders rows instantly instead of re-animating every keypress. */
+    var signature = rows.map(function (site) { return site.name; }).join('|');
+
+    if (signature !== state.siteSignature) {
+      state.siteSignature = signature;
+      stagger(tbody);
+      stagger(cards);
+    }
+  }
+
+  function renderServices() {
+    var grid = $('#services-grid');
+
+    if (!grid || !state.data) { return; }
+
+    var services = state.data.services || [];
+    var privileged = state.privileges.enabled;
+
+    grid.innerHTML = services.map(function (service) {
+      var status = String(service.status || 'unknown');
+      var buttons = ['start', 'restart', 'stop'].map(function (verb) {
+        return '<button class="btn btn--ghost btn--sm" data-act="service.' + verb + '" data-preset=\'' +
+          esc(JSON.stringify({ service: service.name })) + '\'>' + verb + '</button>';
+      }).join(' ');
+
+      return '<article class="svc"><div class="svc-top">' +
+        '<span class="dot dot--' + esc(status) + '"></span><span class="svc-name">' + esc(service.name) + '</span>' +
+        '<span class="pill-installed ' + (service.installed ? 'is-yes' : '') + '">' +
+        (service.installed ? 'installed' : 'missing') + '</span></div>' +
+        '<div class="svc-sub">' + esc(status) + '</div>' +
+        (privileged ? '<div class="svc-actions">' + buttons + '</div>' : '') +
+        '</article>';
     }).join('');
 
-    // mobile cards
-    cards.innerHTML = filtered.map(s=>{
-      const type = s.type||'parked';
-      const secured = !!s.secured;
-      const url = s.url || `http://${s.name}.${domain}`;
-      const path = s.path || '—';
-      return `<div class="site-card">
-        <div class="site-card-head"><span class="site-name" style="font-size:14px">${escapeHtml(s.name)}</span><span class="pill ${pillClass(type)}">${escapeHtml(type)}</span></div>
-        <a class="url-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="max-width:100%">${escapeHtml(url)}</a>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--text-muted); font-weight:600"><span>${secured?'🔒 secured':'○ not secured'}</span> ${s.isolated?'<span>PHP '+escapeHtml(s.isolated)+'</span>':''}</div>
-        <div class="site-card-foot"><span class="path-text" style="font-size:11.5px">${escapeHtml(path)}</span><button class="copy-btn" type="button" data-copy-path="${escapeHtml(path)}" aria-label="Copy path"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="10" height="10" rx="2"></rect><path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path></svg></button></div>
-      </div>`;
+    stagger(grid);
+  }
+
+  function renderServiceDetails(rows) {
+    var host = $('#services-detail');
+
+    if (!host) { return; }
+
+    if (!rows || !rows.length) {
+      host.innerHTML = '<div class="list-empty">No service details.</div>';
+      return;
+    }
+
+    host.innerHTML = rows.map(function (row) {
+      var tags = '<span class="tag ' + (row.installed ? 'tag--ok' : 'tag--off') + '">' +
+        (row.installed ? 'installed' : 'missing') + '</span> ' +
+        '<span class="tag ' + (row.enabled ? 'tag--ok' : 'tag--warn') + '">' +
+        (row.enabled ? 'enabled' : 'not enabled') + '</span> ' +
+        '<span class="tag ' + (row.active ? 'tag--ok' : 'tag--off') + '">' +
+        (row.active ? 'active' : 'inactive') + '</span>';
+
+      return '<div class="list-row"><span class="dotrow"><span class="dot dot--' +
+        (row.active ? 'running' : 'stopped') + '"></span><strong>' + esc(row.service) + '</strong></span>' +
+        '<span class="grow"></span>' + tags + '</div>';
+    }).join('');
+
+    stagger(host);
+  }
+
+  function renderHeader() {
+    if (!state.data) { return; }
+
+    var counts = state.data.counts || {};
+    var paths = state.data.paths || {};
+    var animate = !state.headerDone;
+
+    $('#hdr-domain').textContent = state.data.domain;
+    $('#hdr-php-ver').textContent = 'PHP ' + state.data.php_version;
+    $('#hdr-port').textContent = state.data.port + ' / ' + state.data.https_port;
+    $('#hdr-version').textContent = 'v' + (state.data.valet_version || '?');
+
+    var numbers = [
+      ['#stat-total', counts.total || 0],
+      ['#stat-secured', counts.secured || 0],
+      ['#stat-proxied', counts.proxied || 0],
+      ['#stat-paths', Object.keys(paths).length]
+    ];
+
+    numbers.forEach(function (pair) {
+      if (animate) {
+        countUp($(pair[0]), pair[1]);
+      } else {
+        $(pair[0]).textContent = pair[1];
+        flash($(pair[0]));
+      }
+    });
+
+    state.headerDone = true;
+
+    $('#stat-total-meta').textContent = (counts.parked || 0) + ' parked · ' + (counts.linked || 0) + ' linked';
+    $('#stat-secured-meta').textContent = (counts.isolated || 0) + ' isolated';
+    $('#stat-paths-meta').textContent = paths.sites || '';
+
+    $('#foot-meta').textContent = (state.data.nginx_sites || 0) + ' nginx sites · ' + (state.data.health || []).length + ' health checks · Valet ' + (state.data.valet_version || '?');
+  }
+
+  function renderBanner() {
+    var host = $('#privilege-banner');
+
+    if (!host) { return; }
+
+    if (state.privileges.enabled) {
+      host.hidden = true;
+      return;
+    }
+
+    host.hidden = false;
+    $('#privilege-command').textContent = state.privileges.install_command || 'sudo valet dashboard:privileges install';
+  }
+
+  function list(host, items, empty) {
+    var el = $(host);
+
+    if (!el) { return; }
+
+    if (!items.length) {
+      el.innerHTML = '<div class="list-empty">' + esc(empty) + '</div>';
+      return;
+    }
+
+    el.innerHTML = items.map(function (item) { return item; }).join('');
+    stagger(el);
+  }
+
+  function renderDatabases() {
+    var host = $('#db-list');
+
+    if (!host) { return; }
+
+    if (!host.dataset.loaded) {
+      host.dataset.loaded = state.dbEngine;
+      var slug = state.dbEngine === 'pg' ? 'pg.databases.list' : 'databases.list';
+      api('/api/actions/' + encodeURIComponent(slug), { method: 'POST' }).then(function (result) {
+        var names = (result.payload.data && result.payload.data.databases) || [];
+        var search = state.dbSearch.toLowerCase();
+        var rows = names.filter(function (name) {
+          return !search || name.toLowerCase().indexOf(search) !== -1;
+        }).map(function (name) {
+          var prefix = state.dbEngine === 'pg' ? 'pg' : 'db';
+          var preset = JSON.stringify({ name: name });
+          return '<div class="list-row"><span class="grow mono">' + esc(name) + '</span>' +
+            '<button class="btn btn--ghost btn--sm" data-act="db.url" data-preset=\'' + esc(preset) + '\'>url</button>' +
+            '<button class="btn btn--ghost btn--sm" data-act="' + prefix + '.export" data-preset=\'' + esc(preset) + '\'>export</button>' +
+            '<button class="btn btn--ghost btn--sm" data-act="' + prefix + '.import" data-preset=\'' + esc(preset) + '\'>import</button>' +
+            '<button class="btn btn--ghost btn--sm" data-act="' + prefix + '.reset" data-preset=\'' + esc(preset) + '\'>reset</button>' +
+            '<button class="btn btn--danger btn--sm" data-act="' + prefix + '.drop" data-preset=\'' + esc(preset) + '\'>drop</button>' +
+            '</div>';
+        });
+
+        host.innerHTML = rows.length ? rows.join('') : '<div class="list-empty">No databases matched.</div>';
+        stagger(host);
+      });
+      return;
+    }
+
+    if (host.dataset.loaded !== state.dbEngine) {
+      host.dataset.loaded = '';
+      renderDatabases();
+    }
+  }
+
+  function renderPhp() {
+    var host = $('#php-list');
+
+    if (host && !host.dataset.loaded) {
+      host.dataset.loaded = '1';
+      host.innerHTML = state.phpVersions.map(function (version) {
+        var current = state.data && state.data.php_version === version;
+        return '<div class="list-row"><span class="grow mono">PHP ' + esc(version) + '</span>' +
+          (current ? '<span class="pill">current</span>'
+            : '<button class="btn btn--ghost btn--sm" data-act="php.switch" data-preset=\'' + esc(JSON.stringify({ version: version })) + '\'>switch</button>') +
+          '<button class="btn btn--ghost btn--sm" data-act="xdebug.enable" data-preset=\'' + esc(JSON.stringify({ version: version })) + '\'>xdebug on</button>' +
+          '<button class="btn btn--ghost btn--sm" data-act="xdebug.disable" data-preset=\'' + esc(JSON.stringify({ version: version })) + '\'>xdebug off</button>' +
+          '</div>';
+      }).join('');
+
+      stagger(host);
+    }
+
+    var node = $('#node-list');
+
+    if (node && !node.dataset.loaded) {
+      node.dataset.loaded = '1';
+      api('/api/actions/node.current', { method: 'POST' }).then(function (result) {
+        var current = result.payload.data && result.payload.data.node ? result.payload.data.node.current : null;
+        node.innerHTML = '<div class="list-row"><span class="grow">Node ' + esc(current || 'not installed') + '</span></div>' +
+          '<div class="hint">Installed versions come from nvm; switch with the Node field above.</div>';
+
+        stagger(node);
+      });
+    }
+  }
+
+  function renderExtras() {
+    var backups = $('#backups-list');
+
+    if (backups && !backups.dataset.loaded) {
+      backups.dataset.loaded = '1';
+      api('/api/actions/backups.list', { method: 'POST' }).then(function (result) {
+        var paths = (result.payload.data && result.payload.data.backups) || [];
+        backups.innerHTML = paths.length ? paths.map(function (path) {
+          var file = String(path).split('/').pop();
+          return '<div class="list-row"><span class="grow mono">' + esc(file) + '</span>' +
+            '<button class="btn btn--ghost btn--sm" data-act="backup.restore" data-preset=\'' + esc(JSON.stringify({ archive: file })) + '\'>restore</button></div>';
+        }).join('') : '<div class="list-empty">No backups yet.</div>';
+
+        stagger(backups);
+      });
+    }
+
+    var certs = $('#certs-list');
+
+    if (certs && !certs.dataset.loaded) {
+      certs.dataset.loaded = '1';
+      api('/api/actions/certs.list', { method: 'POST' }).then(function (result) {
+        var rows = (result.payload.data && result.payload.data.certificates) || [];
+        certs.innerHTML = rows.length ? rows.map(function (cert) {
+          return '<div class="list-row"><span class="grow">' + esc(cert.site) + '</span>' +
+            '<span class="muted">' + esc(cert.days_remaining) + ' days</span>' +
+            '<button class="btn btn--ghost btn--sm" data-act="cert.renew" data-preset=\'' + esc(JSON.stringify({ site: cert.site })) + '\'>renew</button></div>';
+        }).join('') : '<div class="list-empty">No certificates issued yet.</div>';
+
+        stagger(certs);
+      });
+    }
+
+    var addons = $('#addons-list');
+
+    if (addons && !addons.dataset.loaded) {
+      addons.dataset.loaded = '1';
+      api('/api/actions/addons.list', { method: 'POST' }).then(function (result) {
+        var rows = (result.payload.data && result.payload.data.addons) || [];
+        addons.innerHTML = rows.map(function (addon) {
+          var verb = addon.enabled ? 'addon.disable' : 'addon.enable';
+          return '<div class="list-row"><span class="grow">' + esc(addon.name) + '</span>' +
+            '<span class="muted">' + esc(addon.enabled ? 'enabled' : 'disabled') + '</span>' +
+            '<button class="btn btn--ghost btn--sm" data-act="' + verb + '" data-preset=\'' + esc(JSON.stringify({ name: addon.name })) + '\">toggle</button></div>';
+        }).join('');
+
+        stagger(addons);
+      });
+    }
+  }
+
+  function sitePath(name) {
+    var found = state.sites.filter(function (site) { return site.name === name; })[0];
+    return found ? found.path : '';
+  }
+
+  function renderSnapshots(rows, site) {
+    var host = $('#snapshots-list');
+
+    if (!host) { return; }
+
+    if (!rows.length) {
+      host.innerHTML = '<div class="list-empty">' +
+        (site ? 'No snapshots for ' + esc(site) + '.' : 'No snapshots yet.') + '</div>';
+      return;
+    }
+
+    host.innerHTML = rows.map(function (row) {
+      var name = row.name || '(unnamed)';
+      var siteName = row.site || site || '';
+      var preset = { path: sitePath(siteName), name: name };
+
+      return '<div class="list-row"><span class="grow">' + esc(name) +
+        (siteName ? ' <span class="sub">' + esc(siteName) + '</span>' : '') + '</span>' +
+        '<span class="metric">' + esc(row.timestamp || '') + '</span>' +
+        (row.includes_db ? '<span class="tag">+ db</span>' : '') +
+        (row.notes ? '<span class="sub">' + esc(row.notes) + '</span>' : '') +
+        '<button class="btn btn--ghost btn--sm" data-act="snapshot.restore" data-preset=\'' + esc(JSON.stringify(preset)) + '\'>restore</button>' +
+        '<button class="btn btn--danger btn--sm" data-act="snapshot.delete" data-preset=\'' + esc(JSON.stringify(preset)) + '\'>delete</button>' +
+        '</div>';
     }).join('');
   }
 
-  render();
+  function renderProfiles(rows) {
+    var host = $('#profiles-list');
 
-  // search
-  const searchInput = $('#site-search');
-  searchInput.addEventListener('input', (e)=>{
-    query = (e.target.value||'').toLowerCase().trim();
-    render();
-  });
+    if (!host) { return; }
 
-  // filters
-  $$('.filter-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      $$('.filter-btn').forEach(b=>b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      activeFilter = btn.dataset.filter || 'all';
-      render();
-    });
-  });
-
-  // copy path delegation
-  document.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('[data-copy-path]');
-    if(btn){
-      const val = btn.getAttribute('data-copy-path')||'';
-      try{
-        await navigator.clipboard.writeText(val);
-        showToast('Path copied');
-      }catch{
-        // fallback
-        const ta = document.createElement('textarea');
-        ta.value = val; document.body.appendChild(ta); ta.select();
-        try{ document.execCommand('copy'); showToast('Path copied'); }catch{ showToast('Copy failed');}
-        ta.remove();
-      }
-      // feedback
-      const orig = btn.innerHTML;
-      btn.innerHTML = '✓';
-      setTimeout(()=> btn.innerHTML = orig, 1100);
+    if (!rows.length) {
+      host.innerHTML = '<div class="list-empty">No profiles saved. Create one with <span class="mono">valet profile save</span>.</div>';
+      return;
     }
-  });
 
-  // cheat copy
-  $$('.cheat').forEach(el=>{
-    el.addEventListener('click', async ()=>{
-      const v = el.getAttribute('data-copy')||'';
-      try{
-        await navigator.clipboard.writeText(v);
-        showToast('Copied: '+v);
-      }catch{
-        const ta=document.createElement('textarea'); ta.value=v; document.body.appendChild(ta); ta.select();
-        try{ document.execCommand('copy'); showToast('Copied: '+v);}catch{ showToast('Copy failed');}
-        ta.remove();
-      }
-    });
-  });
+    host.innerHTML = rows.map(function (row) {
+      var name = row.name || String(row);
+      var preset = JSON.stringify({ name: name });
 
-  let toastTimer;
-  function showToast(msg){
-    const t = $('#toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=> t.classList.remove('show'), 1800);
+      return '<div class="list-row"><span class="grow">' + esc(name) + '</span>' +
+        '<span class="tag ' + (row.scope === 'project' ? 'tag--warn' : '') + '">' + esc(row.scope || 'global') + '</span>' +
+        '<span class="metric mono">' + esc(row.path || '') + '</span>' +
+        '<button class="btn btn--ghost btn--sm" data-act="profile.use" data-preset=\'' + esc(JSON.stringify({ name: name, apply: true })) + '\'>apply &amp; switch</button>' +
+        '<button class="btn btn--ghost btn--sm" data-act="profile.use" data-preset=\'' + esc(preset) + '\'>use</button>' +
+        '<button class="btn btn--danger btn--sm" data-act="profile.delete" data-preset=\'' + esc(preset) + '\'>delete</button>' +
+        '</div>';
+    }).join('');
   }
 
-  // keyboard: / to focus search
-  document.addEventListener('keydown', (e)=>{
-    if(e.key==='/' && !/input|textarea/i.test(document.activeElement.tagName)){
-      e.preventDefault(); searchInput.focus();
+  function renderSettings() {
+    var priv = $('#privileges-list');
+
+    if (priv && !priv.dataset.loaded) {
+      priv.dataset.loaded = '1';
+      priv.innerHTML = [
+        ['Helper', state.privileges.helper_path + ' (' + (state.privileges.helper_installed ? 'installed' : 'missing') + ')'],
+        ['Helper trusted', state.privileges.helper_trusted ? 'yes' : 'no'],
+        ['Sudoers', state.privileges.sudoers_path + ' (' + (state.privileges.sudoers_installed ? 'installed' : 'missing') + ')'],
+        ['Granted users', (state.privileges.granted_users || []).join(', ') || 'none'],
+        ['Privileged actions', (state.privileges.verbs || []).join(', ')]
+      ].map(function (row) {
+        return '<div class="list-row"><span class="grow">' + esc(row[0]) + '</span><span class="mono">' + esc(row[1]) + '</span></div>';
+      }).join('');
+    }
+
+    var host = $('#settings-kv');
+
+    if (host && !host.dataset.loaded && state.data) {
+      host.dataset.loaded = '1';
+      host.innerHTML = [
+        ['Domain', state.data.domain],
+        ['HTTP port', state.data.port],
+        ['HTTPS port', state.data.https_port],
+        ['PHP', state.data.php_version],
+        ['Valet', state.data.valet_version],
+        ['Helper', state.privileges.helper_path],
+        ['Sudoers', state.privileges.sudoers_path],
+        ['Granted users', (state.privileges.granted_users || []).join(', ') || 'none']
+      ].map(function (row) {
+        return '<div class="list-row"><span class="grow">' + esc(row[0]) + '</span><span class="mono">' + esc(row[1]) + '</span></div>';
+      }).join('');
+    }
+  }
+
+  // ------------------------------------------------------------ tab handling
+
+  var TABS = {
+    sites: function () {},
+    dbs: function () { renderDatabases(); },
+    php: renderPhp,
+    extras: renderExtras,
+    logs: function () { read('health.run', 'health'); },
+    jobs: function () { api('/api/jobs').then(function (result) {
+      state.jobs = (result.payload.data && result.payload.data.jobs) || [];
+      renderJobs();
+    }); },
+    settings: renderSettings,
+    snapshots: function () {
+      var site = ($('#snapshot-site') || {}).value || '';
+      read('snapshots.list', 'snapshots', site ? { site: site } : {});
+    },
+    profiles: function () { read('profiles.list', 'profiles'); }
+  };
+
+  function showTab(name) {
+    state.tab = name;
+
+    $$('.tab').forEach(function (tab) {
+      var active = tab.id === 'tab-' + name;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+
+    $$('.tabpanel').forEach(function (panel) {
+      panel.hidden = panel.id !== 'panel-' + name;
+    });
+
+    if (TABS[name]) { TABS[name](); }
+  }
+
+  // ----------------------------------------------------------------- startup
+
+  function load() {
+    return Promise.all([
+      api('/api/data'),
+      api('/api/catalog'),
+      api('/api/jobs')
+    ]).then(function (results) {
+      var payload = results[0].payload.data || {};
+
+      state.data = payload.dashboard || state.data;
+      state.privileges = payload.privileges || state.privileges;
+      state.phpVersions = payload.php_versions || [];
+      state.isolationVersions = payload.php_isolation || state.phpVersions;
+      state.sites = (state.data && state.data.sites) || [];
+
+      ((results[1].payload.data && results[1].payload.data.actions) || []).forEach(function (action) {
+        state.catalog[action.slug] = action;
+      });
+
+      state.jobs = (results[2].payload.data && results[2].payload.data.jobs) || [];
+
+      renderHeader();
+      renderBanner();
+      renderServices();
+      renderSites();
+      renderJobs();
+      showTab(state.tab);
+
+      state.jobs.forEach(function (job) {
+        if (job.status === 'queued' || job.status === 'running') { watchJob(job.id); }
+      });
+
+      window['__VALET_RENDERED__'] = true;
+    });
+  }
+
+  function refresh() {
+    api('/api/data').then(function (result) {
+      busy($('#refresh-btn'), false);
+      var payload = result.payload.data || {};
+
+      if (payload.dashboard) {
+        state.data = payload.dashboard;
+        state.sites = payload.dashboard.sites || [];
+        renderHeader();
+        renderServices();
+        renderSites();
+      }
+
+      if (payload.privileges) {
+        state.privileges = payload.privileges;
+        renderBanner();
+        renderServices();
+      }
+    });
+  }
+
+  // ------------------------------------------------------------------ wiring
+
+  document.addEventListener('click', function (event) {
+    var toggle = event.target.closest('[data-menu-toggle]');
+
+    if (toggle) {
+      var list = toggle.parentNode.querySelector('.menu-list');
+      var willOpen = !list.classList.contains('is-open');
+
+      closeMenus();
+      list.classList.toggle('is-open', willOpen);
+      toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      event.stopPropagation();
+      return;
+    }
+
+    if (!event.target.closest('.menu-list')) { closeMenus(); }
+
+    var dba = event.target.closest('[data-dba]');
+
+    if (dba) {
+      run(engineSlug(dba.dataset.dba), {}, null, dba);
+      return;
+    }
+
+    var button = event.target.closest('[data-act]');
+
+    if (button) {
+      var preset = {};
+
+      if (button.dataset.preset) {
+        try { preset = JSON.parse(button.dataset.preset); } catch (e) { preset = {}; }
+      }
+
+      closeMenus();
+      run(button.dataset.act, preset, button.dataset.read || null, button);
+      return;
+    }
+
+    var tab = event.target.closest('.tab');
+
+    if (tab) {
+      showTab(tab.id.replace('tab-', ''));
+      return;
+    }
+
+    var filter = event.target.closest('.filter-btn');
+
+    if (filter) {
+      $$('.filter-btn').forEach(function (other) { other.classList.toggle('is-active', other === filter); });
+      state.filter = filter.dataset.filter;
+      renderSites();
+      return;
+    }
+
+    var job = event.target.closest('.job');
+
+    if (job) {
+      api('/api/jobs/' + encodeURIComponent(job.dataset.job)).then(function (result) {
+        var row = result.payload.data && result.payload.data.job;
+        $('#job-log').textContent = row && row.log ? row.log : 'No output.';
+      });
+      return;
+    }
+
+    var copy = event.target.closest('[data-copy]');
+
+    if (copy) {
+      navigator.clipboard.writeText(copy.dataset.copy).then(function () { toast('Copied to clipboard'); });
+      return;
+    }
+
+    if (event.target.id === 'modal-scrim' || event.target.id === 'modal-cancel') {
+      closeModal();
     }
   });
 
-  // expose for debugging
-  window['__VALET_RENDERED__'] = true;
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      if ($('#modal-scrim').classList.contains('is-open')) {
+        closeModal();
+        return;
+      }
+
+      if ($$('.menu-list.is-open').length) {
+        closeMenus();
+        return;
+      }
+    }
+
+    if (event.key === '/' && !/input|textarea|select/i.test(document.activeElement.tagName)) {
+      event.preventDefault();
+      $('#site-search').focus();
+    }
+  });
+
+  $('#modal-confirm').addEventListener('click', submitModal);
+
+  $('#site-search').addEventListener('input', function (event) {
+    state.search = event.target.value;
+    renderSites();
+  });
+
+  $('#db-filter').addEventListener('input', function (event) {
+    state.dbSearch = event.target.value;
+    var host = $('#db-list');
+    if (host) { host.dataset.loaded = ''; renderDatabases(); }
+  });
+
+  $('#db-engine').addEventListener('change', function (event) {
+    state.dbEngine = event.target.value;
+    var host = $('#db-list');
+    if (host) { host.dataset.loaded = ''; renderDatabases(); }
+  });
+
+  $('#log-service').addEventListener('change', function (event) {
+    state.logService = event.target.value;
+  });
+
+  $$('#log-lines, #log-grep').forEach(function (input) {
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') { run('logs.view', {
+        service: $('#log-service').value,
+        lines: parseInt($('#log-lines').value, 10) || 80,
+        grep: $('#log-grep').value
+      }); }
+    });
+  });
+
+  // Seed the log service picker with whatever the collector already knows.
+  (function seedLogServices() {
+    var select = $('#log-service');
+
+    if (!select || !state.data) { return; }
+
+    var names = (state.data.services || []).map(function (service) { return service.name; });
+
+    if (!names.length) { names = ['nginx', 'php', 'mailpit', 'mysql', 'redis', 'dnsmasq']; }
+
+    select.innerHTML = names.map(function (name) {
+      return '<option value="' + esc(name) + '">' + esc(name) + '</option>';
+    }).join('');
+
+    state.logService = names[0] || '';
+  }());
+
+  load();
 })();
 </script>
 </body>
