@@ -70,7 +70,31 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
  * Create the application.
  */
 Container::setInstance(new Container());
-$version = '3.2.0';
+$version = (function (): string {
+    // Tagged installs (composer global require) know their exact version.
+    // In a git checkout InstalledVersions reports dev-master, so try git first there.
+    $root = realpath(__DIR__ . '/..');
+
+    if ($root !== false && is_dir($root . '/.git')) {
+        $tag = @trim((string) shell_exec('git -C ' . escapeshellarg($root) . ' describe --tags --abbrev=0 2>/dev/null'));
+        if ($tag !== '' && preg_match('/^v?\d+\.\d+\.\d+/', $tag) === 1) {
+            return ltrim($tag, 'v');
+        }
+    }
+
+    if (class_exists(\Composer\InstalledVersions::class)) {
+        try {
+            $pretty = \Composer\InstalledVersions::getPrettyVersion('ahmdadl/valet-linux-plus');
+            if (is_string($pretty) && $pretty !== '' && $pretty !== 'dev-master' && $pretty !== '9999999-dev') {
+                return ltrim($pretty, 'v');
+            }
+        } catch (\Throwable $e) {
+            // fall through to file/default
+        }
+    }
+
+    return '3.5.0';
+})();
 
 $app = new Application('ValetLinux+', $version);
 
