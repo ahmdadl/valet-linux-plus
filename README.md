@@ -57,6 +57,25 @@ See [docs/dashboard.md](docs/dashboard.md) for the full security model and [docs
 - **MySQL / MariaDB** — `valet db:list|create|drop|reset|import|export|setup|refresh`, plus SQLite (`db:sqlite`, `db:sqlite:reset`), direct URLs (`db:url`, `db:open`) and always-on Adminer at `https://database.valet.<domain>` with a pluggable `~/.config/valet/database/plugins` directory.
 - **PostgreSQL (opt-in)** — `valet install --with-pgsql` enables a matching `pg:*` family.
 
+### Addons & object storage
+
+- **MinIO (S3-compatible) via Valet** — `valet addon:enable minio` wires the binary at `/usr/local/bin/minio` as a Valet service (`cli/Valet/ServiceRegistry.php:50` template, `cli/Valet/Addon.php:18` catalog). It creates the proxy `https://minio.test` (`~/.config/valet/Nginx/minio.test` → `http://127.0.0.1:9000`), `config.json:services.minio`, and on Ubuntu 26.04 where no `minio` apt package exists it falls back to a direct download from `dl.min.io` and creates `/etc/systemd/system/minio.service` (`ExecStart=/usr/local/bin/minio server --license $MINIO_LICENSE $MINIO_OPTS $MINIO_VOLUMES`, `EnvironmentFile=/etc/default/minio`, user `minio-user`, data `/mnt/data`). `valet status` (`ServiceRegistry.php:300` resilient to missing unit) then shows `minio | installed/enabled/active`, and `valet start|stop|restart minio` delegate to `systemctl`. Console is `http://127.0.0.1:9001` (`MINIO_OPTS --console-address :9001`). Creds `minioadmin/minioadmin` in `/etc/default/minio`, license via `MINIO_LICENSE=/etc/minio/license` or `mc license update local ~/Downloads/minio.license` (`mc license --help`).
+
+  **Valet vs standalone:** standalone you do the same manually — `curl dl.min.io... | install`, `groupadd/useradd`, `mkdir /mnt/data`, write `/etc/default/minio` + `minio.service` (`--license`), `daemon-reload; enable --now`, write an Nginx server block + cert. Valet automates it, integrates with `valet status`/`restart`/`proxy`/`domain`, and on 26.04 `AbstractPackageManager.php:74` detects `/usr/local/bin/minio` so `installed:true` without apt.
+
+  ```env
+  R2_BUCKET=zamil-ac-dev
+  R2_ACCESS_KEY_ID=minioadmin
+  R2_SECRET_ACCESS_KEY=minioadmin
+  R2_ENDPOINT=https://minio.test
+  R2_PUBLIC_URL=https://minio.test/zamil-ac-dev
+  # direct: R2_ENDPOINT=http://127.0.0.1:9000
+  ```
+
+  Create bucket once: `mc alias set local http://127.0.0.1:9000 minioadmin minioadmin && mc mb local/zamil-ac-dev --ignore-existing` or via console `http://127.0.0.1:9001`.
+
+- **Meilisearch** — `valet addon:enable meilisearch` (`ServiceRegistry.php:77` template `port 7700`) same pattern: fallback download from GitHub + systemd unit at `/etc/systemd/system/meilisearch.service`.
+
 ### Project DX
 
 - `valet clone <repo> [--link --init --secure --isolate=8.3 --open]` — clone and bootstrap in one shot
