@@ -73,7 +73,26 @@ abstract class AbstractPackageManager implements PackageManager
      */
     public function installed(string $package): bool
     {
-        return in_array($package, $this->packages($package));
+        if (in_array($package, $this->packages($package))) {
+            return true;
+        }
+
+        // Fallback for manual binary installs (e.g., minio to /usr/local/bin on Ubuntu 26.04
+        // where the package is not in apt). Check common binary locations and PATH.
+        if (is_executable('/usr/local/bin/'.$package) || is_executable('/usr/bin/'.$package)) {
+            return true;
+        }
+
+        $escaped = escapeshellarg($package);
+        $which = trim($this->cli->run("command -v {$escaped} 2>/dev/null || which {$escaped} 2>/dev/null || echo ''"));
+        if ($which !== '' && is_executable(trim($which))) {
+            return true;
+        }
+        if ($which !== '') {
+            return true;
+        }
+
+        return false;
     }
 
     /**

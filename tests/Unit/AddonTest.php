@@ -92,6 +92,8 @@ class AddonTest extends TestCase
         swap('Valet\ServiceRegistry', $registry);
 
         $this->pm->shouldReceive('installed')->with('meilisearch')->andReturn(true);
+        // Service file already exists in test (covers manual binary fallback)
+        $this->files->shouldReceive('exists')->with('/etc/systemd/system/meilisearch.service')->andReturn(true);
 
         $proxy = Mockery::mock();
         $proxy->shouldReceive('proxyCreate')->once()->with('search.test', 'http://127.0.0.1:7700', true);

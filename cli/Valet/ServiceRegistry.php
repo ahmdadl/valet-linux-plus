@@ -300,7 +300,13 @@ class ServiceRegistry
         foreach ($this->customServices() as $definition) {
             $service = (string) $definition['service'];
 
-            $this->sm()->printStatus($service);
+            try {
+                $this->sm()->printStatus($service);
+            } catch (\DomainException $e) {
+                Writer::warn(ucfirst($service).' is not installed (service not found).');
+            } catch (\Throwable $e) {
+                Writer::warn(ucfirst($service).' status check failed: '.$e->getMessage());
+            }
         }
     }
 

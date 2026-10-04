@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [3.5.2] - 2026-10-04
+
+### Fixed
+
+- `valet status` no longer crashes when a custom service (e.g. `minio`) is enabled but its systemd unit is missing. `ServiceRegistry::status()` now catches `DomainException` from `Systemd::resolveRealService()` and warns instead of throwing `Unable to determine service name` (`cli/Valet/ServiceRegistry.php:300`).
+- `AbstractPackageManager::installed()` now detects manually installed binaries. On Ubuntu 26.04 `minio`/`meilisearch` have no apt package; the check falls back to `is_executable(/usr/local/bin/$pkg)` and `command -v` so `valet status` reports `installed:true` and `addon:enable` skips the failing `apt-get` (`cli/Valet/PackageManagers/AbstractPackageManager.php:74`).
+- `valet addon:enable minio` / `meilisearch` now falls back to a direct download (`dl.min.io` / GitHub) and creates the systemd unit (`/etc/systemd/system/minio.service` with `EnvironmentFile=/etc/default/minio`, user `minio-user`, data dir `/mnt/data`) when `apt` is unavailable. The unit is also created when the binary already exists but the service file is missing. Verified `valet status --json` is pipeable (`cli/Valet/Addon.php:130`).
+
+## [3.5.1] - 2026-10-04
+
+### Fixed
+
+- `ServiceMemory::serviceRamKb` / `fpmPoolRamKb` guarded `shell_exec` with `!== false` but `shell_exec` returns `null` (not `false`) when the `ps` pattern matches nothing. Under `strict_types` `trim(null)` throws `TypeError` and `valet status` crashes after printing the first tables. Guard with `is_string(...)` instead.
+- `valet status --json` was printing all human-readable tables to stdout before the JSON payload so `valet status --json | jq` always failed to parse. Restructure: compute shared data first, then branch — `--json` echoes pure JSON and returns immediately, otherwise render the tables.
+
 ## [3.5.0] - 2026-10-04
 
 ### Fixed
