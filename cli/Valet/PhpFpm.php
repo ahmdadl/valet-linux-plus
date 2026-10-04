@@ -119,6 +119,96 @@ class PhpFpm
         return $versions;
     }
 
+    /**
+     * The PHP versions that are actually present on this machine.
+     *
+     * supportedPhpVersions() and isolationSupportedPhpVersions() are fixed
+     * ranges on purpose: they drive filesystem scans and argument validation so
+     * that a version nobody has installed yet still validates. That makes them
+     * useless for showing a person a list of choices, because they contain
+     * versions PHP will never release (8.9, 8.10, 9.4 and so on).
+     *
+     * This discovers the real thing instead: a php binary on disk, plus
+     * whatever Valet is already pinned to through configuration, which covers
+     * builds living outside the directories we scan.
+     *
+     * @return array<int, string>
+     */
+    public function installedPhpVersions(): array
+    {
+        $found = [];
+
+        $directories = [
+            '/usr/bin',
+            '/usr/local/bin',
+            '/opt/homebrew/bin',
+            '/opt/homebrew/opt',
+            '/usr/local/opt',
+        ];
+
+        foreach ($directories as $directory) {
+            $matches = glob($directory . '/php[0-9]*', GLOB_NOSORT);
+
+            foreach (is_array($matches) ? $matches : [] as $path) {
+                $version = $this->normalizePhpVersion(basename((string) $path));
+
+                if ($version !== '') {
+                    $found[$version] = true;
+                }
+            }
+        }
+
+        $pinned = array_merge(
+            [$this->getCurrentVersion()],
+            array_keys((array) $this->config->get('isolated_versions', [])),
+        );
+
+        foreach ($pinned as $version) {
+            $normalized = $this->normalizePhpVersion((string) $version);
+
+            if ($normalized !== '') {
+                $found[$normalized] = true;
+            }
+        }
+
+        $versions = array_keys($found);
+
+        usort($versions, static fn (string $a, string $b): int => version_compare($a, $b));
+
+        return $versions;
+    }
+
+    /**
+     * Whether an installed PHP version has the pieces Valet needs to serve it:
+     * an FPM pool config and a socket Valet can point nginx at.
+     */
+    public function isVersionServable(string $version): bool
+    {
+        $version = $this->normalizePhpVersion($version);
+
+        if ($version === '') {
+            return false;
+        }
+
+        // Anything Valet has already wired up counts, even on a platform where
+        // the FPM layout is not the Debian one we check for below.
+        if ($version === $this->getCurrentVersion()) {
+            return true;
+        }
+
+        $isolated = (array) $this->config->get('isolated_versions', []);
+
+        if (in_array($version, array_keys($isolated), true)) {
+            return true;
+        }
+
+        if ($this->files->isDir('/etc/php/' . $version . '/fpm')) {
+            return true;
+        }
+
+        return $this->files->exists('/etc/php/' . $version . '/fpm/php-fpm.conf');
+    }
+
     public const COMMON_EXTENSIONS = [
         'cli',
         'mysql',

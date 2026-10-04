@@ -1534,7 +1534,27 @@ class DashboardApi
      */
     private function handleNodeCurrent(array $params): array
     {
-        return $this->ok('Node version', ['node' => ['current' => $this->node->current()]]);
+        return $this->ok('Node version', [
+            'node' => [
+                'current' => $this->node->current(),
+                'installed' => $this->installedNodeVersions(),
+                'available' => $this->node->nvmAvailable(),
+            ],
+        ]);
+    }
+
+    /**
+     * Every Node version nvm actually has on disk, newest last.
+     *
+     * @return array<int, string>
+     */
+    private function installedNodeVersions(): array
+    {
+        try {
+            return $this->node->installedVersions();
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**

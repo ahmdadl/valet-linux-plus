@@ -22,6 +22,8 @@ namespace Valet\Facades;
  * @method static bool         enableXdebug(?string $version = null)
  * @method static bool         disableXdebug(?string $version = null)
  * @method static void         xdebugStatus(?string $version = null)
+ * @method static array        installedPhpVersions()
+ * @method static bool         isVersionServable(string $version)
  */
 class PhpFpm extends Facade
 {

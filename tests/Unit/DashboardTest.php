@@ -47,6 +47,11 @@ class DashboardTest extends TestCase
             ->andReturnUsing(function (?string $version = null) {
                 return 'php' . $version . '-fpm';
             });
+        // The dashboard reports the versions actually installed on this machine,
+        // not a hardcoded list of versions that merely could be supported.
+        $this->phpFpm
+            ->shouldReceive('installedPhpVersions')
+            ->andReturn(['8.2', '8.3', '8.4']);
 
         /** @var Configuration $config */
         $config = $this->config;
@@ -125,7 +130,7 @@ class DashboardTest extends TestCase
         $this->assertSame(80, $data['port']);
         $this->assertSame(443, $data['https_port']);
         $this->assertSame('8.3', $data['php_version']);
-        $this->assertSame(\Valet\PhpFpm::supportedPhpVersions(), $data['php_versions']);
+        $this->assertSame(['8.2', '8.3', '8.4'], $data['php_versions']);
         $this->assertSame(['/home/user/Code'], $data['paths']);
         $this->assertSame('2.99.0', $data['valet_version']);
 

@@ -108,6 +108,68 @@
   .brand-title small{font-weight:600; color:var(--text-muted); font-size:12px; letter-spacing:-0.01em}
   .brand-sub{font-size:12.5px; color:var(--text-muted); margin-top:2px; font-weight:500}
   .header-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  /* quick actions bar */
+  .quick-actions-bar{
+    margin-top:12px; padding:12px 18px;
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow);
+  }
+  .quick-actions-group{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .quick-actions-label{
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:700; color:var(--text-muted);
+    text-transform:uppercase; letter-spacing:0.04em;
+    white-space:nowrap;
+  }
+  .quick-action-select{
+    font:inherit; font-size:12.5px; font-weight:600;
+    padding:5px 10px; border-radius:var(--radius-pill);
+    border:1px solid var(--border-strong); background:var(--bg-input);
+    color:var(--text); cursor:pointer; min-width:120px;
+  }
+  /* health card */
+  .health-card{
+    padding:14px 18px; margin-bottom:12px;
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius-lg); box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .health-card .health-icon{font-size:22px}
+  .health-card .health-text{font-size:13px; font-weight:600}
+  .health-card .health-sub{font-size:12px; color:var(--text-muted); margin-top:2px}
+  .health-card .health-badges{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
+  /* path management */
+  .paths-panel{margin-top:14px}
+  .path-row{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 12px; border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .path-row:last-child{border-bottom:none}
+  .path-row .path-dir{flex:1; font-family:ui-monospace, monospace; word-break:break-all}
+  .path-row .path-type{
+    font-size:11px; font-weight:600; text-transform:uppercase;
+    color:var(--text-muted); letter-spacing:0.03em;
+  }
+  /* inline action buttons */
+  .inline-btn{
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 8px; border-radius:var(--radius-pill);
+    border:1px solid var(--border); background:var(--bg-muted);
+    color:var(--text-muted); font-size:11px; font-weight:600;
+    cursor:pointer; white-space:nowrap; transition:all 0.15s;
+  }
+  .inline-btn:hover{background:var(--accent-soft); color:var(--accent); border-color:var(--accent-border)}
+  .inline-btn svg{width:12px; height:12px}
+  /* enhanced settings */
+  .settings-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media (max-width:720px){.settings-grid{grid-template-columns:1fr}}
+  .settings-card{
+    padding:16px; background:var(--bg-card);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+  }
+  .settings-card h3{font-size:13px; font-weight:700; margin:0 0 8px}
+  .settings-card p{font-size:12px; color:var(--text-muted); margin:0 0 10px}
   .badge{
     display:inline-flex; align-items:center; gap:7px;
     padding:6px 12px; border-radius:var(--radius-pill);
@@ -351,7 +413,9 @@
   .actions-cell .btn + .btn{margin-left:4px}
   .svc-actions{margin-left:auto; display:flex; gap:4px; opacity:0; transition:opacity .12s}
   .svc:hover .svc-actions, .svc:focus-within .svc-actions{opacity:1}
-  @media (max-width:900px){ .svc-actions{opacity:1} }
+  .svc-log-btn{margin-top:6px; opacity:0; transition:opacity .12s}
+  .svc:hover .svc-log-btn, .svc:focus-within .svc-log-btn{opacity:1}
+  @media (max-width:900px){ .svc-actions{opacity:1} .svc-log-btn{opacity:1} }
 
   /* ------------------------------------------------------------------ tabs */
   .tabs{display:flex; gap:4px; flex-wrap:wrap; margin-top:22px; border-bottom:1px solid var(--border)}
@@ -362,8 +426,22 @@
   }
   .tab:hover{color:var(--text)}
   .tab[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
-  .tabpanel{padding-top:16px}
+  .tabpanel{padding-top:14px}
   .tabpanel[hidden]{display:none}
+
+  /* A tab panel is a plain stack of cards, so the toolbar inside it becomes a
+     padded header band and everything below it gets an inset. Without this the
+     toolbar label and the list rows sit flush against the card border. */
+  .tabpanel > .panel:first-child{margin-top:0}
+  .tabpanel .panel > .toolbar{
+    margin:0; padding:13px 16px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(to bottom, var(--bg-card), var(--bg-muted));
+  }
+  .tabpanel .panel > .toolbar + *{margin-top:14px}
+  .tabpanel .panel > .toolbar ~ *{margin-left:16px; margin-right:16px}
+  .tabpanel .panel > *:last-child{margin-bottom:14px}
+  .tabpanel .hint{margin-top:12px}
 
   .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px}
   .toolbar .search-wrap{flex:1 1 220px; max-width:340px}
@@ -703,6 +781,35 @@
     </div>
   </header>
 
+  <!-- Quick Actions Bar -->
+  <div class="quick-actions-bar" id="quick-actions-bar">
+    <div class="quick-actions-group">
+      <span class="quick-actions-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Quick Actions
+      </span>
+      <select class="quick-action-select" id="quick-php-switch" title="Switch PHP version">
+        <option value="">Switch PHP…</option>
+      </select>
+      <button class="btn btn--ghost btn--sm" type="button" id="quick-xdebug-toggle" title="Toggle Xdebug">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span id="quick-xdebug-label">Xdebug</span>
+      </button>
+      <button class="btn btn--ghost btn--sm" type="button" data-act="trust.ca" id="quick-trust-ca" title="Trust CA certificate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Trust CA
+      </button>
+      <button class="btn btn--ghost btn--sm" type="button" id="quick-restart-all" title="Restart all services">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Restart All
+      </button>
+      <button class="btn btn--ghost btn--sm" type="button" data-act="health.run" data-read="health" id="quick-health-check" title="Run health check">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Health
+      </button>
+    </div>
+  </div>
+
   <!-- Shown until the privileged helper is installed. Everything on this page
        still works without it; only the root-tier actions are unavailable. -->
   <div class="banner banner--warn" id="privilege-banner" role="status" hidden>
@@ -746,7 +853,16 @@
       <h2>Services</h2>
       <p>Real-time status — never managed automatically, just observed.</p>
       <span class="toolbar-spacer"></span>
+      <button class="btn btn--sm" type="button" data-act="health.run" data-read="health">Health check</button>
       <button class="btn btn--sm" type="button" data-act="services.list" data-read="services">Load details</button>
+    </div>
+    <div class="health-card" id="health-card" hidden>
+      <span class="health-icon" id="health-icon">◉</span>
+      <div>
+        <div class="health-text" id="health-text">System health unknown</div>
+        <div class="health-sub" id="health-sub">Run a health check to see status</div>
+      </div>
+      <div class="health-badges" id="health-badges"></div>
     </div>
     <div class="services-grid" id="services-grid" role="list">
       <!-- injected -->
@@ -838,9 +954,21 @@
         <button class="btn" type="button" data-act="site.park">Park a directory</button>
         <button class="btn" type="button" data-act="site.proxy">Proxy to a port</button>
       </div>
-      <p class="hint" style="margin:0 0 10px">
+      <p class="hint">
         <b>Link</b> serves one directory as a single site. <b>Park</b> serves every folder inside a directory.
         <b>Proxy</b> hands a hostname to another service.
+      </p>
+    </div>
+    <div class="panel paths-panel" style="margin-top:12px">
+      <div class="toolbar">
+        <strong style="font-size:13px">Registered paths</strong>
+        <span class="toolbar-spacer"></span>
+        <button class="btn btn--sm" type="button" id="paths-refresh-btn">Refresh</button>
+      </div>
+      <div class="list" id="paths-list"><div class="list-empty">No paths registered.</div></div>
+      <p class="hint">
+        These are the directories Valet watches for sites. <b>Forget</b> removes a path from the configuration.
+        Parked directories show every sub-folder as a site; linked directories serve a single project.
       </p>
     </div>
   </section>
@@ -862,7 +990,7 @@
         <button class="btn" type="button" data-dba="db.import">Import</button>
       </div>
       <div class="list" id="db-list"><div class="list-empty">Choose an engine to list its databases.</div></div>
-      <p class="hint" style="margin:10px 0 0">
+      <p class="hint">
         Every action here follows the engine selected above. <b>Reset</b> drops and recreates the database empty,
         <b>Import</b> replaces it, and both ask you to retype the database name first.
       </p>
@@ -881,7 +1009,7 @@
         <button class="btn btn--primary" type="button" data-act="snapshot.create">Create snapshot</button>
       </div>
       <div class="list" id="snapshots-list"><div class="list-empty">Nothing has run yet.</div></div>
-      <p class="hint" style="margin:10px 0 0">
+      <p class="hint">
         Snapshots bundle a site's directory. Creating or restoring one asks for the site directory to work in;
         restoring overwrites every file in that directory.
       </p>
@@ -897,6 +1025,10 @@
         <button class="btn" type="button" data-act="xdebug.disable">Disable Xdebug</button>
       </div>
       <div class="list" id="php-list"></div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <div class="toolbar"><strong style="font-size:13px">Version state</strong></div>
+      <div id="xdebug-state"></div>
     </div>
     <div class="panel" style="margin-top:12px">
       <div class="toolbar">
@@ -955,7 +1087,7 @@
         <button class="btn" type="button" data-act="profiles.list" data-read="profiles">Refresh</button>
       </div>
       <div class="list" id="profiles-list"></div>
-      <p class="hint" style="margin:10px 0 0">
+      <p class="hint">
         A profile captures your domain, ports and PHP version. <b>Use</b> applies it;
         <b>Apply &amp; switch</b> also rewrites the live configuration and restarts services.
       </p>
@@ -992,12 +1124,47 @@
         <button class="btn" type="button" data-act="jobs.refresh" data-read="jobs">Refresh</button>
       </div>
       <div class="jobs" id="jobs-list"><div class="list-empty">Nothing has run yet.</div></div>
-      <div class="log" id="job-log" style="margin-top:10px; max-height:30vh"></div>
+      <div class="log" id="job-log" style="max-height:30vh"></div>
     </div>
   </section>
 
   <section class="tabpanel" id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
-    <div class="panel danger-zone">
+    <div class="settings-grid">
+      <div class="settings-card">
+        <h3>⚡ PHP Management</h3>
+        <p>Switch the active PHP version and toggle Xdebug for debugging.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <select class="quick-action-select" id="settings-php-switch" style="min-width:140px">
+            <option value="">Switch PHP…</option>
+          </select>
+          <button class="btn btn--sm" type="button" data-act="xdebug.enable">Enable Xdebug</button>
+          <button class="btn btn--sm" type="button" data-act="xdebug.disable">Disable Xdebug</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>🔒 Security</h3>
+        <p>Trust the local CA certificate and renew site certificates.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn btn--sm" type="button" data-act="trust.ca">Trust CA</button>
+          <button class="btn btn--sm" type="button" data-act="cert.renew">Renew Certs</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>⚙ System Info</h3>
+        <p>Current configuration and environment details.</p>
+        <div id="settings-system-info" style="font-size:12px; color:var(--text-muted)"></div>
+      </div>
+      <div class="settings-card">
+        <h3>🧹 Maintenance</h3>
+        <p>Clear internal caches and refresh the dashboard state.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn btn--sm" type="button" data-act="cache.clear">Clear Caches</button>
+          <button class="btn btn--sm" type="button" data-act="cache.status" data-read="cache">Cache Status</button>
+          <button class="btn btn--sm" type="button" id="refresh-btn-2">Refresh Dashboard</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel danger-zone" style="margin-top:16px">
       <div class="toolbar">
         <strong style="font-size:13px">Danger zone</strong>
         <span class="toolbar-spacer"></span>
@@ -1005,7 +1172,7 @@
         <button class="btn btn--danger btn--sm" type="button" data-act="port.set">Change ports</button>
       </div>
       <div class="list" id="settings-kv"></div>
-      <p class="hint" style="margin:10px 0 0">
+      <p class="hint">
         Changing the TLD re-issues every secured certificate and restarts PHP and nginx.
         Changing a port rewrites the nginx configuration and the secured-sites list.
         Both ask you to retype the new value before they run.
@@ -1630,6 +1797,11 @@
     var preset = { name: site.name };
     var groups = [];
 
+    groups.push({ label: 'Quick', items: [
+      { slug: '_copy_url', label: 'Copy URL', preset: { url: site.url }, custom: true },
+      { slug: '_open_browser', label: 'Open in browser', preset: { url: site.url }, custom: true }
+    ]});
+
     groups.push({ label: 'Serving', items: [
       { slug: site.secured ? 'site.unsecure' : 'site.secure', label: site.secured ? 'Remove HTTPS' : 'Enable HTTPS', preset: preset, tag: 'root' },
       { slug: 'site.proxy', label: 'Proxy to a host…', preset: preset, tag: 'root' }
@@ -1660,6 +1832,11 @@
       var rows = group.items.filter(function (item) {
         return item.tag !== 'root' || privileged;
       }).map(function (item) {
+        if (item.custom) {
+          return '<button class="menu-item" type="button" data-custom-act="' + esc(item.slug) +
+            '" data-preset=\'' + esc(JSON.stringify(item.preset || {})) + '\'>' +
+            esc(item.label) + '</button>';
+        }
         return '<button class="menu-item' + (item.danger ? ' menu-item--danger' : '') + '" type="button"' +
           (item.disabled ? ' disabled' : '') +
           ' data-act="' + esc(item.slug) + '" data-preset=\'' + esc(JSON.stringify(item.preset || {})) + '\'>' +
@@ -1737,11 +1914,16 @@
           esc(JSON.stringify({ service: service.name })) + '\'>' + verb + '</button>';
       }).join(' ');
 
+      var logBtn = '<button class="inline-btn" type="button" data-service-log="' + esc(service.name) + '" title="View ' + esc(service.name) + ' logs">' +
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+        'Logs</button>';
+
       return '<article class="svc"><div class="svc-top">' +
         '<span class="dot dot--' + esc(status) + '"></span><span class="svc-name">' + esc(service.name) + '</span>' +
         '<span class="pill-installed ' + (service.installed ? 'is-yes' : '') + '">' +
         (service.installed ? 'installed' : 'missing') + '</span></div>' +
         '<div class="svc-sub">' + esc(status) + '</div>' +
+        '<div class="svc-log-btn">' + logBtn + '</div>' +
         (privileged ? '<div class="svc-actions">' + buttons + '</div>' : '') +
         '</article>';
     }).join('');
@@ -1810,6 +1992,109 @@
     $('#stat-paths-meta').textContent = paths.sites || '';
 
     $('#foot-meta').textContent = (state.data.nginx_sites || 0) + ' nginx sites · ' + (state.data.health || []).length + ' health checks · Valet ' + (state.data.valet_version || '?');
+
+    // Populate quick actions PHP switcher
+    var quickPhp = $('#quick-php-switch');
+    var settingsPhp = $('#settings-php-switch');
+
+    if (quickPhp && state.phpVersions && state.phpVersions.length) {
+      quickPhp.innerHTML = '<option value="">Switch PHP…</option>' +
+        state.phpVersions.map(function (v) {
+          return '<option value="' + esc(v) + '"' + (v === state.data.php_version ? ' selected' : '') + '>PHP ' + esc(v) + '</option>';
+        }).join('');
+    }
+
+    if (settingsPhp && state.phpVersions && state.phpVersions.length) {
+      settingsPhp.innerHTML = '<option value="">Switch PHP…</option>' +
+        state.phpVersions.map(function (v) {
+          return '<option value="' + esc(v) + '"' + (v === state.data.php_version ? ' selected' : '') + '>PHP ' + esc(v) + '</option>';
+        }).join('');
+    }
+
+    // Render paths panel
+    renderPaths();
+    // Render settings system info
+    renderSettingsSystemInfo();
+  }
+
+  function renderPaths() {
+    var host = $('#paths-list');
+    if (!host || !state.data) { return; }
+
+    var paths = state.data.paths || [];
+    var entries = Array.isArray(paths) ? paths : Object.keys(paths).filter(function (k) { return k !== 'sites'; });
+
+    if (!entries.length) {
+      host.innerHTML = '<div class="list-empty">No paths registered. Park or link a directory to add one.</div>';
+      return;
+    }
+
+    host.innerHTML = entries.map(function (dir) {
+      var type = Array.isArray(paths) ? 'parked' : (paths[dir] || 'unknown');
+      return '<div class="path-row">' +
+        '<span class="path-type">' + esc(type) + '</span>' +
+        '<span class="path-dir">' + esc(dir) + '</span>' +
+        '<button class="btn btn--ghost btn--sm" type="button" data-act="site.forget" data-preset=\'' +
+        esc(JSON.stringify({ path: dir })) + '\' title="Forget this path">Forget</button>' +
+        '</div>';
+    }).join('');
+
+    stagger(host);
+  }
+
+  function renderHealthCard(healthData) {
+    var card = $('#health-card');
+    if (!card) { return; }
+
+    if (!healthData || !healthData.length) {
+      card.hidden = true;
+      return;
+    }
+
+    card.hidden = false;
+
+    var failures = healthData.filter(function (h) { return !h.healthy; });
+    var icon = $('#health-icon');
+    var text = $('#health-text');
+    var sub = $('#health-sub');
+    var badges = $('#health-badges');
+
+    if (failures.length === 0) {
+      icon.textContent = '✓';
+      icon.style.color = '#22c55e';
+      text.textContent = 'All systems healthy';
+      sub.textContent = healthData.length + ' check' + (healthData.length > 1 ? 's' : '') + ' passed';
+    } else {
+      icon.textContent = '⚠';
+      icon.style.color = 'var(--accent)';
+      text.textContent = failures.length + ' issue' + (failures.length > 1 ? 's' : '') + ' detected';
+      sub.textContent = failures.map(function (f) { return f.service || 'unknown'; }).join(', ');
+    }
+
+    badges.innerHTML = healthData.map(function (h) {
+      var cls = h.healthy ? 'tag tag--ok' : 'tag tag--warn';
+      return '<span class="' + cls + '">' + esc(h.service || '?') + '</span>';
+    }).join('');
+  }
+
+  function renderSettingsSystemInfo() {
+    var host = $('#settings-system-info');
+    if (!host || !state.data) { return; }
+
+    var d = state.data;
+    var rows = [
+      ['Domain', '.' + (d.domain || 'test')],
+      ['PHP', 'PHP ' + (d.php_version || '?')],
+      ['Ports', (d.port || 80) + ' / ' + (d.https_port || 443)],
+      ['Version', 'v' + (d.valet_version || '?')],
+      ['Sites', (d.counts && d.counts.total) || 0],
+      ['Nginx configs', d.nginx_sites || 0]
+    ];
+
+    host.innerHTML = '<div style="display:grid; grid-template-columns:auto 1fr; gap:4px 12px">' +
+      rows.map(function (r) {
+        return '<span style="font-weight:600; color:var(--text)">' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span>';
+      }).join('') + '</div>';
   }
 
   function renderBanner() {
@@ -1858,6 +2143,7 @@
           var preset = JSON.stringify({ name: name });
           return '<div class="list-row"><span class="grow mono">' + esc(name) + '</span>' +
             '<button class="btn btn--ghost btn--sm" data-act="db.url" data-preset=\'' + esc(preset) + '\'>url</button>' +
+            '<button class="btn btn--ghost btn--sm" data-copy-db-url="' + esc(name) + '" title="Copy connection URL">copy</button>' +
             '<button class="btn btn--ghost btn--sm" data-act="' + prefix + '.export" data-preset=\'' + esc(preset) + '\'>export</button>' +
             '<button class="btn btn--ghost btn--sm" data-act="' + prefix + '.import" data-preset=\'' + esc(preset) + '\'>import</button>' +
             '<button class="btn btn--ghost btn--sm" data-act="' + prefix + '.reset" data-preset=\'' + esc(preset) + '\'>reset</button>' +
@@ -1877,18 +2163,48 @@
     }
   }
 
+  // How many sites are pinned to each PHP version by isolation.
+  function phpUsage() {
+    var counts = {};
+
+    (state.sites || []).forEach(function (site) {
+      if (site.isolated) {
+        counts[site.isolated] = (counts[site.isolated] || 0) + 1;
+      }
+    });
+
+    return counts;
+  }
+
   function renderPhp() {
     var host = $('#php-list');
 
     if (host && !host.dataset.loaded) {
       host.dataset.loaded = '1';
+
+      if (!state.phpVersions.length) {
+        host.innerHTML = '<div class="list-empty">No PHP versions were found on this machine.</div>';
+
+        return;
+      }
+
+      var usage = phpUsage();
+      var current = state.data && state.data.php_version;
+
       host.innerHTML = state.phpVersions.map(function (version) {
-        var current = state.data && state.data.php_version === version;
-        return '<div class="list-row"><span class="grow mono">PHP ' + esc(version) + '</span>' +
-          (current ? '<span class="pill">current</span>'
-            : '<button class="btn btn--ghost btn--sm" data-act="php.switch" data-preset=\'' + esc(JSON.stringify({ version: version })) + '\'>switch</button>') +
-          '<button class="btn btn--ghost btn--sm" data-act="xdebug.enable" data-preset=\'' + esc(JSON.stringify({ version: version })) + '\'>xdebug on</button>' +
-          '<button class="btn btn--ghost btn--sm" data-act="xdebug.disable" data-preset=\'' + esc(JSON.stringify({ version: version })) + '\'>xdebug off</button>' +
+        var sites = usage[version] || 0;
+        var isCurrent = current === version;
+
+        return '<div class="list-row">' +
+          '<span class="grow mono">PHP ' + esc(version) + '</span>' +
+          (isCurrent ? '<span class="tag tag--ok">current</span>'
+            : '<button class="btn btn--ghost btn--sm" data-act="php.switch" data-preset=\'' +
+              esc(JSON.stringify({ version: version })) + '\'>make default</button>') +
+          (sites ? '<span class="tag">' + esc(sites) + (sites === 1 ? ' site' : ' sites') + '</span>' : '') +
+          '<button class="btn btn--ghost btn--sm" data-act="xdebug.enable" data-preset=\'' +
+            esc(JSON.stringify({ version: version })) + '\'>xdebug on</button>' +
+          '<button class="btn btn--ghost btn--sm" data-act="xdebug.disable" data-preset=\'' +
+            esc(JSON.stringify({ version: version })) + '\'>xdebug off</button>' +
           '</div>';
       }).join('');
 
@@ -1900,12 +2216,46 @@
     if (node && !node.dataset.loaded) {
       node.dataset.loaded = '1';
       api('/api/actions/node.current', { method: 'POST' }).then(function (result) {
-        var current = result.payload.data && result.payload.data.node ? result.payload.data.node.current : null;
-        node.innerHTML = '<div class="list-row"><span class="grow">Node ' + esc(current || 'not installed') + '</span></div>' +
-          '<div class="hint">Installed versions come from nvm; switch with the Node field above.</div>';
+        var data = (result.payload.data && result.payload.data.node) || {};
+        var installed = data.installed || [];
+        var active = data.current;
+
+        if (!installed.length) {
+          node.innerHTML = '<div class="list-empty">' +
+            (data.available ? 'nvm has no Node versions installed.' : 'nvm is not installed on this machine.') +
+            '</div>';
+
+          return;
+        }
+
+        node.innerHTML = installed.map(function (version) {
+          var preset = esc(JSON.stringify({ version: version }));
+
+          return '<div class="list-row"><span class="grow mono">Node ' + esc(version) + '</span>' +
+            (version === active
+              ? '<span class="tag tag--ok">current</span>'
+              : '<button class="btn btn--ghost btn--sm" data-act="node.use" data-preset=\'' + preset + '\'>use</button>') +
+            '</div>';
+        }).join('');
 
         stagger(node);
       });
+    }
+
+    var xdebug = $('#xdebug-state');
+
+    if (xdebug && !xdebug.dataset.loaded) {
+      xdebug.dataset.loaded = '1';
+      var counts = phpUsage();
+      var keys = Object.keys(counts).sort();
+      var pinned = state.isolationVersions || [];
+
+      xdebug.innerHTML = '<div class="kv">' +
+        '<dt>Default</dt><dd>' + esc((state.data && state.data.php_version) || 'unknown') + '</dd>' +
+        '<dt>Installed</dt><dd>' + esc(state.phpVersions.join(', ') || 'none found') + '</dd>' +
+        '<dt>Isolated onto</dt><dd>' + (keys.length ? esc(keys.join(', ')) : 'no sites') + '</dd>' +
+        '<dt>Can isolate to</dt><dd>' + esc(pinned.join(', ') || 'none found') + '</dd>' +
+        '</div>';
     }
   }
 
@@ -2114,6 +2464,7 @@
       renderServices();
       renderSites();
       renderJobs();
+      renderHealthCard(state.data && state.data.health);
       showTab(state.tab);
 
       state.jobs.forEach(function (job) {
@@ -2135,12 +2486,42 @@
         renderHeader();
         renderServices();
         renderSites();
+        renderPaths();
+        renderHealthCard(state.data && state.data.health);
       }
 
       if (payload.privileges) {
         state.privileges = payload.privileges;
         renderBanner();
         renderServices();
+      }
+
+      // Refresh the current tab's data
+      if (state.tab && TABS[state.tab]) {
+        // Reset loaded flags so tab functions re-fetch data
+        var tabElements = {
+          dbs: '#db-list',
+          snapshots: '#snapshots-list',
+          extras: '#backups-list',
+          php: '#php-list',
+          profiles: '#profiles-list'
+        };
+
+        var selector = tabElements[state.tab];
+        if (selector) {
+          var el = $(selector);
+          if (el) { delete el.dataset.loaded; }
+        }
+
+        // Special handling for jobs tab - need to re-fetch jobs
+        if (state.tab === 'jobs') {
+          api('/api/jobs').then(function (result) {
+            state.jobs = (result.payload.data && result.payload.data.jobs) || [];
+            renderJobs();
+          });
+        } else {
+          TABS[state.tab]();
+        }
       }
     });
   }
@@ -2162,6 +2543,69 @@
     }
 
     if (!event.target.closest('.menu-list')) { closeMenus(); }
+
+    var customAct = event.target.closest('[data-custom-act]');
+
+    if (customAct) {
+      var act = customAct.dataset.customAct;
+      var cpreset = {};
+
+      if (customAct.dataset.preset) {
+        try { cpreset = JSON.parse(customAct.dataset.preset); } catch (e) { cpreset = {}; }
+      }
+
+      closeMenus();
+
+      if (act === '_copy_url') {
+        navigator.clipboard.writeText(cpreset.url || '').then(function () { toast('URL copied to clipboard'); });
+        return;
+      }
+
+      if (act === '_open_browser') {
+        window.open(cpreset.url || '/', '_blank');
+        return;
+      }
+
+      return;
+    }
+
+    var serviceLog = event.target.closest('[data-service-log]');
+
+    if (serviceLog) {
+      var svcName = serviceLog.dataset.serviceLog;
+      showTab('logs');
+      var logSelect = $('#log-service');
+      if (logSelect) {
+        logSelect.value = svcName;
+        state.logService = svcName;
+      }
+      run('logs.view', { service: svcName, lines: 80, grep: '' }, 'log', serviceLog);
+      return;
+    }
+
+    var copyDbUrl = event.target.closest('[data-copy-db-url]');
+
+    if (copyDbUrl) {
+      var dbName = copyDbUrl.dataset.copyDbUrl;
+      var dbSlug = state.dbEngine === 'pg' ? 'pg.url' : 'db.url';
+      busy(copyDbUrl, true);
+      api('/api/actions/' + encodeURIComponent(dbSlug), {
+        method: 'POST',
+        body: { name: dbName }
+      }).then(function (result) {
+        busy(copyDbUrl, false);
+        var url = (result.payload.data && result.payload.data.url) || '';
+        if (url) {
+          navigator.clipboard.writeText(url).then(function () { toast('Database URL copied'); });
+        } else {
+          toast('Could not retrieve URL', 'warn');
+        }
+      }).catch(function () {
+        busy(copyDbUrl, false);
+        toast('Failed to get URL', 'error');
+      });
+      return;
+    }
 
     var dba = event.target.closest('[data-dba]');
 
@@ -2289,6 +2733,88 @@
     }).join('');
 
     state.logService = names[0] || '';
+  }());
+
+  // Quick actions bar handlers
+  (function setupQuickActions() {
+    var quickPhp = $('#quick-php-switch');
+    var quickXdebug = $('#quick-xdebug-toggle');
+    var quickRestartAll = $('#quick-restart-all');
+    var settingsPhp = $('#settings-php-switch');
+    var pathsRefresh = $('#paths-refresh-btn');
+    var refreshBtn2 = $('#refresh-btn-2');
+
+    if (quickPhp) {
+      quickPhp.addEventListener('change', function () {
+        var version = quickPhp.value;
+        if (version) {
+          run('php.switch', { version: version }, null, quickPhp);
+          quickPhp.value = '';
+        }
+      });
+    }
+
+    if (settingsPhp) {
+      settingsPhp.addEventListener('change', function () {
+        var version = settingsPhp.value;
+        if (version) {
+          run('php.switch', { version: version }, null, settingsPhp);
+          settingsPhp.value = '';
+        }
+      });
+    }
+
+    if (quickXdebug) {
+      quickXdebug.addEventListener('click', function () {
+        // Toggle: if currently enabled, disable; otherwise enable
+        var label = $('#quick-xdebug-label');
+        var isEnabled = label && label.textContent.indexOf('ON') !== -1;
+        run(isEnabled ? 'xdebug.disable' : 'xdebug.enable', {}, null, quickXdebug);
+      });
+    }
+
+    if (quickRestartAll) {
+      quickRestartAll.addEventListener('click', function () {
+        var services = (state.data && state.data.services) || [];
+        var running = services.filter(function (s) { return s.status === 'running'; });
+
+        if (!running.length) {
+          toast('No running services to restart', 'warn');
+          return;
+        }
+
+        var promises = running.map(function (s) {
+          return api('/api/action', {
+            method: 'POST',
+            body: { slug: 'service.restart', params: { service: s.name } }
+          });
+        });
+
+        busy(quickRestartAll, true);
+        Promise.all(promises).then(function () {
+          busy(quickRestartAll, false);
+          toast('Restarted ' + running.length + ' service' + (running.length > 1 ? 's' : ''));
+          refresh();
+        }).catch(function () {
+          busy(quickRestartAll, false);
+          toast('Some services failed to restart', 'error');
+        });
+      });
+    }
+
+    if (pathsRefresh) {
+      pathsRefresh.addEventListener('click', function () {
+        refresh();
+        toast('Paths refreshed');
+      });
+    }
+
+    if (refreshBtn2) {
+      refreshBtn2.addEventListener('click', function () {
+        refresh();
+        toast('Dashboard refreshed');
+      });
+    }
   }());
 
   load();

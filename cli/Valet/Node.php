@@ -72,6 +72,40 @@ class Node
     }
 
     /**
+     * Every Node version nvm has installed, ascending.
+     *
+     * @return array<int, string>
+     */
+    public function installedVersions(): array
+    {
+        $dir = $this->nvmDir();
+
+        if ($dir === null) {
+            return [];
+        }
+
+        $base = $dir . '/versions/node';
+
+        if (!$this->files->isDir($base)) {
+            return [];
+        }
+
+        $versions = [];
+
+        foreach ($this->files->scandir($base) as $entry) {
+            $name = ltrim((string) $entry, 'vV');
+
+            if (preg_match('/^\d+(?:\.\d+)*$/', $name) === 1) {
+                $versions[] = $name;
+            }
+        }
+
+        usort($versions, static fn (string $a, string $b): int => version_compare($a, $b));
+
+        return $versions;
+    }
+
+    /**
      * Currently active Node version (from PATH), or null if missing.
      */
     public function current(): ?string

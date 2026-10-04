@@ -196,10 +196,22 @@ class DashboardServer
     private function phpVersions(): array
     {
         try {
-            return PhpFpm::supportedPhpVersions();
+            $phpFpm = $this->phpFpm();
+
+            return $phpFpm !== null ? $phpFpm->installedPhpVersions() : [];
         } catch (\Throwable $e) {
             return [];
         }
+    }
+
+    /**
+     * The PhpFpm instance, or null when the container cannot build one.
+     */
+    private function phpFpm(): ?PhpFpm
+    {
+        $phpFpm = resolve(PhpFpm::class);
+
+        return $phpFpm instanceof PhpFpm ? $phpFpm : null;
     }
 
     /**
@@ -214,6 +226,16 @@ class DashboardServer
     private function isolationPhpVersions(): array
     {
         try {
+            $phpFpm = $this->phpFpm();
+
+            if ($phpFpm !== null) {
+                $installed = $phpFpm->installedPhpVersions();
+
+                if ($installed !== []) {
+                    return $installed;
+                }
+            }
+
             return PhpFpm::isolationSupportedPhpVersions();
         } catch (\Throwable $e) {
             return [];

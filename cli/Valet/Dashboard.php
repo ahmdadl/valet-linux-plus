@@ -660,7 +660,21 @@ class Dashboard
      */
     private function safePhpVersions(): array
     {
-        return PhpFpm::supportedPhpVersions();
+        try {
+            $versions = $this->phpFpm->installedPhpVersions();
+
+            if (is_array($versions) && $versions !== []) {
+                return $versions;
+            }
+        } catch (\Throwable $e) {
+            // Fall through to the facade below.
+        }
+
+        try {
+            return PhpFpmFacade::installedPhpVersions();
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
