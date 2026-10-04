@@ -191,78 +191,13 @@ if (is_dir(VALET_HOME_PATH)) {
      * Remove the current working directory to paths configuration.
      */
     $app->command('status [--json]', function ($json) {
-        // Per-service status messages (backwards compatible).
-        ServiceRegistry::status();
-
-        // Unified service table: Service | Installed? | Enabled? | Active?
-        $rows = array_map(function (array $row) {
-            return [
-                $row['service'],
-                $row['installed'] ? 'yes' : 'no',
-                $row['enabled'] ? 'yes' : 'no',
-                $row['active'] ? 'yes' : 'no',
-            ];
-        }, ServiceRegistry::statusRows());
-
-        Writer::table(
-            ['Service', 'Installed?', 'Enabled?', 'Active?'],
-            $rows
-        );
-
-        // Global Valet configuration summary (domain, port, PHP, paths, sites).
         $domain = Configuration::get('domain');
         $port = Configuration::get('port', 80);
         $phpVersion = PhpFpm::getCurrentVersion();
         $pathsCount = count((array) Configuration::get('paths', []));
         $sitesCount = Site::countSites();
-
-        Writer::table(
-            ['Domain', 'Port', 'PHP Version', 'Paths', 'Sites'],
-            [[$domain, $port, $phpVersion, $pathsCount, $sitesCount]]
-        );
-
         $project = ProjectContext::fromCwd();
-        if (!empty($project['site'])) {
-            $driver = is_string($project['driver']) ? basename(str_replace('\\', '/', $project['driver'])) : '—';
-            Writer::table(
-                ['Current Project', 'URL', 'Framework', 'Driver'],
-                [[
-                    $project['site'],
-                    $project['url'],
-                    $project['framework'] ?: '—',
-                    $driver,
-                ]]
-            );
-        }
-
-        // Sites sleep status table.
         $siteSleepRows = SiteSleep::statusRows();
-        if (!empty($siteSleepRows)) {
-            $sleepRows = array_map(function (array $row) {
-                $poolRam = null;
-                if ($row['isolatedVersion'] !== null) {
-                    $poolRam = ServiceMemory::fpmPoolRamKb($row['isolatedVersion']);
-                }
-                $poolRamDisplay = $poolRam !== null ? ServiceMemory::human($poolRam) : '—';
-                $shareDisplay = $row['poolShared'] && $poolRam !== null
-                    ? '~' . ServiceMemory::human((int) ($poolRam / max(1, Site::countSites())))
-                    : '—';
-
-                return [
-                    $row['site'],
-                    $row['url'],
-                    $row['asleep'] ? 'yes' : 'no',
-                    $row['isolatedVersion'] ?? 'global',
-                    $poolRamDisplay,
-                    $shareDisplay,
-                ];
-            }, $siteSleepRows);
-
-            Writer::table(
-                ['Site', 'URL', 'Asleep?', 'PHP Version', 'Pool RAM', 'Share (~Pool/N)'],
-                $sleepRows
-            );
-        }
 
         if ($json) {
             $data = [
@@ -292,7 +227,72 @@ if (is_dir(VALET_HOME_PATH)) {
                     ];
                 }, $siteSleepRows),
             ];
-            Writer::info(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            // Pure JSON on stdout so `valet status --json | jq` works.
+            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+
+            return;
+        }
+
+        // Human-readable tables (only when not --json).
+        ServiceRegistry::status();
+
+        $rows = array_map(function (array $row) {
+            return [
+                $row['service'],
+                $row['installed'] ? 'yes' : 'no',
+                $row['enabled'] ? 'yes' : 'no',
+                $row['active'] ? 'yes' : 'no',
+            ];
+        }, ServiceRegistry::statusRows());
+
+        Writer::table(
+            ['Service', 'Installed?', 'Enabled?', 'Active?'],
+            $rows
+        );
+
+        Writer::table(
+            ['Domain', 'Port', 'PHP Version', 'Paths', 'Sites'],
+            [[$domain, $port, $phpVersion, $pathsCount, $sitesCount]]
+        );
+
+        if (!empty($project['site'])) {
+            $driver = is_string($project['driver']) ? basename(str_replace('\\', '/', $project['driver'])) : '—';
+            Writer::table(
+                ['Current Project', 'URL', 'Framework', 'Driver'],
+                [[
+                    $project['site'],
+                    $project['url'],
+                    $project['framework'] ?: '—',
+                    $driver,
+                ]]
+            );
+        }
+
+        if (!empty($siteSleepRows)) {
+            $sleepRows = array_map(function (array $row) {
+                $poolRam = null;
+                if ($row['isolatedVersion'] !== null) {
+                    $poolRam = ServiceMemory::fpmPoolRamKb($row['isolatedVersion']);
+                }
+                $poolRamDisplay = $poolRam !== null ? ServiceMemory::human($poolRam) : '—';
+                $shareDisplay = $row['poolShared'] && $poolRam !== null
+                    ? '~' . ServiceMemory::human((int) ($poolRam / max(1, Site::countSites())))
+                    : '—';
+
+                return [
+                    $row['site'],
+                    $row['url'],
+                    $row['asleep'] ? 'yes' : 'no',
+                    $row['isolatedVersion'] ?? 'global',
+                    $poolRamDisplay,
+                    $shareDisplay,
+                ];
+            }, $siteSleepRows);
+
+            Writer::table(
+                ['Site', 'URL', 'Asleep?', 'PHP Version', 'Pool RAM', 'Share (~Pool/N)'],
+                $sleepRows
+            );
         }
     })->descriptions('View Valet service status', [
         '--json' => 'Output as JSON',

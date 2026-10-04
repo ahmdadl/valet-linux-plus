@@ -24,7 +24,7 @@ class ServiceMemory
             escapeshellarg($serviceName)
         ));
 
-        if ($output !== false && $output !== '') {
+        if (is_string($output) && $output !== '') {
             $value = trim($output);
             if ($value !== '' && $value !== '[not set]' && is_numeric($value)) {
                 // MemoryCurrent is in bytes, convert to KB
@@ -39,7 +39,7 @@ class ServiceMemory
             escapeshellarg($serviceName)
         ));
 
-        if ($psOutput !== false && $psOutput !== '') {
+        if (is_string($psOutput) && $psOutput !== '') {
             $totalKb = 0;
             foreach (explode("\n", trim($psOutput)) as $line) {
                 $line = trim($line);
@@ -80,7 +80,7 @@ class ServiceMemory
                 escapeshellarg($pattern)
             ));
 
-            if ($psOutput !== false && $psOutput !== '') {
+            if (is_string($psOutput) && $psOutput !== '') {
                 foreach (explode("\n", trim($psOutput)) as $line) {
                     $line = trim($line);
                     if ($line !== '' && is_numeric($line)) {
