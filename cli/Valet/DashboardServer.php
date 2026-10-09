@@ -42,6 +42,20 @@ class DashboardServer
             return true;
         }
 
+        // Hashed build assets are addressed by absolute URL (/assets/…) and are
+        // immutable, so they are served with a long cache life. Everything else
+        // below a dashboard host is the page itself.
+        if (preg_match('#^/assets/[A-Za-z0-9._-]+$#', $path) === 1) {
+            if ($this->serveAsset($path)) {
+                return true;
+            }
+
+            $this->status(404);
+            $this->json(['ok' => false, 'message' => 'No such dashboard asset.', 'data' => [], 'job' => null]);
+
+            return true;
+        }
+
         // Anything else under a dashboard host is the page itself. Mutations
         // are POST-only, so a GET that reaches here is always read-only.
         if ($method !== 'GET' && $method !== 'HEAD') {
@@ -258,13 +272,18 @@ class DashboardServer
 
         $token = bin2hex(random_bytes(32));
 
-        setcookie(DashboardRequest::csrfCookieName(), $token, [
-            'expires' => 0,
-            'path' => '/',
-            'secure' => ($_SERVER['HTTPS'] ?? '') === 'on',
-            'httponly' => false,
-            'samesite' => 'Strict',
-        ]);
+        // Nothing can set a cookie once output has started, which is also the
+        // case under the test runner; the page still gets its token from the
+        // payload in that case.
+        if (!headers_sent()) {
+            setcookie(DashboardRequest::csrfCookieName(), $token, [
+                'expires' => 0,
+                'path' => '/',
+                'secure' => ($_SERVER['HTTPS'] ?? '') === 'on',
+                'httponly' => false,
+                'samesite' => 'Strict',
+            ]);
+        }
 
         $_COOKIE[DashboardRequest::csrfCookieName()] = $token;
     }
@@ -281,6 +300,11 @@ class DashboardServer
 
     /**
      * Emit the dashboard page, degrading to raw JSON if the template is gone.
+     *
+     * The React build in cli/templates/dashboard-dist is served first: it is a
+     * plain static bundle, so an installed package needs no Node at runtime.
+     * The vanilla template remains as the fallback, which is what makes the
+     * upgrade safe on a machine that has never run npm.
      */
     private function renderPage(): void
     {
@@ -288,6 +312,10 @@ class DashboardServer
         $this->header('Cache-Control: no-store');
         $this->header('Referrer-Policy: same-origin');
         $this->header('X-Content-Type-Options: nosniff');
+
+        if ($this->serveBuiltApp()) {
+            return;
+        }
 
         try {
             echo $this->dashboard->render();
@@ -313,6 +341,98 @@ class DashboardServer
             'ok' => true,
             'data' => ['dashboard' => $this->dashboard->data(), 'privileges' => $this->privilege->status()],
         ]);
+    }
+
+    /**
+     * Where the built React dashboard lives.
+     *
+     * It is committed to the repository so an installed composer package serves
+     * a real SPA without Node being present on the machine.
+     */
+    private function builtAppPath(): string
+    {
+        return VALET_ROOT_PATH.'/cli/templates/dashboard-dist';
+    }
+
+    /**
+     * Serve the built dashboard's index.html.
+     *
+     * Called for every client-side route as well as for "/", so a reload on
+     * /sites/example.test returns the app rather than a 404.
+     */
+    private function serveBuiltApp(): bool
+    {
+        $index = $this->builtAppPath().'/index.html';
+
+        if (!$this->files->exists($index)) {
+            return false;
+        }
+
+        $html = $this->files->get($index);
+
+        if (!is_string($html) || $html === '') {
+            return false;
+        }
+
+        // The token the page needs for its first mutation is already in the
+        // cookie; the app reads it from there at runtime.
+        echo $html;
+
+        return true;
+    }
+
+    /**
+     * Serve one hashed asset from the built dashboard.
+     *
+     * The path is resolved with realpath and then checked against the build
+     * directory, so a crafted request cannot read anything outside it.
+     */
+    private function serveAsset(string $path): bool
+    {
+        $root = realpath($this->builtAppPath());
+
+        if ($root === false) {
+            return false;
+        }
+
+        $target = realpath($root.'/'.ltrim($path, '/'));
+
+        if ($target === false || !is_file($target)) {
+            return false;
+        }
+
+        if (!str_starts_with($target, $root.DIRECTORY_SEPARATOR)) {
+            return false;
+        }
+
+        $this->header('Content-Type: '.$this->mimeFor($target));
+        $this->header('Cache-Control: public, max-age=31536000, immutable');
+        $this->header('X-Content-Type-Options: nosniff');
+
+        readfile($target);
+
+        return true;
+    }
+
+    /**
+     * A content type for the handful of files a Vite build emits.
+     */
+    private function mimeFor(string $path): string
+    {
+        return match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'js', 'mjs' => 'text/javascript; charset=utf-8',
+            'css' => 'text/css; charset=utf-8',
+            'json' => 'application/json; charset=utf-8',
+            'svg' => 'image/svg+xml',
+            'woff2' => 'font/woff2',
+            'woff' => 'font/woff',
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'webp' => 'image/webp',
+            'ico' => 'image/x-icon',
+            'map' => 'application/json; charset=utf-8',
+            default => 'application/octet-stream',
+        };
     }
 
     /**

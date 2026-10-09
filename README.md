@@ -49,6 +49,7 @@ This fork extends the [upstream Valet Linux+](https://github.com/valet-linux-plu
 - **Mutations only from your machine** — over `POST` from loopback, with CSRF (double-submit cookie + header), same-origin check, and a confirmation that echoes the exact value being destroyed. Every action is appended to `~/.config/valet/Log/dashboard-audit.log`.
 - **Privileged work is opt-in** — `sudo valet dashboard:privileges install` drops a root-owned helper at `/usr/local/libexec/valet-dashboard-helper` with a `NOPASSWD` sudoers rule pinned to that exact path. Without it, the dashboard stays read-only and says so. The helper never executes user-supplied shell text; it re-validates every command against an allowlist.
 - **Background jobs** — imports, exports, snapshots, and backups run detached and are polled so php-fpm timeouts don't kill them.
+- **A React single-page app** — twelve routes (overview, sites, services, databases, PHP, snapshots, backups, certificates, logs, jobs, settings) with live polling, dark mode, and forms generated from the API's own action catalog. The built assets ship in `cli/templates/dashboard-dist/`, so no Node toolchain is needed to use it.
 
 See [docs/dashboard.md](docs/dashboard.md) for the full security model and [docs/api-v1.md](docs/api-v1.md) for the machine API.
 
@@ -157,7 +158,7 @@ Full option list for every command: **[docs/commands.md](docs/commands.md)**.
 
 Based on [`valet-linux-plus/valet-linux-plus`](https://github.com/valet-linux-plus/valet-linux-plus). Everything below is new in this fork:
 
-- **Controllable dashboard** — tabbed UI for sites, databases, PHP & Node, backups & certificates, logs & diagnostics, and settings, with 55 curated actions behind one `POST /api/actions/<slug>` endpoint. Read-only from anywhere; mutations only from the local machine through an opt-in root helper and an audit log.
+- **Controllable dashboard** — a React single-page app for sites, databases, PHP & Node, backups & certificates, logs & diagnostics, and settings, with 55 curated actions behind one `POST /api/actions/<slug>` endpoint. Read-only from anywhere; mutations only from the local machine through an opt-in root helper and an audit log.
 - **Idle sleep** — per-site `sleep`/`wake` plus an `idle` timer and pool-RAM reporting so isolated FPM pools don't burn RAM when nothing needs them.
 - **Real version discovery** — the dashboard and CLI show PHP and Node versions that are actually installed, not a fixed range.
 - **Project DX** — `clone`, `init`, `tinker`/`repl`, `db:sqlite`, `cache:*`, `shell-hook`, `tune`, `bench`, `snapshot:*`.

@@ -1644,3 +1644,38 @@ parameters:
 			message: "#^Property Valet\\\\Tests\\\\Unit\\\\ValetTest\\:\\:\\$filesystem \\(PHPUnit\\\\Framework\\\\MockObject\\\\MockObject\\|Valet\\\\Filesystem\\) does not accept Mockery\\\\MockInterface\\.$#"
 			count: 1
 			path: tests/Unit/ValetTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$dashboard of class Valet\\\\DashboardServer constructor expects Valet\\\\Dashboard, Mockery\\\\MockInterface given\\.$#"
+			count: 3
+			path: tests/Unit/DashboardServerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$files of method Valet\\\\Tests\\\\Unit\\\\DashboardServerTest\\:\\:server\\(\\) expects Valet\\\\Filesystem\\|null, Mockery\\\\MockInterface given\\.$#"
+			count: 2
+			path: tests/Unit/DashboardServerTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$api of class Valet\\\\DashboardServer constructor expects Valet\\\\DashboardApi, Mockery\\\\MockInterface given\\.$#"
+			count: 3
+			path: tests/Unit/DashboardServerTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$jobs of class Valet\\\\DashboardServer constructor expects Valet\\\\DashboardJob, Mockery\\\\MockInterface given\\.$#"
+			count: 3
+			path: tests/Unit/DashboardServerTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$privilege of class Valet\\\\DashboardServer constructor expects Valet\\\\DashboardPrivilege, Mockery\\\\MockInterface given\\.$#"
+			count: 3
+			path: tests/Unit/DashboardServerTest.php
+
+		-
+			message: "#^Parameter \\#5 \\$files of class Valet\\\\DashboardServer constructor expects Valet\\\\Filesystem, Mockery\\\\MockInterface given\\.$#"
+			count: 2
+			path: tests/Unit/DashboardServerTest.php
+
+		-
+			message: "#^Parameter \\#5 \\$files of class Valet\\\\DashboardServer constructor expects Valet\\\\Filesystem, Mockery\\\\MockInterface\\|Valet\\\\Filesystem given\\.$#"
+			count: 1
+			path: tests/Unit/DashboardServerTest.php

@@ -170,11 +170,13 @@ class Health
     {
         $start = microtime(true);
         try {
-            $host = $this->config->get('database.mysql_host', '127.0.0.1');
-            $port = (int) $this->config->get('database.mysql_port', 3306);
-            $user = $this->config->get('database.mysql_user', 'root');
+            $mysqlConfig = $this->config->get('mysql', []);
+            $host = is_scalar($mysqlConfig['host'] ?? null) ? (string) ($mysqlConfig['host'] ?? '127.0.0.1') : '127.0.0.1';
+            $port = (int) (is_scalar($mysqlConfig['port'] ?? null) ? (string) ($mysqlConfig['port'] ?? '3306') : '3306');
+            $user = is_scalar($mysqlConfig['user'] ?? null) ? (string) $mysqlConfig['user'] : 'root';
+            $password = is_scalar($mysqlConfig['password'] ?? null) ? (string) $mysqlConfig['password'] : null;
             $dsn = sprintf('mysql:host=%s;port=%d', $host, $port);
-            $pdo = new PDO($dsn, $user, null, [PDO::ATTR_TIMEOUT => 2, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $pdo = new PDO($dsn, $user, $password, [PDO::ATTR_TIMEOUT => 2, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
             $pdo->query('SELECT 1');
             $latency = (microtime(true) - $start) * 1000;
 
@@ -197,11 +199,13 @@ class Health
     {
         $start = microtime(true);
         try {
-            $host = $this->config->get('database.pgsql_host', '127.0.0.1');
-            $port = (int) $this->config->get('database.pgsql_port', 5432);
-            $user = $this->config->get('database.pgsql_user', 'postgres');
+            $pgsqlConfig = $this->config->get('pgsql', []);
+            $host = is_scalar($pgsqlConfig['host'] ?? null) ? (string) ($pgsqlConfig['host'] ?? '127.0.0.1') : '127.0.0.1';
+            $port = (int) (is_scalar($pgsqlConfig['port'] ?? null) ? (string) ($pgsqlConfig['port'] ?? '5432') : '5432');
+            $user = is_scalar($pgsqlConfig['user'] ?? null) ? (string) $pgsqlConfig['user'] : 'postgres';
+            $password = is_scalar($pgsqlConfig['password'] ?? null) ? (string) $pgsqlConfig['password'] : null;
             $dsn = sprintf('pgsql:host=%s;port=%d;dbname=postgres', $host, $port);
-            $pdo = new PDO($dsn, $user, null, [PDO::ATTR_TIMEOUT => 2, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $pdo = new PDO($dsn, $user, $password, [PDO::ATTR_TIMEOUT => 2, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
             $pdo->query('SELECT 1');
             $latency = (microtime(true) - $start) * 1000;
 

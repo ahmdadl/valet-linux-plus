@@ -1,0 +1,113 @@
+@import 'tailwindcss';
+
+/*
+ * The palette is carried over from the vanilla dashboard (cli/templates/
+ * dashboard.html) so the two look like the same product: the same orange
+ * accent, the same warm off-white paper, the same near-black dark mode.
+ */
+@theme {
+  --color-accent: #ff4e1a;
+  --color-accent-strong: #e63f0f;
+  --color-accent-soft: #fff1ea;
+  --color-accent-2: #ff7a1a;
+
+  --color-paper: #fcfcf8;
+  --color-card: #ffffff;
+  --color-ink: #16150f;
+  --color-muted: #6f6d63;
+  --color-line: #ecece8;
+  --color-line-strong: #dcdcd4;
+
+  --color-night: #0c0c0b;
+  --color-night-card: #171715;
+  --color-night-ink: #f4f3ee;
+  --color-night-muted: #9b9990;
+  --color-night-line: #262624;
+  --color-night-line-strong: #35352f;
+
+  --color-ok: #1a7f4b;
+  --color-warn: #b8730a;
+  --color-bad: #c3372b;
+
+  --radius-card: 14px;
+
+  --shadow-card: 0 1px 2px rgb(20 18 12 / 0.04), 0 8px 24px -16px rgb(20 18 12 / 0.18);
+  --shadow-pop: 0 24px 60px -24px rgb(20 18 12 / 0.35);
+
+  --font-sans:
+    'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-mono:
+    ui-monospace, 'SFMono-Regular', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
+    monospace;
+}
+
+/*
+ * Dark mode is driven by a class on <html>, set before first paint by the
+ * inline script in index.html from localStorage (falling back to the OS
+ * preference, exactly like the old page).
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .dark body {
+    background-color: var(--color-night);
+    color: var(--color-night-ink);
+  }
+
+  * {
+    border-color: var(--color-line);
+  }
+
+  .dark * {
+    border-color: var(--color-night-line);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+}
+
+@layer utilities {
+  /* A thin, quiet scrollbar for the log and job panes. */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  .dark .scroll-thin {
+    scrollbar-color: var(--color-night-line-strong) transparent;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 999px;
+  }
+
+  .dark .scroll-thin::-webkit-scrollbar-thumb {
+    background: var(--color-night-line-strong);
+  }
+}

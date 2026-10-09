@@ -31,6 +31,84 @@ foreground sharing, `install`/`uninstall`/`update`, `service:add`/`service:remov
 `tune`, `clone` and `bench`. Those stay in the terminal, where their prompts and
 output belong.
 
+## The dashboard UI
+
+The dashboard is a React single-page application in `dashboard/`, built with Vite and
+TypeScript, styled with Tailwind, and routed with React Router. The built assets are
+committed to `cli/templates/dashboard-dist/` so that installing the composer package
+gives you a working dashboard with no Node toolchain — the same reason the previous
+single-file UI had no build step.
+
+`server.php` serves it: `/assets/*` is answered from the build with
+`Cache-Control: public, max-age=31536000, immutable`, and **every other non-`/api/`
+GET returns `index.html`** so a reload on a deep link keeps the client-side route. A
+request the app can never answer — a `POST` to a page route — is refused with 405
+rather than silently ignored. If the build directory is missing, the server falls
+back to the legacy `cli/templates/dashboard.html` template, so a checkout without a
+build still renders the old UI.
+
+### Routes
+
+| Path | Page |
+| --- | --- |
+| `/` | Overview: counts, health, recent sites, services, mail and database URLs. |
+| `/sites` | All sites with type and state filters, search, and per-site actions. |
+| `/sites/:name` | One site: details, action grid, its snapshots. |
+| `/services` | Service tiles with start, stop and restart. |
+| `/databases` | MySQL and PostgreSQL databases, with create, drop, reset, import, export. |
+| `/php` | PHP versions, xdebug, Node, and isolated sites. |
+| `/snapshots` | Snapshots with create and restore. |
+| `/backups` | Backup archives with create and restore. |
+| `/certificates` | Issued certificates, renewals, CA trust. |
+| `/logs` | Log viewer plus the health and diagnostics runners. |
+| `/jobs` | Background job feed with live output. |
+| `/settings` | Domain, port, privilege helper status, profiles, addons, caches. |
+
+### How it stays current
+
+`GET /api/data` is polled every five seconds with TanStack Query — paused while the
+tab is hidden — and `GET /api/jobs` every 1.2 seconds while any job is running, which
+is what makes the site list, service status and the activity drawer move on their
+own. Mutations invalidate the data and job queries on success. There is no WebSocket
+and no long-polling; the endpoint costs are small and the UI degrades cleanly when a
+poll fails.
+
+Action forms are generated from `GET /api/catalog` rather than hand-written per
+action, so a new parameter in `DashboardApi` shows up in the UI on its own. A
+destructive action asks for the exact value being destroyed, and a root-tier action
+whose helper is not installed explains the `sudo valet dashboard:privileges install`
+command instead of hiding itself.
+
+### Developing the UI
+
+```bash
+npm --prefix dashboard install --cache /tmp/opencode/npm-cache   # if your npm cache is broken
+npm --prefix dashboard run dev        # 127.0.0.1:5173 (next free port if taken), /api proxied
+npm --prefix dashboard run build      # type-check, then emit cli/templates/dashboard-dist
+npm --prefix dashboard run test       # vitest
+composer dashboard:build              # same build through composer
+```
+
+To exercise the built app with real data, serve the front controller directly and
+open it under the dashboard host:
+
+```bash
+php -S 127.0.0.1:8090 server.php     # then browse http://valet.test:8090
+```
+
+The dev server proxies `/api` to `https://valet.test`; point `VITE_DEV_API_ORIGIN` at
+another dashboard host to develop against a different one. Keep a `valet.<domain>`
+host in it — `server.php` routes on `Host`, so an address such as
+`http://127.0.0.1:8090` gets Valet's own 404 rather than the dashboard. If port 5173
+is taken the dev server binds the next free port and logs which one it chose; set
+`VITE_DEV_PORT` to prefer another. Set `VITE_API_BASE` in the built
+app to call an API on another origin — leave it empty to use same-origin, which is
+what keeps the `valet_csrf` cookie and loopback checks intact.
+
+The TypeScript contract in `dashboard/src/types.ts` mirrors `DashboardApi`'s registry
+by hand; `tests/Unit/DashboardServerTest.php` and `dashboard/tests/*.test.tsx` pin
+the shapes on both sides.
+
 ## Security model
 
 | Control | Rule |
@@ -254,6 +332,12 @@ hand.
 **The dashboard is blank or shows raw JSON.** `server.php` could not build the
 container. `valet diagnose` will say why.
 
+**The page loads but is unstyled, or the console reports 404s for `/assets/*`.** The
+built app in `cli/templates/dashboard-dist/` is out of sync with itself — usually a
+partial copy or an old `index.html` naming assets a newer build removed. Run
+`composer dashboard:build`, or delete the directory to fall back to the legacy
+template.
+
 ## Implementation map
 
 | File | Role |
@@ -265,4 +349,6 @@ container. `valet diagnose` will say why.
 | `cli/Valet/DashboardJob.php` | Queues and tracks background work. |
 | `cli/Valet/DeferredPrivileged.php` | The allowlist of commands the helper may run as root. |
 | `cli/scripts/valet-dashboard-helper` | The root-owned bash helper. |
-| `cli/templates/dashboard.html` | The frontend. No build step, no dependencies. |
+| `cli/templates/dashboard-dist/` | The built React app: `index.html` plus hashed `/assets/*`. |
+| `cli/templates/dashboard.html` | The legacy frontend, served when no build exists. No build step, no dependencies. |
+| `dashboard/` | The React source. See "Developing the UI" above. |

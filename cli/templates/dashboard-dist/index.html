@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="same-origin" />
+    <title>Valet Dashboard</title>
+    <script>
+      // Paint the stored theme before first paint so there is no flash.
+      // The dashboard honours the OS preference by default (same as the old
+      // vanilla page) and only overrides it when the user picked a side.
+      (function () {
+        try {
+          var stored = localStorage.getItem('valet-dashboard-theme');
+          var dark =
+            stored === 'dark' ||
+            (stored === null &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {
+          /* private mode: fall back to the OS preference */
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-NKiulVp8.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/query-DWpA8hM0.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-DLuIwbi2.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-DxX5S8TF.css">
+  </head>
+  <body class="h-full">
+    <div id="root"></div>
+  </body>
+</html>
