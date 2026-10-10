@@ -180,7 +180,9 @@ export function AppShell() {
               <>
                 <Badge tone="accent">PHP {dashboard.php_version}</Badge>
                 <span className="hidden text-[11px] text-muted sm:inline dark:text-night-muted">
-                  v{dashboard.valet_version}
+                  {dashboard.valet_version && dashboard.valet_version !== 'unknown'
+                    ? `v${dashboard.valet_version}`
+                    : 'v?'}
                 </span>
               </>
             )}
