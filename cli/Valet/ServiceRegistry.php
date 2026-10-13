@@ -47,15 +47,6 @@ class ServiceRegistry
      * Each template is a complete service definition keyed by its name.
      */
     protected const BUILTIN_TEMPLATES = [
-        'minio' => [
-            'name' => 'minio',
-            'package' => 'minio',
-            'service' => 'minio',
-            'port' => 9000,
-            'proxyHost' => 'http://127.0.0.1:9000',
-            'healthCheck' => 'http://127.0.0.1:9000/minio/health/live',
-            'description' => 'MinIO object storage',
-        ],
         'meilisearch' => [
             'name' => 'meilisearch',
             'package' => 'meilisearch',
